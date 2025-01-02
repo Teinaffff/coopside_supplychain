@@ -4,6 +4,7 @@ import DropdownUser from "./DropdownUser";
 // import LogoIcon from '../../images/logo/logo-icon.svg';
 import { Menu } from "lucide-react";
 import DarkModeSwitcher from "./DarkModeSwitcher";
+import DropdownNotification from "./DropdownNotification";
 
 const Header = (props: {
   sidebarOpen: string | boolean | undefined;
@@ -34,6 +35,10 @@ const Header = (props: {
             {/* <!-- Dark Mode Toggler --> */}
             <DarkModeSwitcher />
             {/* <!-- Dark Mode Toggler --> */}
+
+            {/* <!-- Notification Menu Area --> */}
+            <DropdownNotification />
+            {/* <!-- Notification Menu Area --> */}
           </ul>
 
           {/* <!-- User Area --> */}
