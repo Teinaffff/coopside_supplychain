@@ -3,13 +3,13 @@ import UsersPage from "../pages/users/page";
 
 export const ROUTES = [
   {
-    path: "/",
-    title: "Dashboard",
+    path: "/dashboard",
+    title: "Home",
     element: <Dashboard />,
   },
   {
-    path: "/users",
-    title: "Users",
+    path: "/members",
+    title: "Members",
     element: <UsersPage />,
   },
 ];

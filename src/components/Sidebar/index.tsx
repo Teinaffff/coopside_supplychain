@@ -58,7 +58,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   return (
     <aside
       ref={sidebar}
-      className={`absolute left-0 top-0  z-[50] flex h-screen w-72.5 flex-col overflow-y-hidden bg-slate-200 duration-300 ease-linear dark:bg-slate-500 lg:static lg:translate-x-0 ${
+      className={`absolute left-0 top-0  z-[50] flex h-screen w-72 flex-col overflow-y-hidden bg-cyan-500 duration-300 ease-linear dark:bg-cyan-500 lg:static lg:translate-x-0 ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
@@ -95,7 +95,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         <nav className="mt-5 py-4 px-4 lg:mt-9 lg:px-6">
           {/* <!-- Menu Group --> */}
           <div>
-            <h3 className="mb-4 ml-4 text-sm font-semibold text-bodydark2">
+            <h3 className="mb-4 ml-4 text-sm font-semibold text-gray-200">
               MENU
             </h3>
 
@@ -106,10 +106,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     label={item.label}
                     to={item.to}
                     icon={item.icon}
-                    isActive={
-                      item.pathname === "/"
-                        ? pathname === "/"
-                        : pathname.includes(item.pathname)
+                    isActive={pathname.includes(item.pathname)
                     }
                   />
                 </li>
@@ -137,8 +134,8 @@ const SidebarItem = ({
 }) => (
   <NavLink
     to={to}
-    className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium text-slate-700 hover:text-white dark:text-white duration-300 ease-in-out hover:bg-cyan-300 dark:hover:bg-meta-4 ${
-      isActive ? "bg-cyan-500 dark:bg-meta-4 text-white" : ""
+    className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium duration-300 ease-in-out hover:text-cyan-500 hover:bg-white dark:hover:bg-meta-4 ${
+      isActive ? "bg-white dark:bg-meta-4  text-cyan-500" : "text-white"
     }`}
   >
     {icon}
