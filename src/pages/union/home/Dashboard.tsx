@@ -1,28 +1,26 @@
 import {
   ArrowDown,
   ArrowUp,
-  Ban,
   CalendarCheck,
-  CheckCheck,
   CheckCircle,
   Clock,
-  Loader,
-  PlaneTakeoff,
   X,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import Loader1 from "../../common/Loader";
-import { Card, CardContent, CardHeader, CardTitle } from "../../common/ui/card";
-import DefaultLayout from "../../layout/DefaultLayout";
-
+import React, { useState } from "react";
+import Loader from "../../../common/Loader";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../../common/ui/card";
 const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   return loading ? (
-    <Loader1 />
+    <Loader />
   ) : (
-    <DefaultLayout>
+    <>
       <div className="space-y-4">
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
           <Card className="dark:bg-slate-800">
@@ -111,10 +109,10 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="mt-4 grid grid-cols-12 gap-4 md:mt-6 md:gap-6 2xl:mt-7.5 2xl:gap-7.5">
-          Dashboard Page
+          Union Dashboard Page
         </div>
       </div>
-    </DefaultLayout>
+    </>
   );
 };
 

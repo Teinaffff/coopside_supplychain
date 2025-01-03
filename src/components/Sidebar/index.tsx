@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import Logo from "../../common/Logo";
-import { menuItems } from "../../constants/menu";
+import { NavigationItem } from "../../constants/interface/NavigationItem";
+import { isActivePath } from "../../lib/utils";
 
 interface SidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (arg: boolean) => void;
+  menuItems: NavigationItem[];
 }
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
+const Sidebar = ({ sidebarOpen, setSidebarOpen, menuItems }: SidebarProps) => {
   const location = useLocation();
   const { pathname } = location;
 
@@ -106,8 +108,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
                     label={item.label}
                     to={item.to}
                     icon={item.icon}
-                    isActive={pathname.includes(item.pathname)
-                    }
+                    isActive={isActivePath(pathname, "/pc", item.pathname)}
                   />
                 </li>
               ))}

@@ -12,16 +12,16 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from '@tanstack/react-table';
-import { useState } from 'react';
+} from "@tanstack/react-table";
+import { useState } from "react";
 
-import { Download, LucideIcon } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { AlertModal } from '../modals/alert-modal';
-import { Button } from './button';
-import { DataTablePagination } from './data-table-pagination';
-import { DataTableToolbar } from './data-table-toolbar';
-import { Input } from './input';
+import { Download, LucideIcon } from "lucide-react";
+import toast from "react-hot-toast";
+import { AlertModal } from "../modals/alert-modal";
+import { Button } from "./button";
+import { DataTablePagination } from "./data-table-pagination";
+import { DataTableToolbar } from "./data-table-toolbar";
+import { Input } from "./input";
 import {
   Table,
   TableBody,
@@ -29,7 +29,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from './table';
+} from "./table";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -61,7 +61,7 @@ export function DataTable<TData, TValue>({
   const [rowSelection, setRowSelection] = useState({});
   const [open, setOpen] = useState(false);
 
-  const userAuthorities = localStorage.getItem('authorities');
+  const userAuthorities = localStorage.getItem("authorities");
 
   const table = useReactTable({
     data,
@@ -96,7 +96,7 @@ export function DataTable<TData, TValue>({
         onConfirmFunction(selectedDataToDelete);
       }
     } catch (error) {
-      toast.error('Something went wrong!');
+      toast.error("Something went wrong!");
     } finally {
       setLoading(false);
       setOpen(false);
@@ -113,8 +113,8 @@ export function DataTable<TData, TValue>({
       />
       <div className="flex items-center py-4">
         <Input
-          placeholder="Search key @ first column..."
-          value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ''}
+          placeholder={`Search by ${searchKey}`}
+          value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn(searchKey)?.setFilterValue(event.target.value)
           }
@@ -131,15 +131,15 @@ export function DataTable<TData, TValue>({
                   <div
                     className={`${
                       !(
-                        userAuthorities?.includes('DELETE_ACCOUNT') ||
-                        !userAuthorities?.includes('DELETE_VISITORS')
-                      ) && 'cursor-not-allowed'
+                        userAuthorities?.includes("DELETE_ACCOUNT") ||
+                        !userAuthorities?.includes("DELETE_VISITORS")
+                      ) && "cursor-not-allowed"
                     }`}
                     title={`${
                       !(
-                        userAuthorities?.includes('DELETE_ACCOUNT') ||
-                        !userAuthorities?.includes('DELETE_VISITORS')
-                      ) && 'Not Authorized'
+                        userAuthorities?.includes("DELETE_ACCOUNT") ||
+                        !userAuthorities?.includes("DELETE_VISITORS")
+                      ) && "Not Authorized"
                     }`}
                   >
                     <Button
@@ -160,8 +160,8 @@ export function DataTable<TData, TValue>({
                   size="sm"
                   onClick={() =>
                     onExport(
-                      'filtered',
-                      table.getFilteredSelectedRowModel().rows,
+                      "filtered",
+                      table.getFilteredSelectedRowModel().rows
                     )
                   }
                   variant="secondary"
@@ -176,17 +176,17 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
       <Table>
-        <TableHeader style={{ textAlign: 'center' }}>
+        <TableHeader style={{ textAlign: "center" }}>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} style={{ textAlign: 'center' }}>
+            <TableRow key={headerGroup.id} style={{ textAlign: "center" }}>
               {headerGroup.headers.map((header) => {
                 return (
-                  <TableHead key={header.id} style={{ textAlign: 'center' }}>
+                  <TableHead key={header.id} style={{ textAlign: "center" }}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext(),
+                          header.getContext()
                         )}
                   </TableHead>
                 );
@@ -198,25 +198,25 @@ export function DataTable<TData, TValue>({
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow
-                style={{ textAlign: 'center' }}
+                style={{ textAlign: "center" }}
                 key={row.id}
-                className={`${clickable && 'cursor-pointer'}`}
+                className={`${clickable && "cursor-pointer"}`}
                 onClick={() => clickable && getSelectedRow?.(row.original)}
-                data-state={row.getIsSelected() && 'selected'}
+                data-state={row.getIsSelected() && "selected"}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} style={{ textAlign: 'center' }}>
+                  <TableCell key={cell.id} style={{ textAlign: "center" }}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
               </TableRow>
             ))
           ) : (
-            <TableRow style={{ textAlign: 'center' }}>
+            <TableRow style={{ textAlign: "center" }}>
               <TableCell
                 colSpan={columns.length}
                 className="h-24 text-center"
-                style={{ textAlign: 'center' }}
+                style={{ textAlign: "center" }}
               >
                 No results.
               </TableCell>

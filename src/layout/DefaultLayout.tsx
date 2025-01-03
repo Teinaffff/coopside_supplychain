@@ -1,8 +1,12 @@
-import React, { useState, ReactNode } from 'react';
-import Header from '../components/Header/index';
-import Sidebar from '../components/Sidebar/index';
+import React, { useState, ReactNode } from "react";
+import Header from "../components/Header/index";
+import Sidebar from "../components/Sidebar/index";
+import { NavigationItem } from "../constants/interface/NavigationItem";
 
-const DefaultLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
+const DefaultLayout: React.FC<{
+  children: ReactNode;
+  menuItems: NavigationItem[];
+}> = ({ children, menuItems }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -10,7 +14,11 @@ const DefaultLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
       {/* <!-- ===== Page Wrapper Start ===== --> */}
       <div className="flex h-screen overflow-hidden">
         {/* <!-- ===== Sidebar Start ===== --> */}
-        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+        <Sidebar
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          menuItems={menuItems}
+        />
         {/* <!-- ===== Sidebar End ===== --> */}
 
         {/* <!-- ===== Content Area Start ===== --> */}

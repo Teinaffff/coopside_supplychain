@@ -1,10 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { userInitialState } from "../initialStates.ts";
-import { User } from "../../constants/interface/user.ts";
+import { User } from "../../../constants/interface/pc/members.ts";
+import { PcUserInitialState } from "../../initialStates.ts";
 
 const userSlice = createSlice({
   name: "users",
-  initialState: userInitialState,
+  initialState: PcUserInitialState,
   reducers: {
     getUsers: (state, { payload }: PayloadAction<User[]>) => {
       state.usersList = payload;

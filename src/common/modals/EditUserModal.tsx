@@ -5,7 +5,7 @@ import { useEditUserModal } from "../../hooks/use-edit-user-modal";
 import { User } from "../../constants/interface/user";
 import { Modal } from "../ui/modal";
 import { useAppDispatch } from "../../store";
-import { updateUsersData } from "../../store/user/user-extra";
+import { updateUsersData } from "../../store/pc/user/user-extra";
 
 export const EditUserModal = () => {
   const { isOpen, onClose, defaultValues } = useEditUserModal();

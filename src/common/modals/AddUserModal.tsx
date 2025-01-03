@@ -4,7 +4,7 @@ import AddUserForm from "../../components/AddUserForm";
 import { User } from "../../constants/interface/user";
 import { useAddUserModal } from "../../hooks/use-add-user-modal";
 import { Modal } from "../ui/modal";
-import { createUserData } from "../../store/user/user-extra";
+import { createUserData } from "../../store/pc/user/user-extra";
 
 export const AddUserModal = () => {
   const { isOpen, onClose, defaultValues } = useAddUserModal();

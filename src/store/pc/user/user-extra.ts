@@ -1,19 +1,26 @@
 import { createAsyncThunk, Dispatch } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
-import API from "../../config/axios-config";
+import API from "../../../config/axios-config";
 import { getUsers } from "./user-slice";
-import { HTTP_RESPONSE } from "../../constants/general";
+import { HTTP_RESPONSE } from "../../../constants/general";
+import { users } from "../../../common/data/data";
 
 export const getUsersData = createAsyncThunk(
   "users/getusers",
   async (_, { dispatch }) => {
     try {
-      const { data } = await API.get("/users");
-      console.log("users", data);
-      if (data) {
-        dispatch(getUsers(data));
+      console.log("object", users);
+      // const { data } = await API.get("/users");
+      // console.log("users", data);
+      // if (data) {
+      //   dispatch(getUsers(data));
+      // }
+      // return data ?? [];
+
+      if (users) {
+        dispatch(getUsers(users));
       }
-      return data ?? [];
+      return users ?? [];
     } catch (error: any) {
       toast.error("Something went wrong!");
     }
@@ -37,16 +44,16 @@ export const updateUsersData = (data: any) => {
 };
 
 export const createUserData = createAsyncThunk(
-    'users/create',
-    async (data: any, { dispatch }) => {
-        try {
-            await API.post(`/users`, data);
-            dispatch(getUsersData() as any);
-            toast.success('User Added Successfully!');
-        } catch (error: any) {
-            toast.error(error.message ? error.message : 'Something went wrong!');
-        }
-    },
+  "users/create",
+  async (data: any, { dispatch }) => {
+    try {
+      await API.post(`/users`, data);
+      dispatch(getUsersData() as any);
+      toast.success("User Added Successfully!");
+    } catch (error: any) {
+      toast.error(error.message ? error.message : "Something went wrong!");
+    }
+  }
 );
 
 export const deleteUserData = createAsyncThunk(
