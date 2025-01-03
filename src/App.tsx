@@ -5,6 +5,7 @@ import RequireAuth from "./pages/auth/RequireAuth";
 import Landing from "./pages/landing/Landing";
 import PC from "./pages/pc";
 import Union from "./pages/union";
+import SignupPage from "./pages/auth/Signup";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         </Route>
 
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<SignupPage />} />
       </Route>
     </Routes>
   );

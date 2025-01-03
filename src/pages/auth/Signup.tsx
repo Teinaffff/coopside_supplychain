@@ -25,15 +25,41 @@ import { Button } from "../../common/ui/button";
 import { Loader } from "../../common/ui/loader";
 import QuoteSlider from "../../components/slider";
 import { cooperativeQuotes } from "../../common/data/data";
+import { emailRegex } from "../../lib/utils";
+import { Textarea } from "../../common/ui/textarea";
 
-const formSchema = z.object({
-  email: z.string().min(1, "Email is required"),
-  password: z.string().min(1, "Password is required"),
-});
+const formSchema = z
+  .object({
+    email: z
+      .string()
+      .min(1, { message: "Email is required" })
+      .refine(
+        (data) => {
+          return emailRegex.test(data);
+        },
+        { message: "Invalid email" }
+      ),
+    name: z.string().min(1, { message: "Cooperative name is required" }),
+    purpose: z.string().min(1, { message: "Purpose is required" }),
+    password: z
+      .string()
+      .min(6, { message: "Password must be at least 6 characters long" })
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+{}|:"<>?~])/, {
+        message:
+          "Password must contain one lowercase letter, one uppercase letter, one number, and one special character",
+      }),
+    confirmPassword: z
+      .string()
+      .min(6, { message: "Confirm Password is required" }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Password must match",
+    path: ["confirmPassword"],
+  });
 
 type LevelFormValues = z.infer<typeof formSchema>;
 
-const LoginPage = () => {
+const SignupPage = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
@@ -52,8 +78,11 @@ const LoginPage = () => {
   const form = useForm<LevelFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: "",
       email: "",
+      purpose: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
@@ -86,7 +115,7 @@ const LoginPage = () => {
         <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0 shadow">
           <div className="flex w-full items-center justify-center">
             <div className="w-full flex justify-center">
-              <div className="w-full bg-gradient-to-r text-white bg-gray-400 to-cyan-400 from-blue-500 dark:from-gray-00 dark:to-gray-600 hidden md:block rounded-l-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+              {/* <div className="w-full bg-gradient-to-r text-white bg-gray-400 to-cyan-400 from-blue-500 dark:from-gray-00 dark:to-gray-600 hidden md:block rounded-l-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
                 <div className="flex items-center justify-center p-8">
                   <img src={IMAGES.coopLogoNoBg} alt="logo" width={120} />
                   <div className="flex flex-col text-white font-bold ml-5 text-sm">
@@ -103,14 +132,14 @@ const LoginPage = () => {
                     options={{ loop: true }}
                   />
                 </div>
-              </div>
+              </div> */}
               <div className="w-full bg-white rounded-r-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
                 <div className="flex items-center justify-center">
                   <img src={IMAGES.cmsLogo} alt="logo" width={175} />
                 </div>
-                <div className="space-y-4 md:space-y-6 sm:p-8">
+                <div className="space-y-4 md:space-y-6 sm:px-8 pb-8 pt-4">
                   <h1 className="text-xl font-semibold leading-tight tracking-tight text-gray-900 md:text-xl dark:text-white">
-                    Sign in to your account
+                    Register your Cooperative
                   </h1>
                   <Form {...form}>
                     <form
@@ -118,26 +147,57 @@ const LoginPage = () => {
                       className="space-y-8 w-full"
                     >
                       <div className="space-y-4 md:space-y-4">
-                        <div className="space-y-2">
-                          <FormField
-                            control={form.control}
-                            name="email"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Email:</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    type="text"
-                                    // placeholder="johndoe@example.com"
-                                    disabled={loading}
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                        <FormField
+                          control={form.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Cooperative Name:</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="text"
+                                  {...field}
+                                  disabled={loading}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="purpose"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Purpose:</FormLabel>
+                              <FormControl>
+                                <Textarea
+                                  rows={4}
+                                  {...field}
+                                  disabled={loading}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email:</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="text"
+                                  disabled={loading}
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                         <div className="space-y-2 relative">
                           <FormField
                             control={form.control}
@@ -171,22 +231,24 @@ const LoginPage = () => {
                             )}
                           />
                         </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <Checkbox id="terms" />
-                            <label
-                              htmlFor="terms"
-                              className="text-sm font-light leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              Remember me
-                            </label>
-                          </div>
-                          <Link
-                            to={"/forgotpassword"}
-                            className="text-sm font-medium text-cyan-500 hover:underline dark:text-cyan-500"
-                          >
-                            Forgot password?
-                          </Link>
+                        <div className="space-y-2 relative">
+                          <FormField
+                            control={form.control}
+                            name="confirmPassword"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Confirm Password:</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type={"password"}
+                                    {...field}
+                                    disabled={loading}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                         </div>
                         <Button
                           disabled={loading}
@@ -204,12 +266,12 @@ const LoginPage = () => {
                           Sign in
                         </Button>
                         <p className="text-sm font-light">
-                          Want to create Cooperative?
+                          Do you have an account?
                           <Link
-                            to={"/register"}
+                            to={"/login"}
                             className="font-medium ml-2 text-cyan-500 hover:underline dark:text-cyan-500"
                           >
-                            Sign up
+                            Signin
                           </Link>
                         </p>
                       </div>
@@ -225,4 +287,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default SignupPage;
