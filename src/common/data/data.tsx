@@ -43,8 +43,6 @@ export const notifications: Notification[] = [
   },
 ];
 
-
-
 export const users = [
   {
     userId: 1,
@@ -128,4 +126,29 @@ export const users = [
   },
 ];
 
-
+export const cooperativeQuotes = [
+  {
+    quote:
+      "Cooperation is the foundation of sustainable progress. When we unite, we achieve greatness together.",
+    name: "Haile Gebre",
+  },
+  {
+    quote: "Alone we can do so little; together we can do so much.",
+    name: "Helen Keller",
+  },
+  {
+    quote:
+      "The success of a cooperative lies in its ability to foster trust and collaboration.",
+    name: "Miyamoto Musashi",
+  },
+  {
+    quote:
+      "In the heart of cooperation, we find the strength of community and the promise of a brighter future.",
+    name: "Nelson Mandela",
+  },
+  {
+    quote:
+      "A cooperative is not just a business, it’s a movement that embodies shared responsibility and mutual benefit.",
+    name: "Amina J. Mohammed",
+  },
+];

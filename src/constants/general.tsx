@@ -4,3 +4,6 @@ export const HTTP_RESPONSE = {
   UPDATED: 204,
   UNAUTHORIZED: 401,
 };
+
+export const TOKEN = "token";
+export const USER = "user";
