@@ -2,7 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import Layout from "./layout/Layout";
 import Login from "./pages/auth/Login";
 import RequireAuth from "./pages/auth/RequireAuth";
-import Landing from "./pages/landing/Landing";
+import Landing from "./pages/landing";
 import PC from "./pages/pc";
 import Union from "./pages/union";
 import SignupPage from "./pages/auth/Signup";
