@@ -129,7 +129,7 @@ export const users = [
 export const cooperativeQuotes = [
   {
     quote:
-      "Cooperation is the foundation of sustainable progress. When we unite, we achieve greatness together.",
+      "The key to overcoming poverty lies in the power of cooperation and cooperatives",
     name: "Haile Gebre",
   },
   {
