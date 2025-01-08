@@ -23,18 +23,18 @@ const Hero = () => {
 
   return (
     <motion.div
-      className="py-20 mt-[72px] bg-fit bg-center bg-no-repeat relative min-h-[500px]"
+      className="py-20 pt-40 mt-[72px] bg-fit bg-center bg-no-repeat relative min-h-[755px]"
       id="home"
       style={{
         backgroundImage: `url(${IMAGES.heroRectangle})`,
-        backgroundSize: "1440px 525px",
+        backgroundSize: "1440px 770px",
         backgroundPosition: "left bottom",
       }}
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
+      <div className="flex flex-col space-y-10 max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
         <motion.div
           className="flex justify-center mb-8"
           variants={fadeInVariants(0.3)}

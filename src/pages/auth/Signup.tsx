@@ -115,24 +115,7 @@ const SignupPage = () => {
         <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0 shadow">
           <div className="flex w-full items-center justify-center">
             <div className="w-full flex justify-center">
-              {/* <div className="w-full bg-gradient-to-r text-white bg-gray-400 to-cyan-400 from-blue-500 dark:from-gray-00 dark:to-gray-600 hidden md:block rounded-l-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
-                <div className="flex items-center justify-center p-8">
-                  <img src={IMAGES.coopLogoNoBg} alt="logo" width={120} />
-                  <div className="flex flex-col text-white font-bold ml-5 text-sm">
-                    <span>Baankii Hojii Gamtaa Oromiyaa</span>
-                    <span>የኦሮሚያ ኅብረት ሥራ ባንክ</span>
-                  </div>
-                </div>
-                <div className="flex-1 items-center  justify-center text-2xl font-bold px-16 py-3">
-                  <span>Cooperative Societies Data Management System</span>
-                </div>
-                <div className="px-4 py-6">
-                  <QuoteSlider
-                    quotes={cooperativeQuotes}
-                    options={{ loop: true }}
-                  />
-                </div>
-              </div> */}
+              
               <div className="w-full bg-white rounded-r-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
                 <div className="flex items-center justify-center">
                   <img src={IMAGES.cmsLogo} alt="logo" width={175} />
