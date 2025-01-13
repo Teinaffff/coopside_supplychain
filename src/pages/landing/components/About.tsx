@@ -1,7 +1,12 @@
 import { motion } from "framer-motion";
 import { Calendar, Users, Users2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import CountUp from "react-countup";
 
 const AboutUs = () => {
+  const [inView, setInView] = useState(false);
+  const aboutRef = useRef(null);
+
   // Animation Variants
   const containerVariants = {
     hidden: { opacity: 0, y: 50 },
@@ -32,14 +37,36 @@ const AboutUs = () => {
     },
   };
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setInView(true);
+          observer.disconnect(); // Stop observing once the section is in view
+        }
+      },
+      { threshold: 0.3 } // Adjust this threshold as needed
+    );
+
+    if (aboutRef.current) {
+      observer.observe(aboutRef.current);
+    }
+
+    return () => {
+      if (aboutRef.current) {
+        observer.unobserve(aboutRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <section className="bg-gray-50 py-16" id="about">
+    <section className="bg-gray-50 py-16" id="about" ref={aboutRef}>
       <div className="max-w-7xl mx-auto px-6 text-center">
         {/* Heading Section */}
         <motion.div
           className="mb-12"
           initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
         >
           <span className="bg-cyan-600 text-white px-4 py-2 rounded-full text-sm font-medium inline-block">
@@ -60,25 +87,25 @@ const AboutUs = () => {
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           variants={containerVariants}
           initial="hidden"
-          animate="visible"
+          animate={inView ? "visible" : "hidden"}
         >
           {[
             {
-              title: "50,000+",
+              title: 50000,
               subtitle: "Members",
               icon: <Users size={24} />,
             },
             {
-              title: "600+",
+              title: 600,
               subtitle: "Primary Cooperatives",
               icon: <Users2 size={24} />,
             },
             {
-              title: "25+",
+              title: 25,
               subtitle: "Years of Impact",
               icon: <Calendar size={24} />,
             },
-            { title: "73", subtitle: "Unions", icon: <Users size={24} /> },
+            { title: 73, subtitle: "Unions", icon: <Users size={24} /> },
           ].map((item, index) => (
             <motion.div
               key={index}
@@ -91,7 +118,18 @@ const AboutUs = () => {
                   {item.icon}
                 </div>
               </div>
-              <h3 className="text-2xl font-bold text-cyan-800">{item.title}</h3>
+              <h3 className="text-2xl font-bold text-cyan-800">
+                {inView ? (
+                  <CountUp
+                    start={0}
+                    end={item.title}
+                    duration={2.5}
+                    delay={0.5}
+                  />
+                ) : (
+                  0
+                )}
+              </h3>
               <p className="text-gray-600 text-sm">{item.subtitle}</p>
             </motion.div>
           ))}

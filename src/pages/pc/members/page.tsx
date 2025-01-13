@@ -60,7 +60,7 @@ const UsersPage = () => {
             <Button
               className={`bg-cyan-600 hover:bg-cyan-600`}
               onClick={() =>
-                ExportMembersDataToExcel("notfiltecyan", formattedUsers)
+                ExportMembersDataToExcel("notfiltered", formattedUsers)
               }
               title="disabled"
             >

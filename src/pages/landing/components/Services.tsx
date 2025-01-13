@@ -1,14 +1,13 @@
-import React from "react";
 import { motion } from "framer-motion";
 import {
   Box,
   Briefcase,
   DollarSign,
-  LucideIcon,
   UserPlus,
   Users,
   XCircle,
 } from "lucide-react"; // Replace with your preferred icon library
+import { useEffect, useRef, useState } from "react";
 
 const services = [
   {
@@ -50,6 +49,9 @@ const services = [
 ];
 
 const Services = () => {
+  const [inView, setInView] = useState(false);
+  const serviceRef = useRef(null);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -65,13 +67,36 @@ const Services = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setInView(true);
+          observer.disconnect(); // Stop observing once the section is in view
+        }
+      },
+      { threshold: 0.3 } // Adjust this threshold as needed
+    );
+
+    if (serviceRef.current) {
+      observer.observe(serviceRef.current);
+    }
+
+    return () => {
+      if (serviceRef.current) {
+        observer.unobserve(serviceRef.current);
+      }
+    };
+  }, []);
+
   return (
     <motion.section
       className="py-20 bg-gray-100"
       id="services"
       initial="hidden"
-      animate="visible"
+      animate={inView ? "visible" : "hidden"}
       variants={containerVariants}
+      ref={serviceRef}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" id="services">
         <motion.div className="text-center mb-10" variants={cardVariants}>
