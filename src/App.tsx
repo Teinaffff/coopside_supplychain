@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./layout/Layout";
 import Login from "./pages/auth/Login";
 import RequireAuth from "./pages/auth/RequireAuth";
@@ -21,7 +21,8 @@ function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<SignupPage />} />
-        <Route path="*" element={<PageNotFound />} />
+        <Route path="/not-found" element={<PageNotFound />} />
+        <Route path="*" element={<Navigate to="/not-found" replace />} />
       </Route>
     </Routes>
   );

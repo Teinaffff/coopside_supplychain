@@ -1,13 +1,12 @@
-import React, { useEffect } from "react";
-import { Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
 import PageTitle from "../../components/PageTitle";
+import { menuItems } from "../../constants/pc/menu";
 import { ROUTES } from "../../constants/pc/routes";
 import DefaultLayout from "../../layout/DefaultLayout";
-import { menuItems } from "../../constants/pc/menu";
 import { useAppDispatch } from "../../store";
-import { getUsersData } from "../../store/pc/user/user-extra";
 import { fetchNotificationsData } from "../../store/notification/notification-extra";
-import PageNotFound from "../../common/PageNotFound";
+import { getUsersData } from "../../store/pc/user/user-extra";
 
 const PC = () => {
   const dispatch = useAppDispatch();
@@ -34,7 +33,7 @@ const PC = () => {
         ))}
       </Route>
 
-      <Route path="*" element={<PageNotFound />} />
+      <Route path="*" element={<Navigate to="/not-found" replace />} />
     </Routes>
   );
 };
