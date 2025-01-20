@@ -6,39 +6,49 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from "../../../../common/ui/table";
-import { History } from "../../../../constants/interface/pc/general";
+import { RecentProductTransaction } from "../../../../constants/interface/pc/general";
 
-interface HistoryProps {
-  data: History[];
+interface RecentProductTransactionProps {
+  data: RecentProductTransaction[];
 }
 
-const TopMembersTable: React.FC<HistoryProps> = ({ data }) => {
+const RecentTransactionTable: React.FC<RecentProductTransactionProps> = ({
+  data,
+}) => {
   return (
     <Card className="py-5">
       <CardContent>
         <div className="mb-5">
           <h2 className="text-md font-semibold tracking-tight hover:cursor-pointer">
-            Top Performing Members
+            Recent Transactions
           </h2>
         </div>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>ID</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Share</TableHead>
-              <TableHead>Profit</TableHead>
+              <TableHead>Buyer</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Product</TableHead>
+              <TableHead>Quantity</TableHead>
+              <TableHead>Total Sales</TableHead>
+              <TableHead>TrxnID</TableHead>
+              <TableHead>Remark</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((history) => (
               <TableRow key={history.id}>
                 <TableCell className="font-medium py-3">{history.id}</TableCell>
-                <TableCell>{history.name}</TableCell>
-                <TableCell>{history.share}</TableCell>
-                <TableCell>{history.profit}</TableCell>
+                <TableCell>{history.buyer}</TableCell>
+                <TableCell>{history.date}</TableCell>
+                <TableCell>{history.productName}</TableCell>
+                <TableCell>{history.quantity}</TableCell>
+                <TableCell>{history.totalSales}</TableCell>
+                <TableCell>{history.transactionId}</TableCell>
+                <TableCell>{history.remark}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -48,4 +58,4 @@ const TopMembersTable: React.FC<HistoryProps> = ({ data }) => {
   );
 };
 
-export default TopMembersTable;
+export default RecentTransactionTable;

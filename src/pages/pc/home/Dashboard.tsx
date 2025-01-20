@@ -19,7 +19,8 @@ import MembershipLineChart from "../components/charts/MembershipLineChart";
 import ProductBarChart from "../components/charts/ProductBarChart";
 import SalesDistributionChart from "../components/charts/SalesDistributionChart";
 import TopMembersTable from "../components/tables/TopMembersTable";
-import { topMembers } from "../../../common/data/data";
+import { recentTransactions, topMembers } from "../../../common/data/data";
+import RecentTransactionTable from "../components/tables/RecentTransactionTable";
 
 const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -121,8 +122,9 @@ const Dashboard: React.FC = () => {
           <ProductBarChart />
           <SalesDistributionChart />
         </div>
-        <div>
+        <div className="flex flex-col space-y-4">
           <TopMembersTable data={topMembers} />
+          <RecentTransactionTable data={recentTransactions} />
         </div>
       </div>
     </>

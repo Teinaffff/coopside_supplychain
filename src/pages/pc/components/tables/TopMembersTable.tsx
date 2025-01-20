@@ -3,19 +3,18 @@ import { Card, CardContent } from "../../../../common/ui/card";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
+  TableRow
 } from "../../../../common/ui/table";
-import { History } from "../../../../constants/interface/pc/general";
+import { TopMembers } from "../../../../constants/interface/pc/general";
 
-interface HistoryProps {
-  data: History[];
+interface TopMembersProps {
+  data: TopMembers[];
 }
 
-const TopMembersTable: React.FC<HistoryProps> = ({ data }) => {
+const TopMembersTable: React.FC<TopMembersProps> = ({ data }) => {
   return (
     <Card className="py-5">
       <CardContent>
