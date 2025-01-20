@@ -166,3 +166,11 @@ export const ages = [
   { label: "30", value: 30 },
   { label: "31", value: 31 },
 ];
+
+export const topMembers = [
+  { id: 1, name: "Beharudin Mohammed", share: 1000, profit: 400 },
+  { id: 2, name: "Iyyasu Amana", share: 800, profit: 300 },
+  { id: 3, name: "Chala Abdi", share: 1200, profit: 350 },
+  { id: 4, name: "Caltu Jamal", share: 600, profit: 200 },
+  { id: 5, name: "Abdi Ali", share: 1500, profit: 500 },
+];

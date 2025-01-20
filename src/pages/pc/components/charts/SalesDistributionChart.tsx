@@ -1,13 +1,11 @@
+import React, { useState } from "react";
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  Rectangle,
+  PieChart,
+  Pie,
   ResponsiveContainer,
+  Legend,
   Tooltip,
-  XAxis,
-  YAxis,
+  Cell,
 } from "recharts";
 import {
   Card,
@@ -23,50 +21,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../../common/ui/select";
-import { useState } from "react";
 
 const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
-const filteredData = [
-  {
-    name: "Oil",
-    value: 4000,
-  },
-  {
-    name: "Soap",
-    value: 3000,
-  },
-  {
-    name: "Grains",
-    value: 2000,
-  },
-  {
-    name: "Spices",
-    value: 2780,
-  },
-  {
-    name: "Others",
-    value: 1890,
-  },
+const data = [
+  { name: "Soap", value: 400 },
+  { name: "Oil", value: 300 },
+  { name: "Grains", value: 300 },
+  { name: "Spices", value: 200 },
+  { name: "Others", value: 278 },
 ];
+const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#A28ED0"];
 
-const ProductBarChart = () => {
+const SalesDistributionChart = () => {
   const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [loading, setLoading] = useState<boolean>(false);
-  // const dispatch = useDispatch();
-
-  // useEffect(() => {
-  //   const loadData = async () => {
-  //     setLoading(true);
-  //     await dispatch(fetchLineGraphsData(selectedYear) as any);
-  //     setLoading(false);
-  //   };
-  //   loadData();
-  // }, [dispatch, selectedYear]);
+  const [loading, setLoading] = useState(false);
 
   const handleYearChange = (value: string) => {
     setSelectedYear(parseInt(value, 10));
+  };
+
+  const totalValue = data.reduce((sum, entry) => sum + entry.value, 0);
+  const renderCustomLabel = ({ name, value }: any) => {
+    const percent = ((value / totalValue) * 100).toFixed(1);
+    return `${name}: ${percent}%`;
   };
 
   return (
@@ -74,7 +53,7 @@ const ProductBarChart = () => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Product Sales Performance</CardTitle>
+            <CardTitle>Sales Distribution</CardTitle>
             <CardDescription>{selectedYear} yearly data.</CardDescription>
           </div>
           <div>
@@ -96,38 +75,38 @@ const ProductBarChart = () => {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pl-2">
+      <CardContent>
         {loading ? (
           <div>Loading...</div>
-        ) : filteredData.length === 0 ? (
+        ) : data.length === 0 ? (
           <div className="flex justify-center items-center">
             No data available for the selected year.
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              width={500}
-              height={300}
-              data={filteredData}
-              margin={{
-                top: 5,
-                right: 30,
-                left: 20,
-                bottom: 5,
-              }}
-              barSize={40}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="name"
-                scale={"point"}
-                padding={{ left: 30, right: 30 }}
-              />
-              <YAxis />
+            <PieChart>
+              <Pie
+                dataKey="value"
+                startAngle={0}
+                endAngle={360}
+                data={data}
+                cx="50%"
+                cy="50%"
+                outerRadius={100}
+                fill="#8884d8"
+                label={renderCustomLabel}
+                legendType="circle"
+                labelLine={false}
+              >
+                {data.map((_, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
+                ))}
+              </Pie>
               <Tooltip />
-              <Legend />
-              <Bar dataKey="value" fill="#8884d8" name={"Sales"} />
-            </BarChart>
+            </PieChart>
           </ResponsiveContainer>
         )}
       </CardContent>
@@ -135,4 +114,4 @@ const ProductBarChart = () => {
   );
 };
 
-export default ProductBarChart;
+export default SalesDistributionChart;

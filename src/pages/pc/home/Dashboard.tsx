@@ -17,6 +17,9 @@ import {
 import ProfitTrendLineChart from "../components/charts/ProfitTrendLineChart";
 import MembershipLineChart from "../components/charts/MembershipLineChart";
 import ProductBarChart from "../components/charts/ProductBarChart";
+import SalesDistributionChart from "../components/charts/SalesDistributionChart";
+import TopMembersTable from "../components/tables/TopMembersTable";
+import { topMembers } from "../../../common/data/data";
 
 const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -115,12 +118,11 @@ const Dashboard: React.FC = () => {
         <div className="grid xl:grid-cols-2 gap-4">
           <ProfitTrendLineChart />
           <MembershipLineChart />
-          <div className="col-span-2 grid lg:grid-cols-3 gap-4">
-            <div className="col-span-2">
-              <ProductBarChart />
-            </div>
-            <div>hello</div>
-          </div>
+          <ProductBarChart />
+          <SalesDistributionChart />
+        </div>
+        <div>
+          <TopMembersTable data={topMembers} />
         </div>
       </div>
     </>

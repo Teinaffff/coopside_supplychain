@@ -114,7 +114,7 @@ const MembershipLineChart: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>Membership Growth</CardTitle>
-            <CardDescription>{selectedYear} monthly data.</CardDescription>
+            <CardDescription>{selectedYear} yearly data.</CardDescription>
           </div>
           <div>
             <Select
