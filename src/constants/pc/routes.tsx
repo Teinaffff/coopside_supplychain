@@ -8,8 +8,33 @@ export const ROUTES = [
     element: <Dashboard />,
   },
   {
+    path: "application",
+    title: "Application",
+    element: <UsersPage />,
+  },
+  {
     path: "members",
     title: "Members",
+    element: <UsersPage />,
+  },
+  {
+    path: "share",
+    title: "Share",
+    element: <UsersPage />,
+  },
+  {
+    path: "leadership",
+    title: "Leadership",
+    element: <UsersPage />,
+  },
+  {
+    path: "profit",
+    title: "Profit",
+    element: <UsersPage />,
+  },
+  {
+    path: "help-support",
+    title: "Help & Support",
     element: <UsersPage />,
   },
 ];

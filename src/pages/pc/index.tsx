@@ -1,12 +1,13 @@
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import PageTitle from "../../components/PageTitle";
-import { menuItems } from "../../constants/pc/menu";
 import { ROUTES } from "../../constants/pc/routes";
 import DefaultLayout from "../../layout/DefaultLayout";
+import { menuItems } from "../../constants/pc/menu";
 import { useAppDispatch } from "../../store";
-import { fetchNotificationsData } from "../../store/notification/notification-extra";
 import { getUsersData } from "../../store/pc/user/user-extra";
+import { fetchNotificationsData } from "../../store/notification/notification-extra";
+import PageNotFound from "../../common/PageNotFound";
 
 const PC = () => {
   const dispatch = useAppDispatch();
@@ -14,11 +15,11 @@ const PC = () => {
   useEffect(() => {
     dispatch(getUsersData());
     dispatch(fetchNotificationsData());
-  }, [dispatch]);
+  }, []);
 
   return (
-    <Routes>
-      <Route path="/" element={<DefaultLayout menuItems={menuItems} />}>
+    <DefaultLayout menuItems={menuItems}>
+      <Routes>
         {ROUTES.map(({ title, path, element }, index) => (
           <Route
             key={index}
@@ -31,10 +32,9 @@ const PC = () => {
             }
           />
         ))}
-      </Route>
-
-      <Route path="*" element={<Navigate to="/not-found" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/not-found" replace />} />
+      </Routes>
+    </DefaultLayout>
   );
 };
 

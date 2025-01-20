@@ -17,8 +17,8 @@ const Union = () => {
   }, []);
 
   return (
-    <Routes>
-      <Route path="/" element={<DefaultLayout menuItems={menuItems} />}>
+    <DefaultLayout menuItems={menuItems}>
+      <Routes>
         {ROUTES.map(({ title, path, element }, index) => (
           <Route
             key={index}
@@ -31,10 +31,9 @@ const Union = () => {
             }
           />
         ))}
-      </Route>
-
-      <Route path="*" element={<Navigate to="/not-found" replace />} />
-    </Routes>
+        <Route path="*" element={<Navigate to="/not-found" replace />} />
+      </Routes>
+    </DefaultLayout>
   );
 };
 
