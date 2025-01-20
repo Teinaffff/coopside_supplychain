@@ -3,11 +3,10 @@ import { Card, CardContent } from "../../../../common/ui/card";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
+  TableRow
 } from "../../../../common/ui/table";
 import { History } from "../../../../constants/interface/pc/general";
 
