@@ -6,6 +6,7 @@ import Landing from "./pages/landing";
 import PC from "./pages/pc";
 import Union from "./pages/union";
 import SignupPage from "./pages/auth/Signup";
+import PageNotFound from "./common/PageNotFound";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<SignupPage />} />
+        <Route path="*" element={<PageNotFound />} />
       </Route>
     </Routes>
   );

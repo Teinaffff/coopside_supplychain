@@ -57,7 +57,7 @@ export const users = [
     _id: 102,
     name: "Mohammed Ali",
     email: "mohammed.ali@example.com",
-    age: 32,
+    age: 31,
     nationality: "Egyptian",
   },
   {
@@ -65,7 +65,7 @@ export const users = [
     _id: 103,
     name: "Sophia Zhang",
     email: "sophia.zhang@example.com",
-    age: 24,
+    age: 27,
     nationality: "Chinese",
   },
   {
@@ -81,7 +81,7 @@ export const users = [
     _id: 105,
     name: "Emilia Rossi",
     email: "emilia.rossi@example.com",
-    age: 29,
+    age: 28,
     nationality: "Italian",
   },
   {
@@ -97,7 +97,7 @@ export const users = [
     _id: 107,
     name: "Yuki Tanaka",
     email: "yuki.tanaka@example.com",
-    age: 22,
+    age: 30,
     nationality: "Japanese",
   },
   {
@@ -151,4 +151,18 @@ export const cooperativeQuotes = [
       "A cooperative is not just a business, it’s a movement that embodies shared responsibility and mutual benefit.",
     name: "Amina J. Mohammed",
   },
+];
+
+export const ages = [
+  {
+    label: "27",
+    value: 27,
+  },
+  {
+    label: "28",
+    value: 28,
+  },
+  { label: "29", value: 29 },
+  { label: "30", value: 30 },
+  { label: "31", value: 31 },
 ];

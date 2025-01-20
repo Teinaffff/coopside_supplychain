@@ -1,15 +1,16 @@
-import React, { useEffect, useState } from "react";
-import Loader1 from "../../common/Loader";
-import toast from "react-hot-toast";
-import { z } from "zod";
-import { TOKEN } from "../../constants/general";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../../store";
-import { AxiosError } from "axios";
-import { Login } from "../../constants/interface/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AxiosError } from "axios";
+import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { z } from "zod";
 import { IMAGES } from "../../assets";
+import { cooperativeQuotes } from "../../common/data/data";
+import Loader1 from "../../common/Loader";
+import { Button } from "../../common/ui/button";
+import { Checkbox } from "../../common/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -19,12 +20,10 @@ import {
   FormMessage,
 } from "../../common/ui/form";
 import { Input } from "../../common/ui/input";
-import { Eye, EyeOff } from "lucide-react";
-import { Checkbox } from "../../common/ui/checkbox";
-import { Button } from "../../common/ui/button";
 import { Loader } from "../../common/ui/loader";
 import QuoteSlider from "../../components/slider";
-import { cooperativeQuotes } from "../../common/data/data";
+import { Login } from "../../constants/interface/auth";
+import { useAppDispatch } from "../../store";
 
 const formSchema = z.object({
   email: z.string().min(1, "Email is required"),

@@ -4,7 +4,7 @@ import Sidebar from "../components/Sidebar/index";
 import { NavigationItem } from "../constants/interface/NavigationItem";
 
 const DefaultLayout: React.FC<{
-  children: ReactNode;
+  children?: ReactNode;
   menuItems: NavigationItem[];
 }> = ({ children, menuItems }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);

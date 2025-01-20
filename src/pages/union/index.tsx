@@ -7,6 +7,7 @@ import { ROUTES } from "../../constants/union/routes";
 import { useAppDispatch } from "../../store";
 import { getUsersData } from "../../store/pc/user/user-extra";
 import { fetchNotificationsData } from "../../store/notification/notification-extra";
+import PageNotFound from "../../common/PageNotFound";
 
 const Union = () => {
   const dispatch = useAppDispatch();
@@ -17,8 +18,8 @@ const Union = () => {
   }, []);
 
   return (
-    <DefaultLayout menuItems={menuItems}>
-      <Routes>
+    <Routes>
+      <Route path="/" element={<DefaultLayout menuItems={menuItems} />}>
         {ROUTES.map(({ title, path, element }, index) => (
           <Route
             key={index}
@@ -31,8 +32,10 @@ const Union = () => {
             }
           />
         ))}
-      </Routes>
-    </DefaultLayout>
+      </Route>
+
+      <Route path="*" element={<PageNotFound />} />
+    </Routes>
   );
 };
 

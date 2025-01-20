@@ -7,6 +7,7 @@ import { menuItems } from "../../constants/pc/menu";
 import { useAppDispatch } from "../../store";
 import { getUsersData } from "../../store/pc/user/user-extra";
 import { fetchNotificationsData } from "../../store/notification/notification-extra";
+import PageNotFound from "../../common/PageNotFound";
 
 const PC = () => {
   const dispatch = useAppDispatch();
@@ -14,11 +15,11 @@ const PC = () => {
   useEffect(() => {
     dispatch(getUsersData());
     dispatch(fetchNotificationsData());
-  }, []);
+  }, [dispatch]);
 
   return (
-    <DefaultLayout menuItems={menuItems}>
-      <Routes>
+    <Routes>
+      <Route path="/" element={<DefaultLayout menuItems={menuItems} />}>
         {ROUTES.map(({ title, path, element }, index) => (
           <Route
             key={index}
@@ -31,8 +32,10 @@ const PC = () => {
             }
           />
         ))}
-      </Routes>
-    </DefaultLayout>
+      </Route>
+
+      <Route path="*" element={<PageNotFound />} />
+    </Routes>
   );
 };
 
