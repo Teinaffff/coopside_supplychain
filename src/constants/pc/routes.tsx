@@ -1,3 +1,4 @@
+import ApplicationPage from "../../pages/pc/application/page";
 import Dashboard from "../../pages/pc/home/Dashboard";
 import UsersPage from "../../pages/pc/members/page";
 
@@ -10,7 +11,7 @@ export const ROUTES = [
   {
     path: "application",
     title: "Application",
-    element: <UsersPage />,
+    element: <ApplicationPage />,
   },
   {
     path: "members",

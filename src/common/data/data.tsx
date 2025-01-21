@@ -227,3 +227,46 @@ export const recentTransactions = [
     transactionId: "TXN001238",
   },
 ];
+
+export const requestHistoryData = [
+  {
+    id: "1",
+    type: "License Renewal",
+    submittedDate: "2025-01-03",
+    approvedDate: "2025-01-10",
+    status: "Approved",
+    expiryDate: "2026-01-03",
+  },
+  {
+    id: "2",
+    type: "Membership Update",
+    submittedDate: "2024-12-15",
+    approvedDate: "2025-01-02",
+    status: "Pending",
+    expiryDate: "2026-01-15",
+  },
+];
+
+export const requirements = [
+  {
+    completed: true,
+    title: "Minimum Members",
+    subtitle: "At least 5 registered members",
+  },
+  {
+    completed: true,
+    title: "Leadership Structure",
+    subtitle: "Must have 7 board members",
+  },
+  {
+    completed: false,
+    title: "Bank Account Set",
+    subtitle: "Bank account should be set",
+  },
+  {
+    completed: true,
+    title: "Cooperative Details",
+    subtitle: "At least 5 registered members",
+  },
+  { completed: false, title: "Logo", subtitle: "Corporate logo is mandatory" },
+];

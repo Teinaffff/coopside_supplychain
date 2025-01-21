@@ -15,3 +15,12 @@ export interface RecentProductTransaction {
   date: string;
   transactionId: string;
 }
+
+export interface RequestHistory {
+  id: string;
+  type: string;
+  submittedDate: string;
+  approvedDate: string;
+  status: string;
+  expiryDate: string;
+}

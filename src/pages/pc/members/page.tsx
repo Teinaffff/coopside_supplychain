@@ -40,25 +40,23 @@ const UsersPage = () => {
     <>
       <AddUserModal />
       <EditUserModal />
-      <div className="flex justify-end pb-5 mx-5">
-        <Button
-          className="bg-cyan-600 hover:bg-cyan-600"
-          onClick={() => onOpen()}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add New
-        </Button>
-      </div>
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
             title={`PC Memebers (${formattedUsers.length})`}
-            description="Manage Users"
+            description="Manage Members"
           />
           <div></div>
-          <div>
+          <div className="flex space-x-2">
             <Button
-              className={`bg-cyan-600 hover:bg-cyan-600`}
+              className="bg-cyan-500 hover:bg-cyan-500"
+              onClick={() => onOpen()}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add New
+            </Button>
+            <Button
+              className={`bg-cyan-500 hover:bg-cyan-500`}
               onClick={() =>
                 ExportMembersDataToExcel("notfiltered", formattedUsers)
               }
