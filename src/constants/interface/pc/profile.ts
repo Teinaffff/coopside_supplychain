@@ -19,13 +19,14 @@ export interface ChangePersonalInformation {
 }
 
 export interface ChangePcInformation {
-  companyName: string;
-  companyPhone: string;
-  companyEmail: string;
+  pcName: string;
+  pcPhone: string;
+  pcEmail: string;
   licenseNo: string;
   tinNo: string;
   accNo: string;
-  companyAddress: AddressProps;
+  purpose: string;
+  pcAddress: AddressProps;
 }
 export interface ChangeProfileProps
   extends ChangePersonalInformation,

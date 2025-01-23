@@ -103,7 +103,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, menuItems }: SidebarProps) => {
 
             <ul className="mb-6 flex flex-col gap-1.5">
               {menuItems.map((item) => (
-                <li>
+                <li key={item.to}>
                   <SidebarItem
                     label={item.label}
                     to={item.to}

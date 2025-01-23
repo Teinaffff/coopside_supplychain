@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "../../../../common/ui/select";
 import { Separator } from "../../../../common/ui/separator";
+import { Textarea } from "../../../../common/ui/textarea";
 import { Subcity, Woreda } from "../../../../constants/interface/pc/profile";
 import { emailRegex, phoneRegex } from "../../../../lib/utils";
 import { handleCityChange, handleSubcityChange } from "./filterAddress";
@@ -72,6 +73,7 @@ const pcFormSchema = z.object({
     ),
   licenseNo: z.string().optional(),
   tinNo: z.string().min(1, { message: "TIN number is required" }),
+  purpose: z.string().min(1, { message: "Purpose is required" }),
   accNo: z.string().optional(),
   pcAddress: z.object({
     city: z.string().min(1, { message: "City is required" }),
@@ -119,6 +121,7 @@ const ChangeProfile = () => {
       licenseNo: "",
       tinNo: "",
       accNo: "",
+      purpose: "",
       pcAddress: {
         city: "",
         subcity: "",
@@ -177,6 +180,290 @@ const ChangeProfile = () => {
       <Separator className="my-4" />
       <div className="spaye-y-4 py-2 pb-4 w-ull">
         <div className="flex items-center justify-between mb-3">
+          <span className="text-md font-bold">
+            Primary Cooperative Information:
+          </span>
+          {!isEditableQual && (
+            <Button variant={"ghost"} onClick={() => setIsEditableQUal(true)}>
+              <Edit className="h-3 w-3 mr-1" />
+              Edit
+            </Button>
+          )}
+        </div>
+        <Form {...PcForm}>
+          <form onSubmit={PcForm.handleSubmit(onSubmitQual)}>
+            <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <FormField
+                name="pcName"
+                control={PcForm.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name:</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        placeholder="trade name"
+                        {...field}
+                        disabled={!isEditableQual}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name="pcPhone"
+                control={PcForm.control}
+                render={({ field }) => (
+                  <FormItem className="hideIncrementor">
+                    <FormLabel>Phone:</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="phone"
+                        {...field}
+                        disabled={!isEditableQual}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name="pcEmail"
+                control={PcForm.control}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email:</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="email"
+                        {...field}
+                        disabled={!isEditableQual}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name="licenseNo"
+                control={PcForm.control}
+                render={({ field }) => (
+                  <FormItem className="hideIncrementor">
+                    <FormLabel>License No:</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="license number"
+                        {...field}
+                        disabled={!isEditableQual}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name="tinNo"
+                control={PcForm.control}
+                render={({ field }) => (
+                  <FormItem className="hideIncrementor">
+                    <FormLabel>TIN No:</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="TIN number"
+                        {...field}
+                        disabled={!isEditableQual}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name="accNo"
+                control={PcForm.control}
+                render={({ field }) => (
+                  <FormItem className="hideIncrementor">
+                    <FormLabel>Account No:</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="account number"
+                        {...field}
+                        disabled={!isEditableQual}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={PcForm.control}
+                name="purpose"
+                render={({ field }) => (
+                  <FormItem className="col-span-3">
+                    <FormLabel>Purpose:</FormLabel>
+                    <FormControl>
+                      <Textarea rows={4} {...field} disabled={loading} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:col-span-2 lg:col-span-3 mt-5">
+                <FormLabel className="col-span-3">PC Address</FormLabel>
+                <FormField
+                  name="pcAddress.city"
+                  control={PcForm.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>City:</FormLabel>
+                      <Select
+                        disabled={loading || !isEditableQual}
+                        onValueChange={(value) =>
+                          handleCityChange(
+                            value,
+                            cities,
+                            setFilteredPcSubcities,
+                            PcForm.setValue,
+                            "pcAddress"
+                          )
+                        }
+                        value={field.value.toString()}
+                        defaultValue={field.value.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="ring-1">
+                            <SelectValue
+                              defaultValue=""
+                              placeholder="Select a city"
+                            />
+                          </SelectTrigger>
+                        </FormControl>
+
+                        <SelectContent className="max-h-64 overflow-y-auto">
+                          {cities.length > 0 &&
+                            cities.map((city) => (
+                              <SelectItem value={city.cityName} key={city.id}>
+                                {city.cityName}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="pcAddress.subcity"
+                  control={PcForm.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subcity:</FormLabel>
+                      <Select
+                        disabled={loading || !isEditableQual}
+                        onValueChange={(value) =>
+                          handleSubcityChange(
+                            value,
+                            filteredPcSubcities,
+                            setFilteredPcWoredas,
+                            PcForm.setValue,
+                            "pcAddress"
+                          )
+                        }
+                        value={field.value.toString()}
+                        defaultValue={field.value.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="ring-1">
+                            <SelectValue
+                              defaultValue=""
+                              placeholder="Select a Subcity"
+                            />
+                          </SelectTrigger>
+                        </FormControl>
+
+                        <SelectContent className="max-h-64 overflow-y-auto">
+                          {filteredPcSubcities.length > 0 &&
+                            filteredPcSubcities.map((Subcity) => (
+                              <SelectItem
+                                value={Subcity.subcityName}
+                                key={Subcity.id}
+                              >
+                                {Subcity.subcityName}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  name="pcAddress.woreda"
+                  control={PcForm.control}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Woreda:</FormLabel>
+                      <Select
+                        disabled={loading || !isEditableQual}
+                        onValueChange={field.onChange}
+                        value={field.value.toString()}
+                        defaultValue={field.value.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="ring-1">
+                            <SelectValue
+                              defaultValue=""
+                              placeholder="Select a woreda"
+                            />
+                          </SelectTrigger>
+                        </FormControl>
+
+                        <SelectContent className="max-h-64 overflow-y-auto">
+                          {filteredPcWoredas.length > 0 &&
+                            filteredPcWoredas.map((woreda) => (
+                              <SelectItem
+                                value={woreda.woredaName}
+                                key={woreda.id}
+                              >
+                                {woreda.woredaName}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+            {isEditableQual && (
+              <div className="pt-6 space-x-2 flex items-center justify-center w-full">
+                <Button
+                  type="button"
+                  variant={"ghost"}
+                  onClick={() => {
+                    setIsEditableQUal(false);
+                    PcForm.clearErrors();
+                    PcForm.clearErrors();
+                    PcForm.reset();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" className="bg-cyan-500 hover:bg-cyan-500">
+                  Save
+                </Button>
+              </div>
+            )}
+          </form>
+        </Form>
+        <Separator className="my-10" />
+        <div className="flex items-center justify-between mb-3 mt-5">
           <span className="text-md font-bold">Admin Information:</span>
           {!isEditable && (
             <Button variant={"ghost"} onClick={() => setIsEditable(true)}>
@@ -375,277 +662,6 @@ const ChangeProfile = () => {
                     setIsEditable(false);
                     form.clearErrors();
                     form.reset();
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" className="bg-cyan-500 hover:bg-cyan-500">
-                  Save
-                </Button>
-              </div>
-            )}
-          </form>
-        </Form>
-        <Separator className="my-10" />
-        <div className="flex items-center justify-between mb-3 mt-5">
-          <span className="text-md font-bold">
-            Primary Cooperative Information:
-          </span>
-          {!isEditableQual && (
-            <Button variant={"ghost"} onClick={() => setIsEditableQUal(true)}>
-              <Edit className="h-3 w-3 mr-1" />
-              Edit
-            </Button>
-          )}
-        </div>
-        <Form {...PcForm}>
-          <form onSubmit={PcForm.handleSubmit(onSubmitQual)}>
-            <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <FormField
-                name="pcName"
-                control={PcForm.control}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name:</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="text"
-                        placeholder="trade name"
-                        {...field}
-                        disabled={!isEditableQual}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                name="pcPhone"
-                control={PcForm.control}
-                render={({ field }) => (
-                  <FormItem className="hideIncrementor">
-                    <FormLabel>Phone:</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="phone"
-                        {...field}
-                        disabled={!isEditableQual}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                name="pcEmail"
-                control={PcForm.control}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email:</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="email"
-                        {...field}
-                        disabled={!isEditableQual}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                name="licenseNo"
-                control={PcForm.control}
-                render={({ field }) => (
-                  <FormItem className="hideIncrementor">
-                    <FormLabel>License No:</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="license number"
-                        {...field}
-                        disabled={!isEditableQual}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                name="tinNo"
-                control={PcForm.control}
-                render={({ field }) => (
-                  <FormItem className="hideIncrementor">
-                    <FormLabel>TIN No:</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="TIN number"
-                        {...field}
-                        disabled={!isEditableQual}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                name="accNo"
-                control={PcForm.control}
-                render={({ field }) => (
-                  <FormItem className="hideIncrementor">
-                    <FormLabel>Account No:</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="account number"
-                        {...field}
-                        disabled={!isEditableQual}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:col-span-2 lg:col-span-3 mt-5">
-                <FormLabel className="col-span-3">PC Address</FormLabel>
-                <FormField
-                  name="pcAddress.city"
-                  control={PcForm.control}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>City:</FormLabel>
-                      <Select
-                        disabled={loading || !isEditableQual}
-                        onValueChange={(value) =>
-                          handleCityChange(
-                            value,
-                            cities,
-                            setFilteredPcSubcities,
-                            PcForm.setValue,
-                            "pcAddress"
-                          )
-                        }
-                        value={field.value.toString()}
-                        defaultValue={field.value.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="ring-1">
-                            <SelectValue
-                              defaultValue=""
-                              placeholder="Select a city"
-                            />
-                          </SelectTrigger>
-                        </FormControl>
-
-                        <SelectContent className="max-h-64 overflow-y-auto">
-                          {cities.length > 0 &&
-                            cities.map((city) => (
-                              <SelectItem value={city.cityName} key={city.id}>
-                                {city.cityName}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  name="pcAddress.subcity"
-                  control={PcForm.control}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Subcity:</FormLabel>
-                      <Select
-                        disabled={loading || !isEditableQual}
-                        onValueChange={(value) =>
-                          handleSubcityChange(
-                            value,
-                            filteredPcSubcities,
-                            setFilteredPcWoredas,
-                            PcForm.setValue,
-                            "pcAddress"
-                          )
-                        }
-                        value={field.value.toString()}
-                        defaultValue={field.value.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="ring-1">
-                            <SelectValue
-                              defaultValue=""
-                              placeholder="Select a Subcity"
-                            />
-                          </SelectTrigger>
-                        </FormControl>
-
-                        <SelectContent className="max-h-64 overflow-y-auto">
-                          {filteredPcSubcities.length > 0 &&
-                            filteredPcSubcities.map((Subcity) => (
-                              <SelectItem
-                                value={Subcity.subcityName}
-                                key={Subcity.id}
-                              >
-                                {Subcity.subcityName}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  name="pcAddress.woreda"
-                  control={PcForm.control}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Woreda:</FormLabel>
-                      <Select
-                        disabled={loading || !isEditableQual}
-                        onValueChange={field.onChange}
-                        value={field.value.toString()}
-                        defaultValue={field.value.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="ring-1">
-                            <SelectValue
-                              defaultValue=""
-                              placeholder="Select a woreda"
-                            />
-                          </SelectTrigger>
-                        </FormControl>
-
-                        <SelectContent className="max-h-64 overflow-y-auto">
-                          {filteredPcWoredas.length > 0 &&
-                            filteredPcWoredas.map((woreda) => (
-                              <SelectItem
-                                value={woreda.woredaName}
-                                key={woreda.id}
-                              >
-                                {woreda.woredaName}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-            {isEditableQual && (
-              <div className="pt-6 space-x-2 flex items-center justify-center w-full">
-                <Button
-                  type="button"
-                  variant={"ghost"}
-                  onClick={() => {
-                    setIsEditableQUal(false);
-                    PcForm.clearErrors();
-                    PcForm.clearErrors();
-                    PcForm.reset();
                   }}
                 >
                   Cancel

@@ -42,3 +42,16 @@ export const formatTime = (dateString: string) => {
 
 export const isActivePath = (pathname: string, base: string, target: string) =>
   pathname === target || (pathname.startsWith(base) && pathname === target);
+
+export function getInitials(fullName: string): string {
+  const words = fullName?.trim().split(/\s+/); // Split on whitespace (one or more spaces)
+
+  if (words?.length === 1) {
+    return words[0].charAt(0).toUpperCase(); // Take first letter for single word, uppercase
+  } else {
+    return words
+      ?.slice(0, 2) // Take first two words
+      .map((word) => word.charAt(0).toUpperCase()) // Take first letter of each word, uppercase
+      .join(""); // Combine initials
+  }
+}

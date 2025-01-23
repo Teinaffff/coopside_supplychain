@@ -286,13 +286,13 @@ export const profileMockData = {
   email: "",
   gender: "",
   address: { region: "", zone: "", woreda: "", kebele: "" },
-  companyAddress: { region: "", zone: "", woreda: "", kebele: "" },
-  companyName: "",
-  // idNumber: { type: "", value: "" },
-  companyPhone: "",
-  companyEmail: "",
+  pcAddress: { region: "", zone: "", woreda: "", kebele: "" },
+  pcName: "",
+  pcPhone: "",
+  pcEmail: "",
   licenseNo: "",
   tinNo: "",
+  purpose: "",
   accNo: "",
 };
 
