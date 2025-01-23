@@ -1,6 +1,7 @@
-import ApplicationPage from "../../pages/pc/application/page";
+import ApplicationPage from "../../pages/pc/application";
 import Dashboard from "../../pages/pc/home/Dashboard";
-import UsersPage from "../../pages/pc/members/page";
+import UsersPage from "../../pages/pc/members";
+import ProfilePage from "../../pages/pc/profile";
 
 export const ROUTES = [
   {
@@ -37,5 +38,10 @@ export const ROUTES = [
     path: "help-support",
     title: "Help & Support",
     element: <UsersPage />,
+  },
+  {
+    path: "profile",
+    title: "Profile",
+    element: <ProfilePage />,
   },
 ];

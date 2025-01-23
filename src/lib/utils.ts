@@ -6,6 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+export const phoneRegex = /^(0|\+251)(9|7)\d{8}$/;
 
 export const formatTime = (dateString: string) => {
   const date = new Date(dateString);

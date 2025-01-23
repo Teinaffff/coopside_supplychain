@@ -270,3 +270,164 @@ export const requirements = [
   },
   { completed: false, title: "Logo", subtitle: "Corporate logo is mandatory" },
 ];
+
+export const locationMockData = [
+  "0912 New Street, Oromia",
+  "0120 New Street, Addis Ababa",
+  "0920 New Street, Oromia",
+  "0901 New Street, Addis Ababa",
+  "0910 New Street, Oromia",
+  "0921 New Street, Oromia",
+];
+
+export const profileMockData = {
+  fullName: "Bahar Mm",
+  phone: "0912078640",
+  email: "",
+  gender: "",
+  address: { region: "", zone: "", woreda: "", kebele: "" },
+  companyAddress: { region: "", zone: "", woreda: "", kebele: "" },
+  companyName: "",
+  // idNumber: { type: "", value: "" },
+  companyPhone: "",
+  companyEmail: "",
+  licenseNo: "",
+  tinNo: "",
+  accNo: "",
+};
+
+export const cities = [
+  {
+    id: 1,
+    createdAt: "2025-01-23T10:00:00Z",
+    cityName: "city-1",
+    isEnabled: true,
+    subcities: [
+      {
+        id: 1,
+        createdAt: "2025-01-23T10:00:00Z",
+        subcityName: "subcity-1",
+        cityName: "city-1",
+        isEnabled: true,
+        woredas: [
+          {
+            id: 1,
+            createdAt: "2025-01-23T10:00:00Z",
+            woredaName: "woreda-1",
+            subcityName: "subcity-1",
+          },
+          {
+            id: 2,
+            createdAt: "2025-01-23T10:00:00Z",
+            woredaName: "woreda-2",
+            subcityName: "subcity-1",
+          },
+        ],
+      },
+      {
+        id: 2,
+        createdAt: "2025-01-23T10:00:00Z",
+        subcityName: "subcity-2",
+        cityName: "city-1",
+        isEnabled: false,
+        woredas: [
+          {
+            id: 3,
+            createdAt: "2025-01-23T10:00:00Z",
+            woredaName: "woreda-3",
+            subcityName: "subcity-2",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 2,
+    createdAt: "2025-01-23T10:00:00Z",
+    cityName: "city-2",
+    isEnabled: false,
+    subcities: [
+      {
+        id: 3,
+        createdAt: "2025-01-23T10:00:00Z",
+        subcityName: "subcity-3",
+        cityName: "city-2",
+        isEnabled: true,
+        woredas: [
+          {
+            id: 4,
+            createdAt: "2025-01-23T10:00:00Z",
+            woredaName: "woreda-4",
+            subcityName: "subcity-3",
+          },
+        ],
+      },
+    ],
+  },
+];
+
+export const subcities = [
+  {
+    id: 1,
+    createdAt: "2025-01-23T10:00:00Z",
+    subcityName: "subcity-1",
+    cityName: "city-1",
+    isEnabled: true,
+    woredas: [
+      {
+        id: 1,
+        createdAt: "2025-01-23T10:00:00Z",
+        woredaName: "woreda-1",
+        subcityName: "subcity-1",
+      },
+      {
+        id: 2,
+        createdAt: "2025-01-23T10:00:00Z",
+        woredaName: "woreda-2",
+        subcityName: "subcity-1",
+      },
+    ],
+  },
+  {
+    id: 2,
+    createdAt: "2025-01-23T10:00:00Z",
+    subcityName: "subcity-2",
+    cityName: "city-1",
+    isEnabled: false,
+    woredas: [
+      {
+        id: 3,
+        createdAt: "2025-01-23T10:00:00Z",
+        woredaName: "woreda-3",
+        subcityName: "subcity-2",
+      },
+    ],
+  },
+];
+
+export const woredas = [
+  {
+    id: 1,
+    createdAt: "2025-01-23T10:00:00Z",
+    woredaName: "woreda-1",
+    subcityName: "subcity-1",
+  },
+  {
+    id: 2,
+    createdAt: "2025-01-23T10:00:00Z",
+    woredaName: "woreda-2",
+    subcityName: "subcity-1",
+  },
+  {
+    id: 3,
+    createdAt: "2025-01-23T10:00:00Z",
+    woredaName: "woreda-3",
+    subcityName: "subcity-2",
+  },
+  {
+    id: 4,
+    createdAt: "2025-01-23T10:00:00Z",
+    woredaName: "woreda-4",
+    subcityName: "subcity-3",
+  },
+];

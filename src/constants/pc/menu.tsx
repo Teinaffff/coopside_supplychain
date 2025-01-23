@@ -5,7 +5,8 @@ import {
   HelpCircle,
   LucideHome,
   PieChart,
-  Users
+  Settings,
+  Users,
 } from "lucide-react";
 
 export const menuItems = [
@@ -44,6 +45,12 @@ export const menuItems = [
     to: "/pc/profit",
     pathname: "/pc/profit",
     icon: <PieChart width={18} height={18} />,
+  },
+  {
+    label: "Profile",
+    to: "/pc/profile",
+    pathname: "/pc/profile",
+    icon: <Settings width={18} height={18} />,
   },
   {
     label: "Help & Support",
