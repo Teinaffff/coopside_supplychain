@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import AddUserForm from "../../components/AddUserForm";
-import { User } from "../../constants/interface/user";
 import { useAddUserModal } from "../../hooks/use-add-user-modal";
 import { Modal } from "../ui/modal";
 import { createUserData } from "../../store/pc/user/user-extra";
+import { User } from "../../constants/interface/pc/members";
 
 export const AddUserModal = () => {
   const { isOpen, onClose, defaultValues } = useAddUserModal();
@@ -29,11 +29,11 @@ export const AddUserModal = () => {
   return (
     <div>
       <Modal
-        title="Create User"
-        description="Manage User information"
+        title="Create Members"
+        description="Manage Members Information"
         isOpen={isOpen}
         onClose={onClose}
-        className="z-[101] w-full sm:w-[80%] h-[90%] sm:h-[600px] mt-5 overflow-y-scroll"
+        className="z-[101] w-full sm:w-[70%] lg:w-[40%] h-[90%] sm:h-[600px] mt-5 overflow-y-scroll"
       >
         <AddUserForm
           defaultValues={

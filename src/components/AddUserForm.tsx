@@ -12,7 +12,7 @@ import {
 } from "../common/ui/form";
 import { Input } from "../common/ui/input";
 import { Loader } from "../common/ui/loader";
-import { User } from "../constants/interface/user";
+import { User } from "../constants/interface/pc/members";
 
 const formSchema = z.object({
   email: z.string().min(1, { message: "Email is required" }),
@@ -119,7 +119,7 @@ const AddUserForm: React.FC<UserFormProps> = ({
         </div>
         <div className="pt-6 space-x-2 flex items-center justify-center w-full">
           <Button
-            type="button"
+            variant={'secondary'}
             onClick={() => {
               form.reset();
               onClose();

@@ -12,7 +12,7 @@ import {
 } from "../common/ui/form";
 import { Input } from "../common/ui/input";
 import { Loader } from "../common/ui/loader";
-import { User } from "../constants/interface/user";
+import { User } from "../constants/interface/pc/members";
 
 const formSchema = z.object({
   _id: z.string(),
@@ -112,7 +112,7 @@ const UserForm: React.FC<UserFormProps> = ({
         </div>
         <div className="pt-6 space-x-2 flex items-center justify-center w-full">
           <Button
-            type="button"
+            variant={"secondary"}
             onClick={() => {
               form.reset();
               onClose();
@@ -122,7 +122,7 @@ const UserForm: React.FC<UserFormProps> = ({
           </Button>
           <Button
             type="submit"
-            onClick={()=>handleSubmit(form.getValues())}
+            onClick={() => handleSubmit(form.getValues())}
             disabled={loading}
             className={`bg-cyan-500 text-white hover:bg-cyan-500 ${
               loading ? "cursor-not-allowed" : ""

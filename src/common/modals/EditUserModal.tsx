@@ -2,10 +2,10 @@ import { useState } from "react";
 // import { useDispatch } from 'react-redux';
 import UserForm from "../../components/UserForm";
 import { useEditUserModal } from "../../hooks/use-edit-user-modal";
-import { User } from "../../constants/interface/user";
 import { Modal } from "../ui/modal";
 import { useAppDispatch } from "../../store";
 import { updateUsersData } from "../../store/pc/user/user-extra";
+import { User } from "../../constants/interface/pc/members";
 
 export const EditUserModal = () => {
   const { isOpen, onClose, defaultValues } = useEditUserModal();
@@ -31,11 +31,11 @@ export const EditUserModal = () => {
   return (
     <div>
       <Modal
-        title="Update User"
-        description="Manage User information"
+        title="Update Member"
+        description="Manage Member Information"
         isOpen={isOpen}
         onClose={onClose}
-        className="z-[101] w-full sm:w-[80%] h-[50%] sm:h-[600px] mt-5 overflow-y-scroll"
+        className="z-[101] w-full sm:w-[70%] lg:w-[40%] h-[50%] sm:h-[600px] mt-5 overflow-y-scroll"
       >
         <UserForm
           defaultValues={
