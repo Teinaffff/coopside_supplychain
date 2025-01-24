@@ -3,6 +3,9 @@ import Dashboard from "../../pages/pc/home/Dashboard";
 import LeadershipPage from "../../pages/pc/leadership";
 import UsersPage from "../../pages/pc/members";
 import ProfilePage from "../../pages/pc/profile";
+import ProfitPage from "../../pages/pc/profit";
+import SharePage from "../../pages/pc/share";
+import SupportPage from "../../pages/pc/support/indec";
 
 export const ROUTES = [
   {
@@ -23,7 +26,7 @@ export const ROUTES = [
   {
     path: "share",
     title: "Share",
-    element: <UsersPage />,
+    element: <SharePage />,
   },
   {
     path: "leadership",
@@ -33,12 +36,12 @@ export const ROUTES = [
   {
     path: "profit",
     title: "Profit",
-    element: <UsersPage />,
+    element: <ProfitPage />,
   },
   {
     path: "help-support",
     title: "Help & Support",
-    element: <UsersPage />,
+    element: <SupportPage />,
   },
   {
     path: "profile",
