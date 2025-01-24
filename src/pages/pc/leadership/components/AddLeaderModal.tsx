@@ -37,10 +37,10 @@ export const AddLeaderModal = () => {
         <LeaderForm
           defaultValues={
             defaultValues || {
-              userId: -1,
+              userId: undefined,
               role: "",
               board: "",
-              date: "",
+              date: new Date().toLocaleDateString("en-CA"),
             }
           }
           onSubmit={handleSubmit}

@@ -56,7 +56,7 @@ const LeaderForm: React.FC<LeaderFormProps> = ({
     onSubmit(data);
     form.reset();
   };
-
+  console.log("values: ", form.getValues());
   return (
     <Form {...form}>
       <form
@@ -72,10 +72,14 @@ const LeaderForm: React.FC<LeaderFormProps> = ({
                 <FormLabel>Name</FormLabel>
                 <FormControl>
                   <Select
+                    value={String(field.value)}
                     onValueChange={(value) => field.onChange(Number(value))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select user" />
+                      <SelectValue placeholder="Select user">
+                        {users.find((user) => user.userId === field.value)
+                          ?.name || "Select user"}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {users.map((user, index) => (
@@ -97,7 +101,7 @@ const LeaderForm: React.FC<LeaderFormProps> = ({
               <FormItem>
                 <FormLabel>Role:</FormLabel>
                 <FormControl>
-                  <Input type="email" {...field} disabled={loading} />
+                  <Input {...field} disabled={loading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -110,9 +114,7 @@ const LeaderForm: React.FC<LeaderFormProps> = ({
               <FormItem>
                 <FormLabel>Board</FormLabel>
                 <FormControl>
-                  <Select
-                    onValueChange={(value) => field.onChange(Number(value))}
-                  >
+                  <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select board" />
                     </SelectTrigger>
@@ -136,7 +138,17 @@ const LeaderForm: React.FC<LeaderFormProps> = ({
               <FormItem>
                 <FormLabel>Start Date:</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} disabled={loading} />
+                  <Input
+                    type="date"
+                    {...field}
+                    value={
+                      field.value
+                        ? new Date(field.value).toLocaleDateString("en-CA")
+                        : new Date().toLocaleDateString("en-CA")
+                    }
+                    onChange={(e) => field.onChange(e.target.value)}
+                    disabled={loading}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

@@ -436,7 +436,7 @@ export const leaders = [
   {
     _id: 1,
     userId: 3,
-    name: "Sarah Johnson",
+    name: "Sophia Zhang",
     role: "Chairperson",
     board: "General Board",
     email: "sarah.johnson@example.com",
@@ -444,8 +444,8 @@ export const leaders = [
   },
   {
     _id: 2,
-    userId: 2,
-    name: "Michael Chen",
+    userId: 1,
+    name: "Alice Johnson",
     role: "Secretary",
     board: "Cooperatives Board",
     email: "michael.chen@example.com",
@@ -453,12 +453,12 @@ export const leaders = [
   },
 ];
 
-export const boards=[
+export const boards = [
   "General Board",
-  "Cooperative Board",
+  "Cooperatives Board",
   "Activities Leadership Board",
   "Activities Responsibility Board",
   "Inspection Board",
   "Loan Board",
   "Social Life Board",
-]
+];

@@ -58,18 +58,6 @@ export const CellAction: React.FC<{ data: Leader }> = ({ data }) => {
       setOpenEnable(false);
     }
   };
-  // const handleEditAgencies = (data: Agencies) => {
-  //   editFlightModal.onOpen({
-  //     id: data._id,
-  //     LeaderName: data.LeaderName,
-  //     LeaderEmail: data.LeaderEmail,
-  //     LeaderPhone: data.LeaderPhone,
-  //     LeaderAddress: data.LeaderAddress,
-  //     totalAgents: data.totalAgents,
-  //     description: data.description,
-  //     LeaderStatus: data.LeaderStatus,
-  //   });
-  // };
 
   return (
     <>

@@ -39,7 +39,7 @@ export const EditLeaderModal = () => {
           defaultValues={
             defaultValues || {
               _id: -1,
-              userId: -1,
+              userId: undefined,
               role: "",
               board: "",
               date: "",
