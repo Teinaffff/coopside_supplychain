@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { boards, users } from "../../../../common/data/data";
 import { Button } from "../../../../common/ui/button";
 import {
   Form,
@@ -12,21 +13,28 @@ import {
 } from "../../../../common/ui/form";
 import { Input } from "../../../../common/ui/input";
 import { Loader } from "../../../../common/ui/loader";
-import { User } from "../../../../constants/interface/pc/members";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../../common/ui/select";
+import { AddEditLeader } from "../../../../constants/interface/pc/leadership";
 
 const formSchema = z.object({
   _id: z.number().optional(),
-  email: z.string().min(1, { message: "Email is required" }),
-  name: z.string().min(1, { message: "Name is required" }),
-  age: z.number().min(1, { message: "Age is required" }),
-  nationality: z.string().min(1, { message: "Nationality is required" }),
+  userId: z.number(),
+  role: z.string().min(1, { message: "Role is required" }),
+  board: z.string().min(1, { message: "Board is required" }),
+  date: z.string().min(1, { message: "Start date is required" }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 interface LeaderFormProps {
   defaultValues: Partial<FormValues>;
-  onSubmit: (data: User) => void;
+  onSubmit: (data: AddEditLeader) => void;
   loading: boolean;
   onClose: () => void;
   buttonTitle: string;
@@ -44,7 +52,7 @@ const LeaderForm: React.FC<LeaderFormProps> = ({
     defaultValues,
   });
 
-  const handleSubmit = async (data: User) => {
+  const handleSubmit = async (data: AddEditLeader) => {
     onSubmit(data);
     form.reset();
   };
@@ -57,24 +65,37 @@ const LeaderForm: React.FC<LeaderFormProps> = ({
       >
         <div className="mb-5 flex flex-col gap-5">
           <FormField
-            name="name"
+            name="userId"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Full Name:</FormLabel>
+                <FormLabel>Name</FormLabel>
                 <FormControl>
-                  <Input {...field} disabled={loading} />
+                  <Select
+                    onValueChange={(value) => field.onChange(Number(value))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select user" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {users.map((user, index) => (
+                        <SelectItem key={index} value={String(user.userId)}>
+                          {user.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
           <FormField
-            name="email"
+            name="role"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email:</FormLabel>
+                <FormLabel>Role:</FormLabel>
                 <FormControl>
                   <Input type="email" {...field} disabled={loading} />
                 </FormControl>
@@ -83,33 +104,39 @@ const LeaderForm: React.FC<LeaderFormProps> = ({
             )}
           />
           <FormField
-            name="age"
+            name="board"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Age:</FormLabel>
+                <FormLabel>Board</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    onChange={(e) =>
-                      field.onChange(parseInt(e.target.value, 10))
-                    }
-                    disabled={loading}
-                  />
+                  <Select
+                    onValueChange={(value) => field.onChange(Number(value))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select board" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {boards.map((board, index) => (
+                        <SelectItem key={index} value={String(board)}>
+                          {board}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
           <FormField
-            name="nationality"
+            name="date"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nationality:</FormLabel>
+                <FormLabel>Start Date:</FormLabel>
                 <FormControl>
-                  <Input {...field} disabled={loading} />
+                  <Input type="date" {...field} disabled={loading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

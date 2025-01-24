@@ -434,7 +434,8 @@ export const woredas = [
 
 export const leaders = [
   {
-    id: 1,
+    _id: 1,
+    userId: 3,
     name: "Sarah Johnson",
     role: "Chairperson",
     board: "General Board",
@@ -442,7 +443,8 @@ export const leaders = [
     date: "1/15/2023",
   },
   {
-    id: 2,
+    _id: 2,
+    userId: 2,
     name: "Michael Chen",
     role: "Secretary",
     board: "Cooperatives Board",
@@ -450,3 +452,13 @@ export const leaders = [
     date: "2/20/2023",
   },
 ];
+
+export const boards=[
+  "General Board",
+  "Cooperative Board",
+  "Activities Leadership Board",
+  "Activities Responsibility Board",
+  "Inspection Board",
+  "Loan Board",
+  "Social Life Board",
+]

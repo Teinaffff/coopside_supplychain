@@ -1,24 +1,22 @@
 import { Plus } from "lucide-react";
+import { leaders } from "../../../common/data/data";
 import { Button } from "../../../common/ui/button";
 import { Card } from "../../../common/ui/card";
 import { DataTable } from "../../../common/ui/data-table";
 import { Heading } from "../../../common/ui/heading";
-import { leaders } from "../../../common/data/data";
-import ExportLeadersDataToExcel from "./components/ExportLeadersDataToExcel";
-import { columns } from "./components/columns";
 import { useAddLeaderModal } from "../../../hooks/use-add-leader-modal";
 import { AddLeaderModal } from "./components/AddLeaderModal";
 import { EditLeaderModal } from "./components/EditLeaderModal";
+import ExportLeadersDataToExcel from "./components/ExportLeadersDataToExcel";
+import { columns } from "./components/columns";
 
 const LeadershipPage = () => {
   const { onOpen } = useAddLeaderModal();
 
   return (
-    <>
-    
+    <Card className="p-5">
       <AddLeaderModal />
       <EditLeaderModal />
-    <Card className="p-5">
       <div className="flex border-b pb-2 items-center justify-between">
         <Heading
           title={`Leadership Management`}
@@ -42,7 +40,6 @@ const LeadershipPage = () => {
         onExport={ExportLeadersDataToExcel}
       />
     </Card>
-    </>
   );
 };
 

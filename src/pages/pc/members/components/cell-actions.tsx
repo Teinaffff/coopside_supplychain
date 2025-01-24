@@ -1,5 +1,3 @@
-"use client";
-
 import { Edit, MoreHorizontal, Trash } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
@@ -15,8 +13,8 @@ import {
 import { useEditUserModal } from "../../../../hooks/use-edit-user-modal";
 import { useAppDispatch, useAppSelector } from "../../../../store";
 import { usersPageSelector } from "../../../../store/pc/user/selectors";
-import { User } from "../../../../constants/interface/user";
 import { deleteUserData } from "../../../../store/pc/user/user-extra";
+import { User } from "../../../../constants/interface/pc/members";
 
 export const CellAction: React.FC<{ data: User }> = ({ data }) => {
   const [loading, setLoading] = useState(false);

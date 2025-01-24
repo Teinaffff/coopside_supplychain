@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Modal } from "../../../../common/ui/modal";
-import { User } from "../../../../constants/interface/pc/members";
+import { AddEditLeader } from "../../../../constants/interface/pc/leadership";
 import { useAddLeaderModal } from "../../../../hooks/use-add-leader-modal";
 import { useAppDispatch } from "../../../../store";
 import LeaderForm from "./LeaderForm";
@@ -11,7 +11,7 @@ export const AddLeaderModal = () => {
 
   const dispatch = useAppDispatch();
 
-  const handleSubmit = (data: User) => {
+  const handleSubmit = (data: AddEditLeader) => {
     try {
       setLoading(true);
       console.log(data);
@@ -32,15 +32,15 @@ export const AddLeaderModal = () => {
         description="Manage Leader Information"
         isOpen={isOpen}
         onClose={onClose}
-        className="z-[101] w-full sm:w-[70%] lg:w-[40%] h-[90%] sm:h-[600px] mt-5 overflow-y-scroll"
+        className="z-[101] w-full sm:w-[50%] lg:w-[35%] h-[90%] sm:h-[600px] mt-5 overflow-y-scroll"
       >
         <LeaderForm
           defaultValues={
             defaultValues || {
-              name: "",
-              email: "",
-              nationality: "",
-              age: 0,
+              userId: -1,
+              role: "",
+              board: "",
+              date: "",
             }
           }
           onSubmit={handleSubmit}
