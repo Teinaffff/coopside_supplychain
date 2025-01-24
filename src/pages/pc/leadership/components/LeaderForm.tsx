@@ -24,7 +24,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface MemberFormProps {
+interface LeaderFormProps {
   defaultValues: Partial<FormValues>;
   onSubmit: (data: User) => void;
   loading: boolean;
@@ -32,7 +32,7 @@ interface MemberFormProps {
   buttonTitle: string;
 }
 
-const MemberForm: React.FC<MemberFormProps> = ({
+const LeaderForm: React.FC<LeaderFormProps> = ({
   defaultValues,
   onSubmit,
   loading,
@@ -141,4 +141,4 @@ const MemberForm: React.FC<MemberFormProps> = ({
   );
 };
 
-export default MemberForm;
+export default LeaderForm;

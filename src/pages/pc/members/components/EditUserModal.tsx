@@ -40,7 +40,7 @@ export const EditUserModal = () => {
         <MemberForm
           defaultValues={
             defaultValues || {
-              _id: "",
+              _id: -1,
               name: "",
               email: "",
               age: 0,

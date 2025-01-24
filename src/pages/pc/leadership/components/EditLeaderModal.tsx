@@ -1,14 +1,12 @@
 import { useState } from "react";
-import { useDispatch } from "react-redux";
 import { Modal } from "../../../../common/ui/modal";
 import { User } from "../../../../constants/interface/pc/members";
-import { useAddUserModal } from "../../../../hooks/use-add-user-modal";
-import { createUserData } from "../../../../store/pc/user/user-extra";
-import MemberForm from "./MemberForm";
+import { useEditLeaderModal } from "../../../../hooks/use-edit-leader-modal";
 import { useAppDispatch } from "../../../../store";
+import MemberForm from "./LeaderForm";
 
-export const AddUserModal = () => {
-  const { isOpen, onClose, defaultValues } = useAddUserModal();
+export const EditLeaderModal = () => {
+  const { isOpen, onClose, defaultValues } = useEditLeaderModal();
   const [loading, setLoading] = useState(false);
 
   const dispatch = useAppDispatch();
@@ -16,8 +14,8 @@ export const AddUserModal = () => {
   const handleSubmit = (data: User) => {
     try {
       setLoading(true);
-      console.log(data);
-      dispatch(createUserData(data));
+      console.log("object: ", data);
+      // dispatch(updateUsersData(data));
       setLoading(false);
     } catch (error: any) {
       console.log(error);
@@ -26,29 +24,31 @@ export const AddUserModal = () => {
     }
     onClose();
   };
+  console.log("default: ", defaultValues);
 
   return (
     <div>
       <Modal
-        title="Create Members"
-        description="Manage Members Information"
+        title="Update Member"
+        description="Manage Member Information"
         isOpen={isOpen}
         onClose={onClose}
-        className="z-[101] w-full sm:w-[70%] lg:w-[40%] h-[90%] sm:h-[600px] mt-5 overflow-y-scroll"
+        className="z-[101] w-full sm:w-[70%] lg:w-[40%] h-[50%] sm:h-[600px] mt-5 overflow-y-scroll"
       >
         <MemberForm
           defaultValues={
             defaultValues || {
+              _id: -1,
               name: "",
               email: "",
-              nationality: "",
               age: 0,
+              nationality: "",
             }
           }
           onSubmit={handleSubmit}
           loading={loading}
           onClose={onClose}
-          buttonTitle="Add"
+          buttonTitle="Update"
         />
       </Modal>
     </div>

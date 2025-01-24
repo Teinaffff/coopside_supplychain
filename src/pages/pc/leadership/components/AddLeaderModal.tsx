@@ -1,14 +1,12 @@
 import { useState } from "react";
-import { useDispatch } from "react-redux";
 import { Modal } from "../../../../common/ui/modal";
 import { User } from "../../../../constants/interface/pc/members";
-import { useAddUserModal } from "../../../../hooks/use-add-user-modal";
-import { createUserData } from "../../../../store/pc/user/user-extra";
-import MemberForm from "./MemberForm";
+import { useAddLeaderModal } from "../../../../hooks/use-add-leader-modal";
 import { useAppDispatch } from "../../../../store";
+import LeaderForm from "./LeaderForm";
 
-export const AddUserModal = () => {
-  const { isOpen, onClose, defaultValues } = useAddUserModal();
+export const AddLeaderModal = () => {
+  const { isOpen, onClose, defaultValues } = useAddLeaderModal();
   const [loading, setLoading] = useState(false);
 
   const dispatch = useAppDispatch();
@@ -17,7 +15,7 @@ export const AddUserModal = () => {
     try {
       setLoading(true);
       console.log(data);
-      dispatch(createUserData(data));
+      // dispatch(createUserData(data));
       setLoading(false);
     } catch (error: any) {
       console.log(error);
@@ -30,13 +28,13 @@ export const AddUserModal = () => {
   return (
     <div>
       <Modal
-        title="Create Members"
-        description="Manage Members Information"
+        title="Create Leader"
+        description="Manage Leader Information"
         isOpen={isOpen}
         onClose={onClose}
         className="z-[101] w-full sm:w-[70%] lg:w-[40%] h-[90%] sm:h-[600px] mt-5 overflow-y-scroll"
       >
-        <MemberForm
+        <LeaderForm
           defaultValues={
             defaultValues || {
               name: "",

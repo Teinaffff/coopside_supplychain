@@ -1,5 +1,5 @@
 import { ClipLoader } from 'react-spinners';
-import useColorMode from '../../hooks/useColorMode';
+import useColorMode from '../../hooks/use-color-mode';
 
 export const Loader = ({ color, size }: { color: string; size: number }) => {
   const [colorMode] = useColorMode();

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { User } from "../constants/interface/user";
+import { User } from "../constants/interface/pc/members";
 
 interface useAddUserModalStore {
   isOpen: boolean;
