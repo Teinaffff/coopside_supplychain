@@ -1,5 +1,6 @@
 import ApplicationPage from "../../pages/pc/application";
 import Dashboard from "../../pages/pc/home/Dashboard";
+import LeadershipPage from "../../pages/pc/leadership";
 import UsersPage from "../../pages/pc/members";
 import ProfilePage from "../../pages/pc/profile";
 
@@ -27,7 +28,7 @@ export const ROUTES = [
   {
     path: "leadership",
     title: "Leadership",
-    element: <UsersPage />,
+    element: <LeadershipPage />,
   },
   {
     path: "profit",

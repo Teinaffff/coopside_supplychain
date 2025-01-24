@@ -36,7 +36,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   searchKey: string;
   clickable?: boolean;
-  onConfirmFunction: (data: TData[]) => void;
+  onConfirmFunction?: (data: TData[]) => void;
   getSelectedRow?: (data: TData) => void;
   buttonTitle?: string;
   ButtonIcon?: LucideIcon;
@@ -92,7 +92,7 @@ export function DataTable<TData, TValue>({
         .getFilteredSelectedRowModel()
         .rows.map((row) => row.original);
 
-      if (selectedDataToDelete.length > 0) {
+      if (selectedDataToDelete.length > 0 && onConfirmFunction) {
         onConfirmFunction(selectedDataToDelete);
       }
     } catch (error) {
@@ -176,9 +176,9 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
       <Table>
-        <TableHeader style={{ textAlign: "center" }}>
+        <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} style={{ textAlign: "center" }}>
+            <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
                 return (
                   <TableHead key={header.id} style={{ textAlign: "center" }}>
@@ -198,7 +198,6 @@ export function DataTable<TData, TValue>({
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow
-                style={{ textAlign: "center" }}
                 key={row.id}
                 className={`${clickable && "cursor-pointer"}`}
                 onClick={() => clickable && getSelectedRow?.(row.original)}
@@ -212,12 +211,8 @@ export function DataTable<TData, TValue>({
               </TableRow>
             ))
           ) : (
-            <TableRow style={{ textAlign: "center" }}>
-              <TableCell
-                colSpan={columns.length}
-                className="h-24 text-center"
-                style={{ textAlign: "center" }}
-              >
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
                 No results.
               </TableCell>
             </TableRow>

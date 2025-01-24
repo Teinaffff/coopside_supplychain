@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { Settings, User } from "lucide-react";
 import { useDispatch } from "react-redux";
+import { IMAGES } from "../../assets";
 
 const backendUrl = (import.meta as any).env.VITE_BACKEND_URL;
 
@@ -56,7 +57,7 @@ const DropdownUser = () => {
         </span>
 
         <span className="h-12 w-12 rounded-full">
-          <img src="../img/user-01.png" alt="User" />
+          <img src={IMAGES.user01} alt="User" />
         </span>
       </Link>
 

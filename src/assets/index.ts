@@ -4,6 +4,7 @@ import coopLogo from "./images/coop.png";
 import loginPageBg from "./images/login-page-bg.png";
 import heroRectangle from "./images/hero-rectangle.png";
 import notFound from "./images/404-page-not-found.svg";
+import user01 from "./images/user-01.png";
 
 const IMAGES = {
   cmsLogo,
@@ -12,6 +13,7 @@ const IMAGES = {
   loginPageBg,
   heroRectangle,
   notFound,
+  user01,
 };
 
 export { IMAGES };

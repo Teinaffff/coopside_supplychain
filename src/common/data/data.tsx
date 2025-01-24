@@ -431,3 +431,22 @@ export const woredas = [
     subcityName: "subcity-3",
   },
 ];
+
+export const leaders = [
+  {
+    id: 1,
+    name: "Sarah Johnson",
+    role: "Chairperson",
+    board: "General Board",
+    email: "sarah.johnson@example.com",
+    date: "1/15/2023",
+  },
+  {
+    id: 2,
+    name: "Michael Chen",
+    role: "Secretary",
+    board: "Cooperatives Board",
+    email: "michael.chen@example.com",
+    date: "2/20/2023",
+  },
+];
