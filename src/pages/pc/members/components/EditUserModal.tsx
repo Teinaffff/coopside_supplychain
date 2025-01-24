@@ -1,11 +1,11 @@
 import { useState } from "react";
 // import { useDispatch } from 'react-redux';
-import UserForm from "../../../../components/UserForm";
-import { useEditUserModal } from "../../../../hooks/use-edit-user-modal";
 import { Modal } from "../../../../common/ui/modal";
+import { User } from "../../../../constants/interface/pc/members";
+import { useEditUserModal } from "../../../../hooks/use-edit-user-modal";
 import { useAppDispatch } from "../../../../store";
 import { updateUsersData } from "../../../../store/pc/user/user-extra";
-import { User } from "../../../../constants/interface/pc/members";
+import MemberForm from "./MemberForm";
 
 export const EditUserModal = () => {
   const { isOpen, onClose, defaultValues } = useEditUserModal();
@@ -37,7 +37,7 @@ export const EditUserModal = () => {
         onClose={onClose}
         className="z-[101] w-full sm:w-[70%] lg:w-[40%] h-[50%] sm:h-[600px] mt-5 overflow-y-scroll"
       >
-        <UserForm
+        <MemberForm
           defaultValues={
             defaultValues || {
               _id: "",
