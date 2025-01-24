@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import AddUserForm from "../../components/AddUserForm";
-import { useAddUserModal } from "../../hooks/use-add-user-modal";
-import { Modal } from "../ui/modal";
-import { createUserData } from "../../store/pc/user/user-extra";
-import { User } from "../../constants/interface/pc/members";
+import AddUserForm from "../../../../components/AddUserForm";
+import { useAddUserModal } from "../../../../hooks/use-add-user-modal";
+import { Modal } from "../../../../common/ui/modal";
+import { createUserData } from "../../../../store/pc/user/user-extra";
+import { User } from "../../../../constants/interface/pc/members";
 
 export const AddUserModal = () => {
   const { isOpen, onClose, defaultValues } = useAddUserModal();

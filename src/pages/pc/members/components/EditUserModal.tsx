@@ -1,11 +1,11 @@
 import { useState } from "react";
 // import { useDispatch } from 'react-redux';
-import UserForm from "../../components/UserForm";
-import { useEditUserModal } from "../../hooks/use-edit-user-modal";
-import { Modal } from "../ui/modal";
-import { useAppDispatch } from "../../store";
-import { updateUsersData } from "../../store/pc/user/user-extra";
-import { User } from "../../constants/interface/pc/members";
+import UserForm from "../../../../components/UserForm";
+import { useEditUserModal } from "../../../../hooks/use-edit-user-modal";
+import { Modal } from "../../../../common/ui/modal";
+import { useAppDispatch } from "../../../../store";
+import { updateUsersData } from "../../../../store/pc/user/user-extra";
+import { User } from "../../../../constants/interface/pc/members";
 
 export const EditUserModal = () => {
   const { isOpen, onClose, defaultValues } = useEditUserModal();

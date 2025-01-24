@@ -1,7 +1,7 @@
 import { Download, Plus, Trash } from "lucide-react";
 import { useEffect } from "react";
-import { AddUserModal } from "../../../common/modals/AddUserModal";
-import { EditUserModal } from "../../../common/modals/EditUserModal";
+import { AddUserModal } from "./components/AddUserModal";
+import { EditUserModal } from "./components/EditUserModal";
 import { Button } from "../../../common/ui/button";
 import { Card } from "../../../common/ui/card";
 import { DataTable } from "../../../common/ui/data-table";

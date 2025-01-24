@@ -1,9 +1,9 @@
 import { Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import ProfileAvatarProgress from "../../components/ProfileAvatarProgress";
-import { useProfileCompletionModal } from "../../hooks/use-profile-completion-modal";
-import { Button } from "../ui/button";
-import { Modal } from "../ui/modal";
+import ProfileAvatarProgress from "../../../../components/ProfileAvatarProgress";
+import { useProfileCompletionModal } from "../../../../hooks/use-profile-completion-modal";
+import { Button } from "../../../../common/ui/button";
+import { Modal } from "../../../../common/ui/modal";
 
 export const ProfileCompletionModal = ({
   route,

@@ -10,7 +10,7 @@ import { fetchNotificationsData } from "../../store/notification/notification-ex
 import PageNotFound from "../../common/PageNotFound";
 import { CalculateCompletion } from "../../hooks/use-calculate-profile";
 import { profileMockData } from "../../common/data/data";
-import { ProfileCompletionModal } from "../../common/modals/ProfileCompletionModal";
+import { ProfileCompletionModal } from "./profile/components/ProfileCompletionModal";
 import { useProfileCompletionModal } from "../../hooks/use-profile-completion-modal";
 
 const PC = () => {
