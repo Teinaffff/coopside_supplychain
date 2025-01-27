@@ -36,14 +36,27 @@ export const EditMemberModal = () => {
         onClose={onClose}
         className="z-[101] w-full sm:w-[70%] lg:w-[40%] h-[50%] sm:h-[600px] mt-5 overflow-y-scroll"
       >
+        {/* 
+          
+          share: z.number().min(0, { message: "Share must be a non-negative number" }),
+          collateral: z.string().min(1, { message: "Collateral is required" }),
+          inheritor: */}
         <MemberForm
           defaultValues={
             defaultValues || {
-              _id: -1,
+              memberId: -1,
               name: "",
               email: "",
               age: 0,
-              nationality: "",
+              city: "",
+              subcity: "",
+              woreda: "",
+              startDate: "",
+              photo: "",
+              registrationFee: 0,
+              collateral: "",
+              inheritor: "",
+              share: 0,
             }
           }
           onSubmit={handleSubmit}

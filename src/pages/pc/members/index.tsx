@@ -24,15 +24,9 @@ const MembersPage = () => {
     dispatch(getMembersData());
   }, []);
 
-  console.log("Members", members);
-
   const formattedMembers: Member[] = members.map((item: any) => ({
     ...item,
     _id: item.memberId,
-    name: item.name,
-    email: item.email,
-    age: item.age,
-    nationality: item.nationality,
   }));
 
   const deleteselectedMembers = () => {};

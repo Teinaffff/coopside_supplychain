@@ -41,8 +41,16 @@ export const AddMemberModal = () => {
             defaultValues || {
               name: "",
               email: "",
-              nationality: "",
               age: 0,
+              city: "",
+              subcity: "",
+              woreda: "",
+              startDate: "",
+              photo: "",
+              registrationFee: 0,
+              collateral: "",
+              inheritor: "",
+              share: 0,
             }
           }
           onSubmit={handleSubmit}

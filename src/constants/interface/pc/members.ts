@@ -9,7 +9,6 @@ export interface Member {
   name: string;
   email: string;
   age: number;
-  nationality: string;
   city: string;
   subcity: string;
   woreda: string;

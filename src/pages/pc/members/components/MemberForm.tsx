@@ -12,21 +12,31 @@ import {
 } from "../../../../common/ui/form";
 import { Input } from "../../../../common/ui/input";
 import { Loader } from "../../../../common/ui/loader";
-import { User } from "../../../../constants/interface/pc/members";
+import { Member } from "../../../../constants/interface/pc/members";
 
-const formSchema = z.object({
-  _id: z.number().optional(),
-  email: z.string().min(1, { message: "Email is required" }),
+export const formSchema = z.object({
+  memberId: z.number().optional(), // Optional field
   name: z.string().min(1, { message: "Name is required" }),
+  email: z.string().email({ message: "Invalid email format" }),
   age: z.number().min(1, { message: "Age is required" }),
-  nationality: z.string().min(1, { message: "Nationality is required" }),
+  city: z.string().min(1, { message: "City is required" }),
+  subcity: z.string().min(1, { message: "Subcity is required" }),
+  woreda: z.string().min(1, { message: "Woreda is required" }),
+  startDate: z.string().min(1, { message: "Start date is required" }),
+  photo: z.string().url({ message: "Photo must be a valid URL" }),
+  registrationFee: z
+    .number()
+    .min(0, { message: "Registration fee must be a non-negative number" }),
+  share: z.number().min(0, { message: "Share must be a non-negative number" }),
+  collateral: z.string().min(1, { message: "Collateral is required" }),
+  inheritor: z.string().min(1, { message: "Inheritor is required" }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 interface MemberFormProps {
   defaultValues: Partial<FormValues>;
-  onSubmit: (data: User) => void;
+  onSubmit: (data: Member) => void;
   loading: boolean;
   onClose: () => void;
   buttonTitle: string;
@@ -44,7 +54,7 @@ const MemberForm: React.FC<MemberFormProps> = ({
     defaultValues,
   });
 
-  const handleSubmit = async (data: User) => {
+  const handleSubmit = async (data: Member) => {
     onSubmit(data);
     form.reset();
   };
@@ -103,11 +113,11 @@ const MemberForm: React.FC<MemberFormProps> = ({
             )}
           />
           <FormField
-            name="nationality"
+            name="inheritor"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nationality:</FormLabel>
+                <FormLabel>inheritor:</FormLabel>
                 <FormControl>
                   <Input {...field} disabled={loading} />
                 </FormControl>
