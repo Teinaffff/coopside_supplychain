@@ -1,41 +1,41 @@
 import { createAsyncThunk, Dispatch } from "@reduxjs/toolkit";
 import toast from "react-hot-toast";
 import API from "../../../config/axios-config";
-import { getUsers } from "./user-slice";
+import { getMembers } from "./member-slice";
 import { HTTP_RESPONSE } from "../../../constants/general";
-import { users } from "../../../common/data/data";
+import { members } from "../../../common/data/data";
 
-export const getUsersData = createAsyncThunk(
-  "users/getusers",
+export const getMembersData = createAsyncThunk(
+  "members/getmembers",
   async (_, { dispatch }) => {
     try {
-      console.log("object", users);
-      // const { data } = await API.get("/users");
-      // console.log("users", data);
+      console.log("object", members);
+      // const { data } = await API.get("/members");
+      // console.log("members", data);
       // if (data) {
-      //   dispatch(getUsers(data));
+      //   dispatch(getmembers(data));
       // }
       // return data ?? [];
 
-      if (users) {
-        dispatch(getUsers(users));
+      if (members) {
+        dispatch(getMembers(members));
       }
-      return users ?? [];
+      return members ?? [];
     } catch (error: any) {
       toast.error("Something went wrong!");
     }
   }
 );
 
-export const updateUsersData = (data: any) => {
+export const updateMembersData = (data: any) => {
   return async (dispatch: Dispatch) => {
     try {
       console.log("data from extra", data);
-      const { status } = await API.put(`/users/${data._id}`, data);
+      const { status } = await API.put(`/members/${data._id}`, data);
       status === HTTP_RESPONSE.UPDATED
-        ? dispatch(getUsersData() as any)
+        ? dispatch(getMembersData() as any)
         : toast.success("Something went wrong!");
-      dispatch(getUsersData() as any);
+      dispatch(getMembersData() as any);
       toast.success("User Updated Successfully!");
     } catch (error: any) {
       toast.error(error.message ? error.message : "Something went wrong!");
@@ -43,12 +43,12 @@ export const updateUsersData = (data: any) => {
   };
 };
 
-export const createUserData = createAsyncThunk(
-  "users/create",
+export const createMemberData = createAsyncThunk(
+  "members/create",
   async (data: any, { dispatch }) => {
     try {
-      await API.post(`/users`, data);
-      dispatch(getUsersData() as any);
+      await API.post(`/members`, data);
+      dispatch(getMembersData() as any);
       toast.success("User Added Successfully!");
     } catch (error: any) {
       toast.error(error.message ? error.message : "Something went wrong!");
@@ -56,27 +56,27 @@ export const createUserData = createAsyncThunk(
   }
 );
 
-export const deleteUserData = createAsyncThunk(
-  "users/deleteUser",
+export const deleteMemberData = createAsyncThunk(
+  "members/deleteUser",
   async (_id: string, { dispatch }) => {
     try {
-      await API.delete(`/users/${_id}`);
+      await API.delete(`/members/${_id}`);
 
       toast.success("User data deleted successfully!");
-      dispatch(getUsersData());
+      dispatch(getMembersData());
     } catch (error: any) {
       toast.error(error.message ? error.message : "Something went wrong!");
     }
   }
 );
 
-// export const deleteusers = createAsyncThunk(
-//     'users/deleteManyusers',
+// export const deletemembers = createAsyncThunk(
+//     'members/deleteManymembers',
 //     async (ids: string[], { dispatch }) => {
 //         try {
 //             await API.delete(`/admin/agency/deleteMany`, { data: ids });
-//             toast.success('users Deleted Successfully!');
-//             dispatch(getusers());
+//             toast.success('members Deleted Successfully!');
+//             dispatch(getmembers());
 //         } catch (error: any) {
 //             toast.error(error.message ? error.message : 'Something went wrong!');
 //         }
@@ -84,13 +84,13 @@ export const deleteUserData = createAsyncThunk(
 // );
 
 // export const disableAgency = createAsyncThunk(
-//     'users/disable',
+//     'members/disable',
 //     async (_id: string, { dispatch }) => {
 //         try {
 //             await API.patch(`/admin/agency/disable?id=${_id}`);
 //             // dispatch(removeFromAgents(_id));
 //             toast.success('Agency disabled successfully!');
-//             dispatch(getusers());
+//             dispatch(getmembers());
 //         } catch (error: any) {
 //             toast.error(error.message ? error.message : 'Something went wrong!');
 //         }

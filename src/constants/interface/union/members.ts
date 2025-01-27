@@ -1,18 +1,26 @@
+
 interface Timestamps {
-    createdAt: string;
-    updatedAt: string;
-  }
-  
-  export interface User {
-    userId?: number;
-    _id?: number;
-    name: string;
-    email: string;
-    age: number;
-    nationality: string;
-  }
-  
-  export interface UnionUserSliceType {
-    usersList: User[];
-  }
-  
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Member {
+  memberId?: number;
+  name: string;
+  email: string;
+  age: number;
+  nationality: string;
+  city: string;
+  subcity: string;
+  woreda: string;
+  startDate: string;
+  photo: string;
+  registrationFee: number;
+  share: number;
+  collateral: string;
+  inheritor: string;
+}
+
+export interface UnionMemberSliceType {
+  membersList: Member[];
+}

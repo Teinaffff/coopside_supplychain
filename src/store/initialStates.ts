@@ -1,9 +1,9 @@
-import { PCUserSliceType } from "../constants/interface/pc/members";
-import { UnionUserSliceType } from "../constants/interface/union/members";
+import { PCMemberSliceType } from "../constants/interface/pc/members";
+import { UnionMemberSliceType } from "../constants/interface/union/members";
 
-export const PcUserInitialState: PCUserSliceType = {
-  usersList: [],
+export const PcMemberInitialState: PCMemberSliceType = {
+  membersList: [],
 };
-export const UnionUserInitialState: UnionUserSliceType = {
-  usersList: [],
+export const UnionMemberInitialState: UnionMemberSliceType = {
+  membersList: [],
 };

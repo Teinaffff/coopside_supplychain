@@ -10,26 +10,26 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "../../../../common/ui/dropdown-menu";
-import { useEditUserModal } from "../../../../hooks/use-edit-user-modal";
+import { useEditMemberModal } from "../../../../hooks/use-edit-member-modal";
 import { useAppDispatch, useAppSelector } from "../../../../store";
-import { usersPageSelector } from "../../../../store/pc/user/selectors";
-import { deleteUserData } from "../../../../store/pc/user/user-extra";
-import { User } from "../../../../constants/interface/pc/members";
+import { membersPageSelector } from "../../../../store/pc/member/selectors";
+import { deleteMemberData } from "../../../../store/pc/member/member-extra";
+import { Member } from "../../../../constants/interface/pc/members";
 
-export const CellAction: React.FC<{ data: User }> = ({ data }) => {
+export const CellAction: React.FC<{ data: Member }> = ({ data }) => {
   const [loading, setLoading] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openDisable, setOpenDisable] = useState(false);
   const [openEnable, setOpenEnable] = useState(false);
 
   const dispatch = useAppDispatch();
-  const user = useAppSelector(usersPageSelector);
-  const editAgencyModal = useEditUserModal();
+  const Member = useAppSelector(membersPageSelector);
+  const editAgencyModal = useEditMemberModal();
   const onDelete = async () => {
     try {
       setLoading(true);
-      const id = data._id ? data._id : -1;
-      dispatch(deleteUserData(id.toString()));
+      const id = data.memberId ? data.memberId : -1;
+      dispatch(deleteMemberData(id.toString()));
     } catch (error) {
       toast.error("Something went wrong!");
     } finally {

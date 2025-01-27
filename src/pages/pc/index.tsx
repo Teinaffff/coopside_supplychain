@@ -1,17 +1,16 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import PageTitle from "../../components/PageTitle";
-import { ROUTES } from "../../constants/pc/routes";
-import DefaultLayout from "../../layout/DefaultLayout";
-import { menuItems } from "../../constants/pc/menu";
-import { useAppDispatch } from "../../store";
-import { getUsersData } from "../../store/pc/user/user-extra";
-import { fetchNotificationsData } from "../../store/notification/notification-extra";
-import PageNotFound from "../../common/PageNotFound";
-import { CalculateCompletion } from "../../hooks/use-calculate-profile";
 import { profileMockData } from "../../common/data/data";
-import { ProfileCompletionModal } from "./profile/components/ProfileCompletionModal";
+import PageTitle from "../../components/PageTitle";
+import { menuItems } from "../../constants/pc/menu";
+import { ROUTES } from "../../constants/pc/routes";
+import { CalculateCompletion } from "../../hooks/use-calculate-profile";
 import { useProfileCompletionModal } from "../../hooks/use-profile-completion-modal";
+import DefaultLayout from "../../layout/DefaultLayout";
+import { useAppDispatch } from "../../store";
+import { fetchNotificationsData } from "../../store/notification/notification-extra";
+import { getMembersData } from "../../store/pc/member/member-extra";
+import { ProfileCompletionModal } from "./profile/components/ProfileCompletionModal";
 
 const PC = () => {
   const dispatch = useAppDispatch();
@@ -21,7 +20,7 @@ const PC = () => {
   console.log("profileCompletion: ", profileCompletion);
 
   useEffect(() => {
-    dispatch(getUsersData());
+    dispatch(getMembersData());
     dispatch(fetchNotificationsData());
 
     const isNotCompleted = profileCompletion < 100;

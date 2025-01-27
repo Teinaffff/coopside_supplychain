@@ -3,12 +3,11 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "../../../../common/ui/button";
-import { CellAction } from "./cell-actions";
-import { Badge } from "../../../../common/ui/badge";
-import { User } from "../../../../constants/interface/user";
 import { Checkbox } from "../../../../common/ui/checkbox";
+import { Member } from "../../../../constants/interface/pc/members";
+import { CellAction } from "./cell-actions";
 
-export const columns: ColumnDef<User>[] = [
+export const columns: ColumnDef<Member>[] = [
   {
     id: "select",
     header: ({ table }) => (

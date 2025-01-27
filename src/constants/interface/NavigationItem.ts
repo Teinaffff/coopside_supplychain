@@ -5,4 +5,5 @@ export interface NavigationItem {
   to: string; // The URL path for navigation
   pathname: string; // The current route pathname
   icon: ReactElement; // The React element for the icon
+  subMenu?: NavigationItem[];
 }

@@ -1,10 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Member } from "../../../constants/interface/union/members.ts";
-import { UnionMemberInitialState } from "../../initialStates.ts";
+import { Member } from "../../../constants/interface/pc/members.ts";
+import { PcMemberInitialState } from "../../initialStates.ts";
 
 const memberSlice = createSlice({
-  name: "Members",
-  initialState: UnionMemberInitialState,
+  name: "members",
+  initialState: PcMemberInitialState,
   reducers: {
     getMembers: (state, { payload }: PayloadAction<Member[]>) => {
       state.membersList = payload;

@@ -1,45 +1,46 @@
 import { Download, Plus, Trash } from "lucide-react";
 import { useEffect } from "react";
-import { AddUserModal } from "../../pc/members/components/AddUserModal";
-import { EditUserModal } from "../../pc/members/components/EditUserModal";
+import { AddMemberModal } from "../../pc/members/components/AddMemberModal";
+import { EditMemberModal } from "../../pc/members/components/EditMemberModal";
 import { Button } from "../../../common/ui/button";
 import { Card } from "../../../common/ui/card";
 import { DataTable } from "../../../common/ui/data-table";
 import { Heading } from "../../../common/ui/heading";
-import { useAddUserModal } from "../../../hooks/use-add-user-modal";
+import { useAddMemberModal } from "../../../hooks/use-add-member-modal";
 import { useAppDispatch, useAppSelector } from "../../../store";
-import { usersPageSelector } from "../../../store/pc/user/selectors";
-import { getUsersData } from "../../../store/pc/user/user-extra";
+import { membersPageSelector } from "../../../store/pc/member/selectors";
+import { getMembersData } from "../../../store/pc/member/member-extra";
 import ExportMembersDataToExcel from "./components/ExportMembersDataToExcel";
 import { columns } from "./components/columns";
-import { User } from "../../../constants/interface/union/members";
+import { Member } from "../../../constants/interface/union/members";
 
-const UsersPage = () => {
+const MembersPage = () => {
   const dispatch = useAppDispatch();
-  const { users } = useAppSelector(usersPageSelector);
+  const { members } = useAppSelector(membersPageSelector);
 
-  const { onOpen } = useAddUserModal();
+  const { onOpen } = useAddMemberModal();
 
   useEffect(() => {
-    dispatch(getUsersData());
+    dispatch(getMembersData());
   }, []);
 
-  console.log("users", users)
+  console.log("Members", members);
 
-  const formattedUsers: User[] = users.map((item: any) => ({
-    _id: item.userId,
+  const formattedMembers: Member[] = members.map((item: any) => ({
+    ...item,
+    _id: item.memberId,
     name: item.name,
     email: item.email,
     age: item.age,
     nationality: item.nationality,
   }));
 
-  const deleteselectedUsers = () => {};
+  const deleteselectedMembers = () => {};
 
   return (
     <>
-      <AddUserModal />
-      <EditUserModal />
+      <AddMemberModal />
+      <EditMemberModal />
       <div className="flex justify-end pb-5 mx-5">
         <Button
           className="bg-cyan-600 hover:bg-cyan-600"
@@ -52,15 +53,15 @@ const UsersPage = () => {
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
-            title={`Union Members (${formattedUsers.length})`}
-            description="Manage Users"
+            title={`Union Members (${formattedMembers.length})`}
+            description="Manage Members"
           />
           <div></div>
           <div>
             <Button
               className={`bg-cyan-600 hover:bg-cyan-600`}
               onClick={() =>
-                ExportMembersDataToExcel("notfiltecyan", formattedUsers)
+                ExportMembersDataToExcel("notfiltecyan", formattedMembers)
               }
               title="disabled"
             >
@@ -73,8 +74,8 @@ const UsersPage = () => {
           searchKey="name"
           clickable={true}
           columns={columns}
-          data={formattedUsers}
-          onConfirmFunction={deleteselectedUsers}
+          data={formattedMembers}
+          onConfirmFunction={deleteselectedMembers}
           onExport={ExportMembersDataToExcel}
           buttonTitle="Delete Selection"
           ButtonIcon={Trash}
@@ -84,4 +85,4 @@ const UsersPage = () => {
   );
 };
 
-export default UsersPage;
+export default MembersPage;

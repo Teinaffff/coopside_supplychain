@@ -12,7 +12,7 @@ import {
 } from "../../../../common/ui/dropdown-menu";
 import { useEditLeaderModal } from "../../../../hooks/use-edit-leader-modal";
 import { useAppDispatch, useAppSelector } from "../../../../store";
-import { usersPageSelector } from "../../../../store/pc/user/selectors";
+import { membersPageSelector } from "../../../../store/pc/member/selectors";
 import { Leader } from "../../../../constants/interface/pc/leadership";
 
 export const CellAction: React.FC<{ data: Leader }> = ({ data }) => {
@@ -22,7 +22,7 @@ export const CellAction: React.FC<{ data: Leader }> = ({ data }) => {
   const [openEnable, setOpenEnable] = useState(false);
 
   const dispatch = useAppDispatch();
-  const user = useAppSelector(usersPageSelector);
+  const user = useAppSelector(membersPageSelector);
   const editLeaderModal = useEditLeaderModal();
   const onDelete = async () => {
     try {

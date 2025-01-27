@@ -1,23 +1,22 @@
 import { useState } from "react";
-// import { useDispatch } from 'react-redux';
 import { Modal } from "../../../../common/ui/modal";
-import { User } from "../../../../constants/interface/pc/members";
-import { useEditUserModal } from "../../../../hooks/use-edit-user-modal";
+import { Member } from "../../../../constants/interface/pc/members";
+import { useEditMemberModal } from "../../../../hooks/use-edit-member-modal";
 import { useAppDispatch } from "../../../../store";
-import { updateUsersData } from "../../../../store/pc/user/user-extra";
+import { updateMembersData } from "../../../../store/pc/member/member-extra";
 import MemberForm from "./MemberForm";
 
-export const EditUserModal = () => {
-  const { isOpen, onClose, defaultValues } = useEditUserModal();
+export const EditMemberModal = () => {
+  const { isOpen, onClose, defaultValues } = useEditMemberModal();
   const [loading, setLoading] = useState(false);
 
   const dispatch = useAppDispatch();
 
-  const handleSubmit = (data: User) => {
+  const handleSubmit = (data: Member) => {
     try {
       setLoading(true);
       console.log("object: ", data);
-      dispatch(updateUsersData(data));
+      dispatch(updateMembersData(data));
       setLoading(false);
     } catch (error: any) {
       console.log(error);

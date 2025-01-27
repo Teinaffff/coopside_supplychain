@@ -1,11 +1,11 @@
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { configureStore, createSelector } from "@reduxjs/toolkit";
-import user from "./pc/user/user-slice";
+import member from "./pc/member/member-slice";
 import notification from "./notification/notification-slice";
 
 const store = configureStore({
   reducer: {
-    user,
+    member,
     notification,
   },
 });

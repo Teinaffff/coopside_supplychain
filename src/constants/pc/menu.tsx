@@ -1,11 +1,14 @@
 import {
-  Briefcase,
+  Banknote,
   Coins,
+  Crown,
+  FileCheck,
   FileText,
-  HelpCircle,
+  Image,
   LucideHome,
   PieChart,
   Settings,
+  User,
   Users,
 } from "lucide-react";
 
@@ -38,7 +41,7 @@ export const menuItems = [
     label: "Leadership",
     to: "/pc/leadership",
     pathname: "/pc/leadership",
-    icon: <Briefcase width={18} height={18} />,
+    icon: <Crown width={18} height={18} />,
   },
   {
     label: "Profit",
@@ -50,12 +53,32 @@ export const menuItems = [
     label: "Profile",
     to: "/pc/profile",
     pathname: "/pc/profile",
-    icon: <Settings width={18} height={18} />,
+    icon: <User width={18} height={18} />,
   },
   {
-    label: "Help & Support",
-    to: "/pc/help-support",
-    pathname: "/pc/help-support",
-    icon: <HelpCircle width={18} height={18} />,
+    label: "Managemnet",
+    to: "/pc/management",
+    pathname: "/pc/management",
+    icon: <Settings width={18} height={18} />,
+    subMenu: [
+      {
+        label: "Bank",
+        to: "/pc/management/bank",
+        pathname: "/pc/management/bank",
+        icon: <Banknote width={18} height={18} />,
+      },
+      {
+        label: "Logo",
+        to: "/pc/management/logo",
+        pathname: "/pc/management/logo",
+        icon: <Image width={18} height={18} />,
+      },
+      {
+        label: "Certificate",
+        to: "/pc/management/certificate",
+        pathname: "/pc/management/certificate",
+        icon: <FileCheck width={18} height={18} />,
+      },
+    ],
   },
 ];

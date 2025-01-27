@@ -1,23 +1,23 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Modal } from "../../../../common/ui/modal";
-import { User } from "../../../../constants/interface/pc/members";
-import { useAddUserModal } from "../../../../hooks/use-add-user-modal";
-import { createUserData } from "../../../../store/pc/user/user-extra";
+import { Member } from "../../../../constants/interface/pc/members";
+import { useAddMemberModal } from "../../../../hooks/use-add-member-modal";
+import { createMemberData } from "../../../../store/pc/member/member-extra";
 import MemberForm from "./MemberForm";
 import { useAppDispatch } from "../../../../store";
 
-export const AddUserModal = () => {
-  const { isOpen, onClose, defaultValues } = useAddUserModal();
+export const AddMemberModal = () => {
+  const { isOpen, onClose, defaultValues } = useAddMemberModal();
   const [loading, setLoading] = useState(false);
 
   const dispatch = useAppDispatch();
 
-  const handleSubmit = (data: User) => {
+  const handleSubmit = (data: Member) => {
     try {
       setLoading(true);
       console.log(data);
-      dispatch(createUserData(data));
+      dispatch(createMemberData(data));
       setLoading(false);
     } catch (error: any) {
       console.log(error);

@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import Logo from "../../common/Logo";
 import { NavigationItem } from "../../constants/interface/NavigationItem";
 import { isActivePath } from "../../lib/utils";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -21,6 +22,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, menuItems }: SidebarProps) => {
   const [sidebarExpanded, setSidebarExpanded] = useState(
     storedSidebarExpanded === null ? false : storedSidebarExpanded === "true"
   );
+
+  // State to track which submenu is open
+  const [openSubMenu, setOpenSubMenu] = useState<string | null>(null);
+
+  // Toggle submenu visibility
+  const toggleSubMenu = (label: string) => {
+    setOpenSubMenu(openSubMenu === label ? null : label);
+  };
 
   // close on click outside
   useEffect(() => {
@@ -108,7 +117,14 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, menuItems }: SidebarProps) => {
                     label={item.label}
                     to={item.to}
                     icon={item.icon}
-                    isActive={isActivePath(pathname, "/pc", item.pathname)}
+                    isActive={
+                      item.subMenu
+                        ? pathname.startsWith(item.pathname)
+                        : isActivePath(pathname, "/pc", item.pathname)
+                    }
+                    subMenu={item.subMenu}
+                    isOpen={openSubMenu === item.label}
+                    toggleSubMenu={() => toggleSubMenu(item.label)}
                   />
                 </li>
               ))}
@@ -127,19 +143,48 @@ const SidebarItem = ({
   icon,
   label,
   isActive,
+  subMenu,
+  isOpen,
+  toggleSubMenu,
 }: {
   to: string;
   icon: JSX.Element;
   label: string;
   isActive: boolean;
+  subMenu?: NavigationItem[];
+  isOpen: boolean;
+  toggleSubMenu: () => void;
 }) => (
-  <NavLink
-    to={to}
-    className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium duration-300 ease-in-out hover:text-cyan-500 hover:bg-white dark:hover:bg-meta-4 ${
-      isActive ? "bg-white dark:bg-meta-4  text-cyan-500" : "text-white"
-    }`}
-  >
-    {icon}
-    {label}
-  </NavLink>
+  <div>
+    <NavLink
+      to={to}
+      className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium duration-300 ease-in-out hover:text-cyan-500 hover:bg-white dark:hover:bg-meta-4 ${
+        isActive ? "bg-white dark:bg-meta-4  text-cyan-500" : "text-white"
+      }`}
+      onClick={subMenu ? toggleSubMenu : undefined}
+    >
+      {icon}
+      {label}
+      {subMenu && (
+        <span className="ml-auto">
+          {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </span>
+      )}
+    </NavLink>
+    {subMenu && isOpen && (
+      <ul className="ml-6 mt-2 flex flex-col gap-2">
+        {subMenu.map((subItem) => (
+          <li key={subItem.to}>
+            <NavLink
+              to={subItem.to}
+              className={`flex items-center gap-2 rounded-sm py-2 px-4 font-medium duration-300 ease-in-out text-white hover:text-cyan-500 hover:bg-white dark:hover:bg-meta-4`}
+            >
+              {subItem.icon}
+              {subItem.label}
+            </NavLink>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
 );

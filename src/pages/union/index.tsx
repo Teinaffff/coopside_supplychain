@@ -6,13 +6,13 @@ import { ROUTES } from "../../constants/union/routes";
 import DefaultLayout from "../../layout/DefaultLayout";
 import { useAppDispatch } from "../../store";
 import { fetchNotificationsData } from "../../store/notification/notification-extra";
-import { getUsersData } from "../../store/pc/user/user-extra";
+import { getMembersData } from "../../store/pc/member/member-extra";
 
 const Union = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    dispatch(getUsersData());
+    dispatch(getMembersData());
     dispatch(fetchNotificationsData());
   }, []);
 

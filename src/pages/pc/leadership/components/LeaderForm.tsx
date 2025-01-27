@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { boards, users } from "../../../../common/data/data";
+import { boards, members } from "../../../../common/data/data";
 import { Button } from "../../../../common/ui/button";
 import {
   Form,
@@ -77,13 +77,13 @@ const LeaderForm: React.FC<LeaderFormProps> = ({
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select user">
-                        {users.find((user) => user.userId === field.value)
+                        {members.find((user) => user.memberId === field.value)
                           ?.name || "Select user"}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {users.map((user, index) => (
-                        <SelectItem key={index} value={String(user.userId)}>
+                      {members.map((user, index) => (
+                        <SelectItem key={index} value={String(user.memberId)}>
                           {user.name}
                         </SelectItem>
                       ))}
