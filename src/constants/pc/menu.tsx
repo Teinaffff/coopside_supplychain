@@ -1,5 +1,6 @@
 import {
   Banknote,
+  Building2,
   Coins,
   Crown,
   FileCheck,
@@ -56,29 +57,21 @@ export const menuItems = [
     icon: <User width={18} height={18} />,
   },
   {
-    label: "Managemnet",
-    to: "/pc/management",
-    pathname: "/pc/management",
-    icon: <Settings width={18} height={18} />,
-    subMenu: [
-      {
-        label: "Bank",
-        to: "/pc/management/bank",
-        pathname: "/pc/management/bank",
-        icon: <Banknote width={18} height={18} />,
-      },
-      {
-        label: "Logo",
-        to: "/pc/management/logo",
-        pathname: "/pc/management/logo",
-        icon: <Image width={18} height={18} />,
-      },
-      {
-        label: "Certificate",
-        to: "/pc/management/certificate",
-        pathname: "/pc/management/certificate",
-        icon: <FileCheck width={18} height={18} />,
-      },
-    ],
+    label: "Bank",
+    to: "/pc/bank",
+    pathname: "/pc/bank",
+    icon: <Building2 width={18} height={18} />,
+  },
+  {
+    label: "Logo",
+    to: "/pc/logo",
+    pathname: "/pc/logo",
+    icon: <Image width={18} height={18} />,
+  },
+  {
+    label: "License",
+    to: "/pc/license",
+    pathname: "/pc/license",
+    icon: <FileCheck width={18} height={18} />,
   },
 ];

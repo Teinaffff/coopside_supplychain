@@ -40,7 +40,7 @@ interface DataTableProps<TData, TValue> {
   getSelectedRow?: (data: TData) => void;
   buttonTitle?: string;
   ButtonIcon?: LucideIcon;
-  onExport: (filtered: string, data: Row<TData>[]) => void;
+  onExport?: (filtered: string, data: Row<TData>[]) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -155,21 +155,23 @@ export function DataTable<TData, TValue>({
                     </Button>
                   </div>
                 )}
-                <Button
-                  className="ml-2 border"
-                  size="sm"
-                  onClick={() =>
-                    onExport(
-                      "filtered",
-                      table.getFilteredSelectedRowModel().rows
-                    )
-                  }
-                  variant="secondary"
-                  disabled={loading}
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Export
-                </Button>
+                {onExport && (
+                  <Button
+                    className="ml-2 border"
+                    size="sm"
+                    onClick={() =>
+                      onExport(
+                        "filtered",
+                        table.getFilteredSelectedRowModel().rows
+                      )
+                    }
+                    variant="secondary"
+                    disabled={loading}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Export
+                  </Button>
+                )}
               </div>
             </div>
           )}
@@ -178,10 +180,10 @@ export function DataTable<TData, TValue>({
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
+            <TableRow key={headerGroup.id} className="hover:bg-accent">
               {headerGroup.headers.map((header) => {
                 return (
-                  <TableHead key={header.id} style={{ textAlign: "center" }}>
+                  <TableHead key={header.id} className="text-center">
                     {header.isPlaceholder
                       ? null
                       : flexRender(

@@ -1,9 +1,9 @@
 import ApplicationPage from "../../pages/pc/application";
 import Dashboard from "../../pages/pc/home/Dashboard";
 import LeadershipPage from "../../pages/pc/leadership";
-import CertificatePage from "../../pages/pc/management/certificate";
-import BankPage from "../../pages/pc/management/bank";
-import LogoPage from "../../pages/pc/management/logo";
+import LicensePage from "../../pages/pc/license";
+import BankPage from "../../pages/pc/bank";
+import LogoPage from "../../pages/pc/logo";
 import UsersPage from "../../pages/pc/members";
 import ProfilePage from "../../pages/pc/profile";
 import ProfitPage from "../../pages/pc/profit";
@@ -41,24 +41,19 @@ export const ROUTES = [
     element: <ProfitPage />,
   },
   {
-    path: "management",
-    title: "Management",
-    element: <CertificatePage />,
-  },
-  {
-    path: "management/bank",
+    path: "bank",
     title: "Bank",
     element: <BankPage />,
   },
   {
-    path: "management/logo",
+    path: "logo",
     title: "Logo",
     element: <LogoPage />,
   },
   {
-    path: "management/certificate",
-    title: "Certificate",
-    element: <CertificatePage />,
+    path: "license",
+    title: "License",
+    element: <LicensePage />,
   },
   {
     path: "profile",

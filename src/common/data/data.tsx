@@ -525,3 +525,30 @@ export const profitData = [
     top: "Oats",
   },
 ];
+
+export const licenses = [
+  {
+    certificateType: "Temporary Certificate",
+    status: "Active",
+    issueDate: "Jan 15, 2024",
+    expiryDate: "Jul 15, 2024",
+  },
+  {
+    certificateType: "Permanent Certificate",
+    status: "Active",
+    issueDate: "Feb 1, 2024",
+    expiryDate: "Feb 1, 2025",
+  },
+  {
+    certificateType: "Temporary Certificate",
+    status: "Active",
+    issueDate: "Jan 15, 2024",
+    expiryDate: "Jul 15, 2024",
+  },
+  {
+    certificateType: "Permanent Certificate",
+    status: "Active",
+    issueDate: "Feb 1, 2024",
+    expiryDate: "Feb 1, 2025",
+  },
+];
