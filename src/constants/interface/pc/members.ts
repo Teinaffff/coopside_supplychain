@@ -13,7 +13,7 @@ export interface Member {
   subcity: string;
   woreda: string;
   startDate: string;
-  photo: string;
+  photo: File;
   registrationFee: number;
   share: number;
   collateral: string;

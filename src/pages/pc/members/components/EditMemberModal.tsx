@@ -15,7 +15,7 @@ export const EditMemberModal = () => {
   const handleSubmit = (data: Member) => {
     try {
       setLoading(true);
-      console.log("object: ", data);
+      console.log( data);
       dispatch(updateMembersData(data));
       setLoading(false);
     } catch (error: any) {
@@ -25,7 +25,6 @@ export const EditMemberModal = () => {
     }
     onClose();
   };
-  console.log("default: ", defaultValues);
 
   return (
     <div>
@@ -34,13 +33,8 @@ export const EditMemberModal = () => {
         description="Manage Member Information"
         isOpen={isOpen}
         onClose={onClose}
-        className="z-[101] w-full sm:w-[70%] lg:w-[40%] h-[50%] sm:h-[600px] mt-5 overflow-y-scroll"
+        className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"
       >
-        {/* 
-          
-          share: z.number().min(0, { message: "Share must be a non-negative number" }),
-          collateral: z.string().min(1, { message: "Collateral is required" }),
-          inheritor: */}
         <MemberForm
           defaultValues={
             defaultValues || {
@@ -52,7 +46,7 @@ export const EditMemberModal = () => {
               subcity: "",
               woreda: "",
               startDate: "",
-              photo: "",
+              photo: undefined,
               registrationFee: 0,
               collateral: "",
               inheritor: "",

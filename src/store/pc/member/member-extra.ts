@@ -30,7 +30,6 @@ export const getMembersData = createAsyncThunk(
 export const updateMembersData = (data: any) => {
   return async (dispatch: Dispatch) => {
     try {
-      console.log("data from extra", data);
       const { status } = await API.put(`/members/${data._id}`, data);
       status === HTTP_RESPONSE.UPDATED
         ? dispatch(getMembersData() as any)

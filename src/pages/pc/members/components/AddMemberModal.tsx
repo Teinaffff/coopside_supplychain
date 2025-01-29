@@ -34,7 +34,7 @@ export const AddMemberModal = () => {
         description="Manage Members Information"
         isOpen={isOpen}
         onClose={onClose}
-        className="z-[101] w-full sm:w-[70%] lg:w-[40%] h-[90%] sm:h-[600px] mt-5 overflow-y-scroll"
+        className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"
       >
         <MemberForm
           defaultValues={
@@ -46,7 +46,7 @@ export const AddMemberModal = () => {
               subcity: "",
               woreda: "",
               startDate: "",
-              photo: "",
+              photo: undefined,
               registrationFee: 0,
               collateral: "",
               inheritor: "",

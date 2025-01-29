@@ -23,11 +23,13 @@ export const formSchema = z.object({
   subcity: z.string().min(1, { message: "Subcity is required" }),
   woreda: z.string().min(1, { message: "Woreda is required" }),
   startDate: z.string().min(1, { message: "Start date is required" }),
-  photo: z.string().url({ message: "Photo must be a valid URL" }),
+  photo: z.any().refine((data) => data instanceof File, {
+    message: "Photo must be a valid URL",
+  }),
   registrationFee: z
     .number()
-    .min(0, { message: "Registration fee must be a non-negative number" }),
-  share: z.number().min(0, { message: "Share must be a non-negative number" }),
+    .min(1, { message: "Registration fee must be a non-negative number" }),
+  share: z.number().min(1, { message: "Share must be a non-negative number" }),
   collateral: z.string().min(1, { message: "Collateral is required" }),
   inheritor: z.string().min(1, { message: "Inheritor is required" }),
 });
@@ -59,13 +61,21 @@ const MemberForm: React.FC<MemberFormProps> = ({
     form.reset();
   };
 
+  const handleImageChange = (event: any) => {
+    const selectedImage = event.target.files[0];
+    if (selectedImage) {
+      form.setValue("photo", selectedImage);
+      form.clearErrors("photo");
+    }
+  };
+
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
         className="space-y-8 w-full"
       >
-        <div className="mb-5 flex flex-col gap-5">
+        <div className="grid md:grid-cols-2 gap-4">
           <FormField
             name="name"
             control={form.control}
@@ -113,13 +123,137 @@ const MemberForm: React.FC<MemberFormProps> = ({
             )}
           />
           <FormField
+            name="city"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>City:</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            name="subcity"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Sub city:</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            name="woreda"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Woreda:</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            name="collateral"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Collateral:</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
             name="inheritor"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>inheritor:</FormLabel>
+                <FormLabel>Inheritor:</FormLabel>
                 <FormControl>
                   <Input {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            name="share"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Share:</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    onChange={(e) =>
+                      field.onChange(parseInt(e.target.value, 10))
+                    }
+                    disabled={loading}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            name="registrationFee"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Reg. Fee:</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    onChange={(e) =>
+                      field.onChange(parseInt(e.target.value, 10))
+                    }
+                    disabled={loading}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            name="startDate"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Start Date:</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            name="photo"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Photo:</FormLabel>
+                <FormControl>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    disabled={loading}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
