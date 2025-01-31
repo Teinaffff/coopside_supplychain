@@ -41,7 +41,9 @@ export const formatTime = (dateString: string) => {
 };
 
 export const isActivePath = (pathname: string, base: string, target: string) =>
-  pathname === target || (pathname.startsWith(base) && pathname === target);
+  target === base
+    ? pathname === target
+    : pathname.startsWith(base) && pathname.startsWith(target);
 
 export function getInitials(fullName: string): string {
   const words = fullName?.trim().split(/\s+/); // Split on whitespace (one or more spaces)

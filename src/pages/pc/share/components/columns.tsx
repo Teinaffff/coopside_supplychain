@@ -4,10 +4,12 @@ import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "../../../../common/ui/button";
 import { Checkbox } from "../../../../common/ui/checkbox";
-import { Member } from "../../../../constants/interface/pc/members";
+import { Share } from "../../../../constants/interface/pc/share";
 import { CellAction } from "./cell-actions";
+import { TableCell } from "../../../../common/ui/table";
+import { data } from "react-router-dom";
 
-export const columns: ColumnDef<Member>[] = [
+export const columns: ColumnDef<Share>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -28,7 +30,7 @@ export const columns: ColumnDef<Member>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "name",
+    accessorKey: "shareName",
     header: ({ column }) => {
       return (
         <Button
@@ -42,116 +44,78 @@ export const columns: ColumnDef<Member>[] = [
     },
   },
   {
-    accessorKey: "email",
+    accessorKey: "pricePerShare",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Email
+          Price
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
   {
-    accessorKey: "city",
+    accessorKey: "minShare",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          City
+          Min Share
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
+
   {
-    accessorKey: "subcity",
+    accessorKey: "shareDividend",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Subcity
+          Dividend
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
+    cell: ({ row }) => <TableCell>{row.original.shareDividend} %</TableCell>,
   },
   {
-    accessorKey: "woreda",
+    accessorKey: "shareBackup",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Woreda
+          Backup
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
+    cell: ({ row }) => <TableCell>{row.original.shareBackup} %</TableCell>,
   },
   {
-    accessorKey: "share",
+    accessorKey: "shareTax",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Share
+          Tax
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
-  },
-  {
-    accessorKey: "collateral",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Collateral
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: "inheritor",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Inheritor
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: "registrationFee",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Reg. Fee
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    cell: ({ row }) => <TableCell>{row.original.shareTax} %</TableCell>,
   },
   {
     accessorKey: "startDate",
@@ -161,7 +125,35 @@ export const columns: ColumnDef<Member>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Reg. Date
+          Start Date
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+  },
+  {
+    accessorKey: "endDate",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          End Date
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+  },
+  {
+    accessorKey: "status",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Status
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );

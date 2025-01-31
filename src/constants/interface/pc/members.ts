@@ -1,4 +1,3 @@
-
 interface Timestamps {
   createdAt: string;
   updatedAt: string;
@@ -22,4 +21,15 @@ export interface Member {
 
 export interface PCMemberSliceType {
   membersList: Member[];
+}
+
+export interface MemberShares {
+  id: number;
+  shareName: string;
+  quantity: number;
+  pricePerShare: number;
+  totalPrice: number;
+  purchaseDate: string;
+  profit: number;
+  status: string;
 }

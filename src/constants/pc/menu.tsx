@@ -1,5 +1,4 @@
 import {
-  Banknote,
   Building2,
   Coins,
   Crown,
@@ -8,9 +7,8 @@ import {
   Image,
   LucideHome,
   PieChart,
-  Settings,
   User,
-  Users,
+  Users
 } from "lucide-react";
 
 export const menuItems = [
@@ -19,6 +17,12 @@ export const menuItems = [
     to: "/pc",
     pathname: "/pc",
     icon: <LucideHome width={18} height={18} />,
+  },
+  {
+    label: "Profile",
+    to: "/pc/profile",
+    pathname: "/pc/profile",
+    icon: <User width={18} height={18} />,
   },
   {
     label: "Application",
@@ -51,27 +55,21 @@ export const menuItems = [
     icon: <PieChart width={18} height={18} />,
   },
   {
-    label: "Profile",
-    to: "/pc/profile",
-    pathname: "/pc/profile",
-    icon: <User width={18} height={18} />,
-  },
-  {
     label: "Bank",
     to: "/pc/bank",
     pathname: "/pc/bank",
     icon: <Building2 width={18} height={18} />,
   },
   {
-    label: "Logo",
-    to: "/pc/logo",
-    pathname: "/pc/logo",
-    icon: <Image width={18} height={18} />,
-  },
-  {
     label: "License",
     to: "/pc/license",
     pathname: "/pc/license",
     icon: <FileCheck width={18} height={18} />,
+  },
+  {
+    label: "Logo",
+    to: "/pc/logo",
+    pathname: "/pc/logo",
+    icon: <Image width={18} height={18} />,
   },
 ];

@@ -1,6 +1,7 @@
 import { CheckCheck, Edit, Eye, MoreHorizontal, Trash, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import { AlertModal } from "../../../../common/modals/alert-modal";
 import { Button } from "../../../../common/ui/button";
 import {
@@ -10,14 +11,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "../../../../common/ui/dropdown-menu";
+import { Share } from "../../../../constants/interface/pc/share";
 import { useEditMemberModal } from "../../../../hooks/use-edit-member-modal";
 import { useAppDispatch, useAppSelector } from "../../../../store";
-import { membersPageSelector } from "../../../../store/pc/member/selectors";
 import { deleteMemberData } from "../../../../store/pc/member/member-extra";
-import { Member } from "../../../../constants/interface/pc/members";
-import { useNavigate } from "react-router-dom";
+import { membersPageSelector } from "../../../../store/pc/member/selectors";
 
-export const CellAction: React.FC<{ data: Member }> = ({ data }) => {
+export const CellAction: React.FC<{ data: Share }> = ({ data }) => {
   const [loading, setLoading] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [openDisable, setOpenDisable] = useState(false);
@@ -32,8 +32,8 @@ export const CellAction: React.FC<{ data: Member }> = ({ data }) => {
   const onDelete = async () => {
     try {
       setLoading(true);
-      const id = data.memberId ? data.memberId : -1;
-      dispatch(deleteMemberData(id.toString()));
+      const id = data.shareId ? data.shareId : -1;
+      // dispatch(deleteMemberData(id.toString()));
     } catch (error) {
       toast.error("Something went wrong!");
     } finally {
@@ -98,7 +98,7 @@ export const CellAction: React.FC<{ data: Member }> = ({ data }) => {
             Edit
           </DropdownMenuItem>
           <DropdownMenuItem
-            onClick={() => navigate(`/pc/members/${data.memberId}`)}
+            onClick={() => navigate(`/pc/members/${data.shareId}`)}
           >
             <Eye className="mr-2 h-4 w-4" />
             View

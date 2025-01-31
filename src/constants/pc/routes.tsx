@@ -8,6 +8,7 @@ import UsersPage from "../../pages/pc/members";
 import ProfilePage from "../../pages/pc/profile";
 import ProfitPage from "../../pages/pc/profit";
 import SharePage from "../../pages/pc/share";
+import MemberDetails from "../../pages/pc/members/components/MemberDetails";
 
 export const ROUTES = [
   {
@@ -24,6 +25,11 @@ export const ROUTES = [
     path: "members",
     title: "Members",
     element: <UsersPage />,
+  },
+  {
+    path: "members/:memberId",
+    title: "Member Details",
+    element: <MemberDetails />,
   },
   {
     path: "share",
