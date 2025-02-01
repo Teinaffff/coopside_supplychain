@@ -6,9 +6,11 @@ import { Button } from "../../../../common/ui/button";
 
 const StartNewRequest: React.FC = () => {
   return (
-    <Card className="p-6">
-      <h2 className="text-lg font-semibold mb-4">Start New Request</h2>
-      <p className="text-sm text-gray-500 mb-4">
+    <Card className="p-6 dark:bg-gray-800">
+      <h2 className="text-lg font-semibold mb-4 dark:text-white">
+        Start New Request
+      </h2>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
         Please ensure all requirements are met before starting a new request:
       </p>
       <ul className="space-y-2 mb-6">
@@ -24,15 +26,17 @@ const StartNewRequest: React.FC = () => {
               )}
             </span>
             <div className="flex flex-col">
-              <span>{item.title}</span>
-              <span className="text-gray-500 text-sm">{item.subtitle}</span>
+              <span className="dark:text-gray-200">{item.title}</span>
+              <span className="text-gray-500 dark:text-gray-400">
+                {item.subtitle}
+              </span>
             </div>
           </li>
         ))}
       </ul>
       <Button
         variant={"outline"}
-        className="w-full text-white hover:text-white bg-slate-400 hover:bg-slate-500"
+        className="w-full text-white hover:text-white bg-slate-400 hover:bg-slate-500 dark:bg-slate-600 dark:hover:bg-slate-700"
         disabled={false}
       >
         Start New Request

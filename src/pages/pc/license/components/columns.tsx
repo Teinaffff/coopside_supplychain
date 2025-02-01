@@ -92,7 +92,10 @@ export const columns: ColumnDef<License>[] = [
       );
     },
     cell: ({ row }) => (
-      <Badge variant={null} className={`bg-green-100 text-green-600`}>
+      <Badge
+        variant={null}
+        className="bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300"
+      >
         {row.original.status}
       </Badge>
     ),
@@ -109,7 +112,7 @@ export const columns: ColumnDef<License>[] = [
         </Button>
       );
     },
-    cell: ({row}) => (
+    cell: ({ row }) => (
       <Button
         variant="outline"
         onClick={() => handleDownload(row.original.certificateType)}

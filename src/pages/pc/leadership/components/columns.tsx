@@ -23,10 +23,6 @@ export const columns: ColumnDef<Leader>[] = [
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
-        // disabled={
-        //   row.original.agencyStatus === 'Active' ||
-        //   row.original.agencyStatus === 'Suspended'
-        // }
       />
     ),
     enableSorting: false,
@@ -88,7 +84,7 @@ export const columns: ColumnDef<Leader>[] = [
       );
     },
     cell: ({ row }) => (
-      <Badge variant={null} className={`bg-cyan-100 text-cyan-600`}>
+      <Badge variant={null} className={`bg-cyan-100 dark:bg-cyan-900 text-cyan-600 dark:text-cyan-300`}>
         {row.original.board}
       </Badge>
     ),
