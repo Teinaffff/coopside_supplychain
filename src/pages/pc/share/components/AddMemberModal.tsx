@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { useDispatch } from "react-redux";
 import { Modal } from "../../../../common/ui/modal";
-import { Member } from "../../../../constants/interface/pc/members";
+import { Share } from "../../../../constants/interface/pc/share";
 import { useAddMemberModal } from "../../../../hooks/use-add-member-modal";
-import { createMemberData } from "../../../../store/pc/member/member-extra";
-import MemberForm from "./MemberForm";
 import { useAppDispatch } from "../../../../store";
+import { createMemberData } from "../../../../store/pc/member/member-extra";
+import MemberForm from "./ShareForm";
 
 export const AddMemberModal = () => {
   const { isOpen, onClose, defaultValues } = useAddMemberModal();
@@ -13,11 +12,11 @@ export const AddMemberModal = () => {
 
   const dispatch = useAppDispatch();
 
-  const handleSubmit = (data: Member) => {
+  const handleSubmit = (data: Share) => {
     try {
       setLoading(true);
       console.log(data);
-      dispatch(createMemberData(data));
+      // dispatch(createMemberData(data));
       setLoading(false);
     } catch (error: any) {
       console.log(error);
@@ -30,33 +29,30 @@ export const AddMemberModal = () => {
   return (
     <div>
       <Modal
-        title="Create Members"
-        description="Manage Members Information"
+        title="Create Share"
+        description="Manage Share Information"
         isOpen={isOpen}
         onClose={onClose}
-        className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"
+        className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[620px] mt-5 overflow-y-scroll"
       >
         <MemberForm
           defaultValues={
             defaultValues || {
-              name: "",
-              email: "",
-              age: 0,
-              city: "",
-              subcity: "",
-              woreda: "",
+              shareName: "",
+              minShare: 1,
+              pricePerShare: 0,
+              shareDividend: 0,
+              shareTax: 0,
+              shareBackup: 0,
+              status: "",
               startDate: "",
-              photo: undefined,
-              registrationFee: 0,
-              collateral: "",
-              inheritor: "",
-              share: 0,
+              endDate: "",
             }
           }
           onSubmit={handleSubmit}
           loading={loading}
           onClose={onClose}
-          buttonTitle="Add"
+          buttonTitle="Create"
         />
       </Modal>
     </div>

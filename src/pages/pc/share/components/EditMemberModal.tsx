@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Modal } from "../../../../common/ui/modal";
-import { Member } from "../../../../constants/interface/pc/members";
+import { Share } from "../../../../constants/interface/pc/share";
 import { useEditMemberModal } from "../../../../hooks/use-edit-member-modal";
 import { useAppDispatch } from "../../../../store";
 import { updateMembersData } from "../../../../store/pc/member/member-extra";
-import MemberForm from "./MemberForm";
+import MemberForm from "./ShareForm";
 
 export const EditMemberModal = () => {
   const { isOpen, onClose, defaultValues } = useEditMemberModal();
@@ -12,11 +12,11 @@ export const EditMemberModal = () => {
 
   const dispatch = useAppDispatch();
 
-  const handleSubmit = (data: Member) => {
+  const handleSubmit = (data: Share) => {
     try {
       setLoading(true);
-      console.log( data);
-      dispatch(updateMembersData(data));
+      console.log(data);
+      // dispatch(updateMembersData(data));
       setLoading(false);
     } catch (error: any) {
       console.log(error);
@@ -29,28 +29,25 @@ export const EditMemberModal = () => {
   return (
     <div>
       <Modal
-        title="Update Member"
-        description="Manage Member Information"
+        title="Update Share"
+        description="Manage Share Information"
         isOpen={isOpen}
         onClose={onClose}
-        className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"
+        className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[620px] mt-5 overflow-y-scroll"
       >
         <MemberForm
           defaultValues={
             defaultValues || {
-              memberId: -1,
-              name: "",
-              email: "",
-              age: 0,
-              city: "",
-              subcity: "",
-              woreda: "",
+              shareId: -1,
+              shareName: "",
+              minShare: 1,
+              pricePerShare: 0,
+              shareDividend: 0,
+              shareTax: 0,
+              shareBackup: 0,
+              status: "",
               startDate: "",
-              photo: undefined,
-              registrationFee: 0,
-              collateral: "",
-              inheritor: "",
-              share: 0,
+              endDate: "",
             }
           }
           onSubmit={handleSubmit}

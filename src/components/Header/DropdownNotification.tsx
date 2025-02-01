@@ -63,7 +63,7 @@ const DropdownNotification = () => {
           setDropdownOpen(!dropdownOpen);
         }}
         to="#"
-        className="relative flex h-8 w-8 items-center justify-center rounded-full border-cyan-300 border-[0.5px] bg-cyan-100 hover:text-cyan-500 dark:border-slate-500 dark:bg-slate-500 dark:text-white"
+        className="relative flex h-8 w-8 items-center justify-center rounded-full border-cyan-300 border-[0.5px] bg-cyan-100 hover:text-cyan-500 dark:border-cyan-300 dark:bg-cyan-100 dark:text-cyan-500"
       >
         <span
           className={`absolute -top-0.5 right-0 z-1 h-2 w-2 rounded-full bg-cyan dark:bg-white ${

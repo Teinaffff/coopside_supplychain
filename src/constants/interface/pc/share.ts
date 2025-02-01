@@ -1,5 +1,5 @@
 export interface Share {
-  shareId: number;
+  shareId?: number;
   shareName: string;
   minShare: number;
   pricePerShare: number;
