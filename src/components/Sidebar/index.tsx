@@ -9,9 +9,10 @@ interface SidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (arg: boolean) => void;
   menuItems: NavigationItem[];
+  rootPath: string;
 }
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen, menuItems }: SidebarProps) => {
+const Sidebar = ({ sidebarOpen, setSidebarOpen, menuItems, rootPath }: SidebarProps) => {
   const location = useLocation();
   const { pathname } = location;
 
@@ -120,7 +121,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, menuItems }: SidebarProps) => {
                     isActive={
                       item.subMenu
                         ? pathname.startsWith(item.pathname)
-                        : isActivePath(pathname, "/pc", item.pathname)
+                        : isActivePath(pathname, rootPath, item.pathname)
                     }
                     subMenu={item.subMenu}
                     isOpen={openSubMenu === item.label}

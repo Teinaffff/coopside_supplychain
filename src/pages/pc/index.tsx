@@ -32,7 +32,7 @@ const PC = () => {
   }, []);
 
   return (
-    <DefaultLayout menuItems={menuItems}>
+    <DefaultLayout menuItems={menuItems} rootPath="/pc">
       <ProfileCompletionModal
         route={"/pc/profile"}
         message={

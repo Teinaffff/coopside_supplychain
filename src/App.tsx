@@ -7,6 +7,7 @@ import PC from "./pages/pc";
 import Union from "./pages/union";
 import SignupPage from "./pages/auth/Signup";
 import PageNotFound from "./common/PageNotFound";
+import Member from "./pages/member";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route element={<RequireAuth allowedRoles={"admin"} />}>
           <Route path="/pc/*" element={<PC />} />
           <Route path="/union/*" element={<Union />} />
+          <Route path="/member/*" element={<Member />} />
         </Route>
 
         <Route path="/login" element={<Login />} />

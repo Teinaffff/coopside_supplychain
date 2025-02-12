@@ -1,14 +1,14 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import PageTitle from "../../components/PageTitle";
-import { menuItems } from "../../constants/union/menu";
-import { ROUTES } from "../../constants/union/routes";
+import { menuItems } from "../../constants/member/menu";
+import { ROUTES } from "../../constants/member/routes";
 import DefaultLayout from "../../layout/DefaultLayout";
 import { useAppDispatch } from "../../store";
 import { fetchNotificationsData } from "../../store/notification/notification-extra";
 import { getMembersData } from "../../store/pc/member/member-extra";
 
-const Union = () => {
+const Member = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -17,7 +17,7 @@ const Union = () => {
   }, []);
 
   return (
-    <DefaultLayout menuItems={menuItems}  rootPath='/union'>
+    <DefaultLayout menuItems={menuItems} rootPath='/member'>
       <Routes>
         {ROUTES.map(({ title, path, element }, index) => (
           <Route
@@ -37,4 +37,4 @@ const Union = () => {
   );
 };
 
-export default Union;
+export default Member;

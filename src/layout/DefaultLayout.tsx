@@ -6,7 +6,8 @@ import { NavigationItem } from "../constants/interface/NavigationItem";
 const DefaultLayout: React.FC<{
   children: ReactNode;
   menuItems: NavigationItem[];
-}> = ({ children, menuItems }) => {
+  rootPath: string;
+}> = ({ children, menuItems, rootPath }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -18,6 +19,7 @@ const DefaultLayout: React.FC<{
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           menuItems={menuItems}
+          rootPath={rootPath}
         />
         {/* <!-- ===== Sidebar End ===== --> */}
 
