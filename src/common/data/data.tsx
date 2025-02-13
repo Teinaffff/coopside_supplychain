@@ -1,3 +1,4 @@
+import { Coins, DollarSign, TrendingUp, Users } from "lucide-react";
 import { Notification } from "../../constants/interface/notification";
 
 export const notifications: Notification[] = [
@@ -646,5 +647,40 @@ export const mockShares = [
     status: "active",
     startDate: "2024-02-01",
     endDate: "2025-01-31",
+  },
+];
+
+export const pcStatsData = [
+  {
+    title: "Members",
+    value: 50,
+    change: 20,
+    trend: "up" as const,
+    icon: Users,
+    color: "emerald",
+  },
+  {
+    title: "Savings",
+    value: 20,
+    change: 10,
+    trend: "up" as const,
+    icon: DollarSign,
+    color: "orange",
+  },
+  {
+    title: "Shares",
+    value: 10,
+    change: 5,
+    trend: "up" as const,
+    icon: Coins,
+    color: "purple",
+  },
+  {
+    title: "Profits",
+    value: 10,
+    change: 5,
+    trend: "down" as const,
+    icon: TrendingUp,
+    color: "cyan",
   },
 ];

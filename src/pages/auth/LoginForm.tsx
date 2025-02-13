@@ -1,7 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AxiosError } from "axios";
 import { Eye, EyeOff } from "lucide-react";
-import { FC, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { UseMutateFunction } from "react-query";
 import { Link } from "react-router-dom";
 import { Button } from "../../common/ui/button";
 import { Checkbox } from "../../common/ui/checkbox";
@@ -14,15 +16,20 @@ import {
   FormMessage,
 } from "../../common/ui/form";
 import { Input } from "../../common/ui/input";
-import { LoginFormValues, loginSchema } from "../../constants/schema";
 import { Loader } from "../../common/ui/loader";
+import { LoginFormValues, loginSchema } from "../../constants/schema";
 
-interface LoginFormProps {
-  onSubmit: (data: LoginFormValues) => void;
+type LoginFormProps = {
+  onSubmit: UseMutateFunction<
+    unknown,
+    AxiosError,
+    { email: string; password: string },
+    unknown
+  >;
   loading: boolean;
-}
+};
 
-export const LoginForm: FC<LoginFormProps> = ({ onSubmit, loading }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginFormValues>({
@@ -33,9 +40,13 @@ export const LoginForm: FC<LoginFormProps> = ({ onSubmit, loading }) => {
     },
   });
 
+  const handleSubmit = (data: LoginFormValues) => {
+    onSubmit(data);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 w-full">
         <div className="space-y-4 md:space-y-4">
           <div className="space-y-2">
             <FormField
@@ -47,7 +58,6 @@ export const LoginForm: FC<LoginFormProps> = ({ onSubmit, loading }) => {
                   <FormControl>
                     <Input
                       type="text"
-                      // placeholder="johndoe@example.com"
                       disabled={loading}
                       {...field}
                     />

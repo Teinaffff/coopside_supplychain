@@ -16,7 +16,7 @@ function App() {
         <Route path="/" element={<Landing />} />
 
         <Route element={<RequireAuth allowedRoles={"admin"} />}>
-          <Route path="/pc/*" element={<PC />} />
+          <Route path="/pc/*" element={<PC />} /> 
           <Route path="/union/*" element={<Union />} />
           <Route path="/member/*" element={<Member />} />
         </Route>
