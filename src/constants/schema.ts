@@ -32,5 +32,13 @@ export const signupSchema = z
     path: ["confirmPassword"],
   });
 
+export const contactSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().min(1, "Email is required").email("Invalid email address"),
+  subject: z.string().min(1, "Subject is required"),
+  message: z.string().min(10, "Message must be at least 10 characters long"),
+});
+
+export type ContactFormValues = z.infer<typeof contactSchema>;
 export type LoginFormValues = z.infer<typeof loginSchema>;
 export type SignupFormValues = z.infer<typeof signupSchema>;

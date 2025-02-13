@@ -1,7 +1,7 @@
 import React, { useState, ReactNode } from "react";
 import Header from "../components/Header/index";
 import Sidebar from "../components/Sidebar/index";
-import { NavigationItem } from "../constants/interface/NavigationItem";
+import { NavigationItem } from "../constants/interface/navigationItem";
 
 const DefaultLayout: React.FC<{
   children: ReactNode;

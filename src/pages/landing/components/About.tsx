@@ -1,12 +1,9 @@
 import { motion } from "framer-motion";
 import { Calendar, Users, Users2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
 import CountUp from "react-countup";
+import { useIntersectionObserver } from "../../../hooks/use-intersection-observer";
 
 const AboutUs = () => {
-  const [inView, setInView] = useState(false);
-  const aboutRef = useRef(null);
-
   // Animation Variants
   const containerVariants = {
     hidden: { opacity: 0, y: 50 },
@@ -37,30 +34,10 @@ const AboutUs = () => {
     },
   };
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setInView(true);
-          observer.disconnect(); // Stop observing once the section is in view
-        }
-      },
-      { threshold: 0.3 } // Adjust this threshold as needed
-    );
-
-    if (aboutRef.current) {
-      observer.observe(aboutRef.current);
-    }
-
-    return () => {
-      if (aboutRef.current) {
-        observer.unobserve(aboutRef.current);
-      }
-    };
-  }, []);
+  const { ref, inView } = useIntersectionObserver();
 
   return (
-    <section className="bg-gray-50 py-16" id="about" ref={aboutRef}>
+    <section className="bg-gray-50 py-16" id="about" ref={ref}>
       <div className="max-w-7xl mx-auto px-6 text-center">
         {/* Heading Section */}
         <motion.div

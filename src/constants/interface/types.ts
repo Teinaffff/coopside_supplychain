@@ -5,7 +5,7 @@ export interface StatCardProps {
   title: string;
   value: number;
   change: number;
-  trend: "up" | "down";
+  trend: string;
   icon: LucideIcon;
   color: string;
 }

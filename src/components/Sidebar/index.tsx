@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import Logo from "../../common/Logo";
-import { NavigationItem } from "../../constants/interface/NavigationItem";
+import { NavigationItem } from "../../constants/interface/navigationItem";
 import { isActivePath } from "../../lib/utils";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
