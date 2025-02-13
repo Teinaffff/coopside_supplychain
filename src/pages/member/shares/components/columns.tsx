@@ -4,7 +4,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "../../../../common/ui/button";
 import { Checkbox } from "../../../../common/ui/checkbox";
-import { Member } from "../../../../constants/interface/union/members";
+import { Member } from "../../../../constants/interface/pc/members";
 import { CellAction } from "./cell-actions";
 
 export const columns: ColumnDef<Member>[] = [

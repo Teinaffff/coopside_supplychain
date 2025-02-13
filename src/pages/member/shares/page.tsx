@@ -4,7 +4,7 @@ import { Button } from "../../../common/ui/button";
 import { Card } from "../../../common/ui/card";
 import { DataTable } from "../../../common/ui/data-table";
 import { Heading } from "../../../common/ui/heading";
-import { Member } from "../../../constants/interface/union/members";
+import { Member } from "../../../constants/interface/pc/members";
 import { useAddMemberModal } from "../../../hooks/use-add-member-modal";
 import { useAppDispatch, useAppSelector } from "../../../store";
 import { getMembersData } from "../../../store/pc/member/member-extra";
@@ -61,7 +61,7 @@ const SharesPage = () => {
             <Button
               className={`bg-cyan-600 hover:bg-cyan-600`}
               onClick={() =>
-                ExportMembersDataToExcel("notfiltecyan", formattedMembers)
+                ExportMembersDataToExcel("notfiltered", formattedMembers)
               }
               title="disabled"
             >

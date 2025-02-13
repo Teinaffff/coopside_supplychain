@@ -12,11 +12,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "../../../../common/ui/dropdown-menu";
+import { Member } from "../../../../constants/interface/pc/members";
 import { useEditMemberModal } from "../../../../hooks/use-edit-member-modal";
 import { useAppDispatch, useAppSelector } from "../../../../store";
-import { Member } from "../../../../constants/interface/union/members";
-import { membersPageSelector } from "../../../../store/union/user/selectors";
 import { deleteMemberData } from "../../../../store/pc/member/member-extra";
+import { membersPageSelector } from "../../../../store/union/user/selectors";
 
 export const CellAction: React.FC<{ data: Member }> = ({ data }) => {
   const [loading, setLoading] = useState(false);
@@ -25,8 +25,8 @@ export const CellAction: React.FC<{ data: Member }> = ({ data }) => {
   const [openEnable, setOpenEnable] = useState(false);
 
   const dispatch = useAppDispatch();
-  const Member = useAppSelector(membersPageSelector);
-  const editAgencyModal = useEditMemberModal();
+  const member = useAppSelector(membersPageSelector);
+  const editMemberModal = useEditMemberModal();
   const onDelete = async () => {
     try {
       setLoading(true);
@@ -103,7 +103,7 @@ export const CellAction: React.FC<{ data: Member }> = ({ data }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem onClick={() => editAgencyModal.onOpen(data)}>
+          <DropdownMenuItem onClick={() => editMemberModal.onOpen(data)}>
             <Edit className="mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
