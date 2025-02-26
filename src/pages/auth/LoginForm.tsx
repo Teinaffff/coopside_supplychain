@@ -17,7 +17,7 @@ import {
 } from "../../common/ui/form";
 import { Input } from "../../common/ui/input";
 import { Loader } from "../../common/ui/loader";
-import { LoginFormValues, loginSchema } from "../../constants/schema/auth";
+import { LoginFormValues, loginSchema } from "../../schema/auth";
 
 type LoginFormProps = {
   onSubmit: UseMutateFunction<

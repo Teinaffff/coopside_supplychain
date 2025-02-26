@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { Modal } from "../../../../common/ui/modal";
 import { Share } from "../../../../constants/interface/pc/share";
-import { useAddMemberModal } from "../../../../hooks/use-add-member-modal";
+import { useAddShareModal } from "../../../../hooks/use-add-share-modal";
 import { useAppDispatch } from "../../../../store";
-import { createMemberData } from "../../../../store/pc/member/member-extra";
 import MemberForm from "./ShareForm";
 
-export const AddMemberModal = () => {
-  const { isOpen, onClose, defaultValues } = useAddMemberModal();
+export const AddShareModal = () => {
+  const { isOpen, onClose, defaultValues } = useAddShareModal();
   const [loading, setLoading] = useState(false);
 
   const dispatch = useAppDispatch();

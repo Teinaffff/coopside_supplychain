@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { LoginFormValues, SignupFormValues } from "../constants/schema/auth";
+import { LoginFormValues, SignupFormValues } from "../schema/auth";
 import { useAppDispatch } from "../store";
 import { authenticate, createUserData } from "../store/auth/auth-extra";
 

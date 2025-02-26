@@ -15,7 +15,7 @@ import { Member } from "../../../../constants/interface/pc/members";
 import {
   pcMembersFormSchema,
   PcMembersFormValues,
-} from "../../../../constants/schema/members";
+} from "../../../../schema/pc/members";
 
 interface MemberFormProps {
   defaultValues: Partial<PcMembersFormValues>;

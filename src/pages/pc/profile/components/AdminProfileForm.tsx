@@ -23,7 +23,7 @@ import { Subcity, Woreda } from "../../../../constants/interface/pc/general";
 import {
   adminFormSchema,
   AdminFormValues,
-} from "../../../../constants/schema/profile";
+} from "../../../../schema/pc/profile";
 import { handleCityChange, handleSubcityChange } from "./filterAddress";
 
 type AdminProfileFormProps = {

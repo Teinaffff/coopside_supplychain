@@ -14,7 +14,7 @@ import {
 } from "../../common/ui/form";
 import { Input } from "../../common/ui/input";
 import { Loader } from "../../common/ui/loader";
-import { SignupFormValues, signupSchema } from "../../constants/schema/auth";
+import { SignupFormValues, signupSchema } from "../../schema/auth";
 
 interface SignupFormProps {
   onSubmit: (data: SignupFormValues) => void;

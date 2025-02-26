@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { Button } from "../../../../common/ui/button";
 import {
   Form,
@@ -13,24 +12,13 @@ import {
 import { Input } from "../../../../common/ui/input";
 import { Loader } from "../../../../common/ui/loader";
 import { Share } from "../../../../constants/interface/pc/share";
-
-export const formSchema = z.object({
-  shareId: z.number().optional(),
-  shareName: z.string().min(1, { message: "Name is required" }),
-  pricePerShare: z.number().min(1, { message: "Share price is required" }),
-  minShare: z.number().min(1, { message: "Minimum share is required" }),
-  shareDividend: z.number().min(1, { message: "Share dividend is required" }),
-  shareTax: z.number().min(1, { message: "Share tax is required" }),
-  shareBackup: z.number().min(1, { message: "Share backup is required" }),
-  startDate: z.string().min(1, { message: "Start date is required" }),
-  endDate: z.string().min(1, { message: "End date is required" }),
-  status: z.string().min(1, { message: "Status is required" }),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+import {
+  pcShareFormSchema,
+  PcShareFormValues,
+} from "../../../../schema/pc/share";
 
 interface ShareFormProps {
-  defaultValues: Partial<FormValues>;
+  defaultValues: Partial<PcShareFormValues>;
   onSubmit: (data: Share) => void;
   loading: boolean;
   onClose: () => void;
@@ -44,8 +32,8 @@ const ShareForm: React.FC<ShareFormProps> = ({
   onClose,
   buttonTitle,
 }) => {
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<PcShareFormValues>({
+    resolver: zodResolver(pcShareFormSchema),
     defaultValues,
   });
 

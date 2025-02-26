@@ -9,8 +9,8 @@ import { Share } from "../../../constants/interface/pc/share";
 import { useAddMemberModal } from "../../../hooks/use-add-member-modal";
 import { useAppDispatch } from "../../../store";
 import { getMembersData } from "../../../store/pc/member/member-extra";
-import { AddMemberModal } from "./components/AddMemberModal";
-import { EditMemberModal } from "./components/EditMemberModal";
+import { AddMemberModal } from "./components/AddShareModal";
+import { EditMemberModal } from "./components/EditShareModal";
 import ExportMembersDataToExcel from "./components/ExportMembersDataToExcel";
 import { columns } from "./components/columns";
 

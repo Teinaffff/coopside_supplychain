@@ -24,7 +24,7 @@ import { Subcity, Woreda } from "../../../../constants/interface/pc/general";
 import {
   pcFormSchema,
   PcFormValues,
-} from "../../../../constants/schema/profile";
+} from "../../../../schema/pc/profile";
 import { handleCityChange, handleSubcityChange } from "./filterAddress";
 
 type PcProfileFormProps = {
