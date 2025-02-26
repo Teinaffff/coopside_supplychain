@@ -1,4 +1,5 @@
-import { AlertCircle, Pencil } from "lucide-react";
+import { AlertCircle, Pencil, X } from "lucide-react";
+import { useState } from "react";
 import { IMAGES } from "../../../assets";
 import { Button } from "../../../common/ui/button";
 import { Card } from "../../../common/ui/card";
@@ -7,7 +8,25 @@ import RequestForm from "../components/RequestForm";
 import { usePcRequest } from "../components/use-pc-request";
 
 const LogoPage = () => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setSelectedImage(event.target.files[0]);
+    }
+  };
+
   const { handleSendPcLogoRequest, loading } = usePcRequest();
+
+  const handleSubmit = (data: { purpose: string }) => {
+    const newData = {
+      purpose: data.purpose,
+      logo: selectedImage,
+    };
+
+    handleSendPcLogoRequest(newData);
+  };
 
   return (
     <div className="space-y-6">
@@ -24,18 +43,34 @@ const LogoPage = () => {
               Last updated: 2024-03-20
             </p>
           </div>
-          <Button variant="outline" className="flex items-center gap-2">
-            <Pencil className="w-4 h-4" />
-            Edit Logo
+          <Button
+            variant="outline"
+            className="flex items-center gap-2"
+            onClick={() => setIsEditing(!isEditing)}
+          >
+            {isEditing ? (
+              <X className="w-4 h-4" />
+            ) : (
+              <Pencil className="w-4 h-4" />
+            )}
+            {isEditing ? "Cancel" : "Edit Logo"}
           </Button>
         </div>
 
         <div className="flex justify-center mt-4">
-          <img
-            src={IMAGES.coopLogo}
-            alt="Current Logo"
-            className="rounded-lg w-full max-w-lg shadow-lg p-10"
-          />
+          {selectedImage ? (
+            <img
+              src={URL.createObjectURL(selectedImage)}
+              alt="New Logo Preview"
+              className="rounded-lg w-full max-w-lg shadow-lg p-10"
+            />
+          ) : (
+            <img
+              src={IMAGES.coopLogo}
+              alt="Current Logo"
+              className="rounded-lg w-full max-w-lg shadow-lg p-10"
+            />
+          )}
         </div>
 
         {/* Status */}
@@ -44,15 +79,18 @@ const LogoPage = () => {
           <span className="ml-2">Pending Approval</span>
         </div>
       </Card>
-
-      <RequestForm
-        title="Request Approval"
-        subtitle="Provide additional information for logo approval"
-        placeholder="Explain why this logo should be approved..."
-        buttonText="Submit Request"
-        onSubmit={handleSendPcLogoRequest}
-        loading={loading}
-      />
+      {isEditing && (
+        <RequestForm
+          title="Request Approval"
+          subtitle="Provide additional information for logo approval"
+          placeholder="Explain why this logo should be approved..."
+          buttonText="Submit Request"
+          onSubmit={handleSubmit}
+          loading={loading}
+          showImageField={isEditing}
+          onImageChange={handleImageChange}
+        />
+      )}
     </div>
   );
 };

@@ -15,6 +15,7 @@ import { Textarea } from "../../../common/ui/textarea";
 
 export const pcRequestFormSchema = z.object({
   purpose: z.string().min(1, { message: "Purpose is required" }),
+  logo: z.any().optional(),
 });
 
 export type PcBankRequestFormValues = z.infer<typeof pcRequestFormSchema>;
@@ -26,6 +27,8 @@ const RequestForm = ({
   buttonText,
   loading,
   onSubmit,
+  showImageField = false,
+  onImageChange,
 }: {
   title: string;
   subtitle: string;
@@ -33,6 +36,8 @@ const RequestForm = ({
   buttonText: string;
   loading: boolean;
   onSubmit: (data: { purpose: string }) => void;
+  showImageField?: boolean;
+  onImageChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }) => {
   const form = useForm<PcBankRequestFormValues>({
     resolver: zodResolver(pcRequestFormSchema),
@@ -69,6 +74,22 @@ const RequestForm = ({
               </FormItem>
             )}
           />
+          {showImageField && (
+            <FormItem>
+              <FormLabel>Upload New Logo:</FormLabel>
+              <FormControl>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={onImageChange}
+                  disabled={loading}
+                  className="border rounded p-2 w-full"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+
           <Button
             type="submit"
             className="bg-cyan-500 hover:bg-cyan-500 text-white"

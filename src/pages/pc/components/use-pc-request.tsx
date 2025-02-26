@@ -19,7 +19,10 @@ export const usePcRequest = () => {
     }
   };
 
-  const handleSendPcLogoRequest = (data: { purpose: string }) => {
+  const handleSendPcLogoRequest = (data: {
+    purpose: string;
+    logo: File | null;
+  }) => {
     try {
       setLoading(true);
       console.log(data);
