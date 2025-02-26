@@ -22,7 +22,7 @@ import {
 import { AddEditLeader } from "../../../../constants/interface/pc/leadership";
 import {
   PcLeadershipFormValues,
-  pcLeadershipPormSchema,
+  pcLeadershipFormSchema,
 } from "../../../../schema/pc/leadership";
 
 interface LeaderFormProps {
@@ -41,7 +41,7 @@ const LeaderForm: React.FC<LeaderFormProps> = ({
   buttonTitle,
 }) => {
   const form = useForm<PcLeadershipFormValues>({
-    resolver: zodResolver(pcLeadershipPormSchema),
+    resolver: zodResolver(pcLeadershipFormSchema),
     defaultValues,
   });
 

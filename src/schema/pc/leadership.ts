@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const pcLeadershipPormSchema = z.object({
+export const pcLeadershipFormSchema = z.object({
   _id: z.number().optional(),
   userId: z.number(),
   role: z.string().min(1, { message: "Role is required" }),
@@ -8,4 +8,4 @@ export const pcLeadershipPormSchema = z.object({
   date: z.string().min(1, { message: "Start date is required" }),
 });
 
-export type PcLeadershipFormValues = z.infer<typeof pcLeadershipPormSchema>;
+export type PcLeadershipFormValues = z.infer<typeof pcLeadershipFormSchema>;
