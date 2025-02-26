@@ -1,27 +1,15 @@
-import { useState } from "react";
 import { Modal } from "../../../../common/ui/modal";
 import { AddEditLeader } from "../../../../constants/interface/pc/leadership";
 import { useAddLeaderModal } from "../../../../hooks/use-add-leader-modal";
-import { useAppDispatch } from "../../../../store";
 import LeaderForm from "./LeaderForm";
+import { usePcLeadership } from "./use-pc-leadership";
 
 export const AddLeaderModal = () => {
   const { isOpen, onClose, defaultValues } = useAddLeaderModal();
-  const [loading, setLoading] = useState(false);
-
-  const dispatch = useAppDispatch();
+  const { loading, handleAddPcLeadership } = usePcLeadership();
 
   const handleSubmit = (data: AddEditLeader) => {
-    try {
-      setLoading(true);
-      console.log(data);
-      // dispatch(createUserData(data));
-      setLoading(false);
-    } catch (error: any) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
+    handleAddPcLeadership(data);
     onClose();
   };
 

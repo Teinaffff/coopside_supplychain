@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { boards, members } from "../../../../common/data/data";
 import { Button } from "../../../../common/ui/button";
 import {
@@ -21,19 +20,13 @@ import {
   SelectValue,
 } from "../../../../common/ui/select";
 import { AddEditLeader } from "../../../../constants/interface/pc/leadership";
-
-const formSchema = z.object({
-  _id: z.number().optional(),
-  userId: z.number(),
-  role: z.string().min(1, { message: "Role is required" }),
-  board: z.string().min(1, { message: "Board is required" }),
-  date: z.string().min(1, { message: "Start date is required" }),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+import {
+  PcLeadershipFormValues,
+  pcLeadershipPormSchema,
+} from "../../../../schema/pc/leadership";
 
 interface LeaderFormProps {
-  defaultValues: Partial<FormValues>;
+  defaultValues: Partial<PcLeadershipFormValues>;
   onSubmit: (data: AddEditLeader) => void;
   loading: boolean;
   onClose: () => void;
@@ -47,8 +40,8 @@ const LeaderForm: React.FC<LeaderFormProps> = ({
   onClose,
   buttonTitle,
 }) => {
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<PcLeadershipFormValues>({
+    resolver: zodResolver(pcLeadershipPormSchema),
     defaultValues,
   });
 
@@ -56,7 +49,7 @@ const LeaderForm: React.FC<LeaderFormProps> = ({
     onSubmit(data);
     form.reset();
   };
-  console.log("values: ", form.getValues());
+
   return (
     <Form {...form}>
       <form
