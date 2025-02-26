@@ -1,31 +1,17 @@
-import { useState } from "react";
 import { Modal } from "../../../../common/ui/modal";
 import { Member } from "../../../../constants/interface/pc/members";
 import { useEditMemberModal } from "../../../../hooks/use-edit-member-modal";
-import { useAppDispatch } from "../../../../store";
-import { updateMembersData } from "../../../../store/pc/member/member-extra";
+import { usePcMembers } from "../use-pc-members";
 import MemberForm from "./MemberForm";
 
 export const EditMemberModal = () => {
   const { isOpen, onClose, defaultValues } = useEditMemberModal();
-  const [loading, setLoading] = useState(false);
-
-  const dispatch = useAppDispatch();
+  const { handleEditMember, loading } = usePcMembers();
 
   const handleSubmit = (data: Member) => {
-    try {
-      setLoading(true);
-      console.log( data);
-      dispatch(updateMembersData(data));
-      setLoading(false);
-    } catch (error: any) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
+    handleEditMember(data);
     onClose();
   };
-
   return (
     <div>
       <Modal
