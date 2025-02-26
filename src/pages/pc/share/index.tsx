@@ -6,18 +6,18 @@ import { Card } from "../../../common/ui/card";
 import { DataTable } from "../../../common/ui/data-table";
 import { Heading } from "../../../common/ui/heading";
 import { Share } from "../../../constants/interface/pc/share";
-import { useAddMemberModal } from "../../../hooks/use-add-member-modal";
+import { useAddShareModal } from "../../../hooks/use-add-share-modal";
 import { useAppDispatch } from "../../../store";
 import { getMembersData } from "../../../store/pc/member/member-extra";
-import { AddMemberModal } from "./components/AddShareModal";
-import { EditMemberModal } from "./components/EditShareModal";
+import { AddShareModal } from "./components/AddShareModal";
+import { EditShareModal } from "./components/EditShareModal";
 import ExportMembersDataToExcel from "./components/ExportMembersDataToExcel";
 import { columns } from "./components/columns";
 
 const SharePage = () => {
   const dispatch = useAppDispatch();
 
-  const { onOpen } = useAddMemberModal();
+  const { onOpen } = useAddShareModal();
 
   useEffect(() => {
     dispatch(getMembersData());
@@ -32,8 +32,8 @@ const SharePage = () => {
 
   return (
     <>
-      <AddMemberModal />
-      <EditMemberModal />
+      <AddShareModal />
+      <EditShareModal />
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
