@@ -1,27 +1,15 @@
-import { useState } from "react";
 import { Modal } from "../../../../common/ui/modal";
 import { Share } from "../../../../constants/interface/pc/share";
 import { useEditShareModal } from "../../../../hooks/use-edit-share-modal";
-import { useAppDispatch } from "../../../../store";
 import MemberForm from "./ShareForm";
+import { usePcShare } from "./use-pc-share";
 
 export const EditShareModal = () => {
   const { isOpen, onClose, defaultValues } = useEditShareModal();
-  const [loading, setLoading] = useState(false);
-
-  const dispatch = useAppDispatch();
+  const { loading, handleEditPcShare } = usePcShare();
 
   const handleSubmit = (data: Share) => {
-    try {
-      setLoading(true);
-      console.log(data);
-      // dispatch(updateMembersData(data));
-      setLoading(false);
-    } catch (error: any) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
+    handleEditPcShare(data);
     onClose();
   };
 

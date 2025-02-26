@@ -1,27 +1,15 @@
-import { useState } from "react";
 import { Modal } from "../../../../common/ui/modal";
 import { Share } from "../../../../constants/interface/pc/share";
 import { useAddShareModal } from "../../../../hooks/use-add-share-modal";
-import { useAppDispatch } from "../../../../store";
-import MemberForm from "./ShareForm";
+import ShareForm from "./ShareForm";
+import { usePcShare } from "./use-pc-share";
 
 export const AddShareModal = () => {
   const { isOpen, onClose, defaultValues } = useAddShareModal();
-  const [loading, setLoading] = useState(false);
-
-  const dispatch = useAppDispatch();
+  const { loading, handleAddPcShare } = usePcShare();
 
   const handleSubmit = (data: Share) => {
-    try {
-      setLoading(true);
-      console.log(data);
-      // dispatch(createMemberData(data));
-      setLoading(false);
-    } catch (error: any) {
-      console.log(error);
-    } finally {
-      setLoading(false);
-    }
+    handleAddPcShare(data);
     onClose();
   };
 
@@ -34,7 +22,7 @@ export const AddShareModal = () => {
         onClose={onClose}
         className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[620px] mt-5 overflow-y-scroll"
       >
-        <MemberForm
+        <ShareForm
           defaultValues={
             defaultValues || {
               shareName: "",
