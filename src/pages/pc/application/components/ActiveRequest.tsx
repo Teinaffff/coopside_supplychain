@@ -1,7 +1,31 @@
-import React from "react";
-import { Card } from "../../../../common/ui/card";
 import { Clock, Eye, XCircle } from "lucide-react";
+import React from "react";
 import { Button } from "../../../../common/ui/button";
+import { Card } from "../../../../common/ui/card";
+
+// New reusable component for displaying request details
+const RequestDetail: React.FC<{ label: string; value: string }> = ({
+  label,
+  value,
+}) => (
+  <div className="mb-4">
+    <p className="text-sm text-gray-500">{label}</p>
+    <p className="text-base font-medium">{value}</p>
+  </div>
+);
+
+// New reusable component for displaying progress
+const ProgressBar: React.FC<{ progress: number }> = ({ progress }) => (
+  <div className="mb-4">
+    <div className="relative w-full h-3 bg-gray-200 rounded-md dark:bg-gray-700">
+      <div
+        className="absolute h-full bg-cyan-500 rounded-md dark:bg-cyan-400"
+        style={{ width: progress + '%' }}
+      ></div>
+    </div>
+    <p className="text-right text-sm text-gray-500 mt-1">{progress}%</p>
+  </div>
+);
 
 const ActiveRequest: React.FC = () => {
   const progress = 70;
@@ -15,25 +39,11 @@ const ActiveRequest: React.FC = () => {
       </div>
       <div className="grid grid-cols-3">
         <div className="flex justify-between items-center mb-4 col-span-2">
-          <div>
-            <p className="text-sm text-gray-500">Request Type</p>
-            <p className="text-base font-medium">License Renewal</p>
-          </div>
-          <div className="mb-4">
-            <p className="text-sm text-gray-500">Submitted Date</p>
-            <p className="text-base font-medium">2025-01-03</p>
-          </div>
+          <RequestDetail label="Request Type" value="License Renewal" />
+          <RequestDetail label="Submitted Date" value="2025-01-03" />
         </div>
       </div>
-      <div className="mb-4">
-        <div className="relative w-full h-3 bg-gray-200 rounded-md dark:bg-gray-700">
-          <div
-            className="absolute h-full bg-cyan-500 rounded-md dark:bg-cyan-400"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
-        <p className="text-right text-sm text-gray-500 mt-1">70%</p>
-      </div>
+      <ProgressBar progress={progress} />
       <div className="flex items-center bg-gray-100 text-gray-500 gap-2 rounded-md px-4 py-2 mb-4 dark:bg-gray-800 dark:text-gray-200">
         <Clock size={18} />
         <span>Additional documentation required</span>

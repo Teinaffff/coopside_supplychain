@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { profileMockData } from "../../common/data/data";
 import PageTitle from "../../components/PageTitle";
 import { menuItems } from "../../constants/pc/menu";
@@ -15,6 +15,7 @@ import { ProfileCompletionModal } from "./profile/components/ProfileCompletionMo
 const PC = () => {
   const dispatch = useAppDispatch();
   const profileCompletionModal = useProfileCompletionModal();
+  const location = useLocation();
 
   const profileCompletion = CalculateCompletion(profileMockData);
   console.log("profileCompletion: ", profileCompletion);
@@ -24,7 +25,7 @@ const PC = () => {
     dispatch(fetchNotificationsData());
 
     const isNotCompleted = profileCompletion < 100;
-    if (isNotCompleted) {
+    if (isNotCompleted && !location.pathname.includes("profile")) {
       profileCompletionModal.onOpen();
     } else {
       profileCompletionModal.onClose();

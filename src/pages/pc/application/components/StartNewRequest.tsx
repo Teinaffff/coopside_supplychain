@@ -1,8 +1,8 @@
+import { CircleCheckBig, CircleX } from "lucide-react";
 import React from "react";
 import { requirements } from "../../../../common/data/data";
-import { CircleCheck, CircleCheckBig, CircleX } from "lucide-react";
-import { Card } from "../../../../common/ui/card";
 import { Button } from "../../../../common/ui/button";
+import { Card } from "../../../../common/ui/card";
 
 const StartNewRequest: React.FC = () => {
   return (
