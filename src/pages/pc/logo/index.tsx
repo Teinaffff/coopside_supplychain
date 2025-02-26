@@ -26,6 +26,7 @@ const LogoPage = () => {
     };
 
     handleSendPcLogoRequest(newData);
+    setIsEditing(false);
   };
 
   return (

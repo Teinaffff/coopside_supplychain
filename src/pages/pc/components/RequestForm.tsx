@@ -45,6 +45,10 @@ const RequestForm = ({
       purpose: "",
     },
   });
+  const handleSubmit = (data: { purpose: string }) => {
+    onSubmit(data);
+    form.reset();
+  };
 
   return (
     <Card className="p-6 space-y-4">
@@ -53,7 +57,7 @@ const RequestForm = ({
 
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(onSubmit)}
+          onSubmit={form.handleSubmit(handleSubmit)}
           className="space-y-8 w-full"
         >
           <FormField
