@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAppDispatch } from "../../../store";
 
-export const usePcBankRequest = () => {
+export const usePcRequest = () => {
   const [loading, setLoading] = useState(false);
 
   const dispatch = useAppDispatch();
@@ -19,8 +19,22 @@ export const usePcBankRequest = () => {
     }
   };
 
+  const handleSendPcLogoRequest = (data: { purpose: string }) => {
+    try {
+      setLoading(true);
+      console.log(data);
+      // dispatch(createLogoRequestData(data));
+      setLoading(false);
+    } catch (error: any) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     handleSendPcBankRequest,
+    handleSendPcLogoRequest,
     loading,
   };
 };

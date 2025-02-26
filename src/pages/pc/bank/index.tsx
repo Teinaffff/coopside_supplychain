@@ -1,8 +1,11 @@
 import { AlertCircle, Building2 } from "lucide-react";
 import { Card } from "../../../common/ui/card";
 import RequestForm from "../components/RequestForm";
+import { usePcRequest } from "../components/use-pc-request";
 
 const BankPage = () => {
+  const { handleSendPcBankRequest, loading } = usePcRequest();
+
   const bankDetails = [
     { label: "Account Number", value: "1000123456789" },
     { label: "Account Name", value: "Primary Cooperative One" },
@@ -22,7 +25,9 @@ const BankPage = () => {
               <Building2 className="text-cyan-500 dark:text-cyan-400" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold dark:text-white">Account Status</h2>
+              <h2 className="text-xl font-semibold dark:text-white">
+                Account Status
+              </h2>
               <p className="text-muted-foreground">
                 Current bank account information
               </p>
@@ -41,7 +46,9 @@ const BankPage = () => {
               <span className="text-muted-foreground font-medium">
                 {detail.label}
               </span>
-              <p className="text-lg font-semibold dark:text-white">{detail.value}</p>
+              <p className="text-lg font-semibold dark:text-white">
+                {detail.value}
+              </p>
             </div>
           ))}
         </div>
@@ -51,6 +58,8 @@ const BankPage = () => {
         subtitle="If you need to appeal for bank account status, please provide detailed information below"
         placeholder="Please explain why you are submitting this appeal..."
         buttonText="Submit Appeal"
+        onSubmit={handleSendPcBankRequest}
+        loading={loading}
       />
     </div>
   );

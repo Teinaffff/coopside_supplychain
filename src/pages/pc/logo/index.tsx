@@ -1,12 +1,14 @@
 import { AlertCircle, Pencil } from "lucide-react";
-import React from "react";
-import { Card } from "../../../common/ui/card";
-import { Button } from "../../../common/ui/button";
-import { Heading } from "../../../common/ui/heading";
 import { IMAGES } from "../../../assets";
+import { Button } from "../../../common/ui/button";
+import { Card } from "../../../common/ui/card";
+import { Heading } from "../../../common/ui/heading";
 import RequestForm from "../components/RequestForm";
+import { usePcRequest } from "../components/use-pc-request";
 
 const LogoPage = () => {
+  const { handleSendPcLogoRequest, loading } = usePcRequest();
+
   return (
     <div className="space-y-6">
       <Card className="flex flex-col space-y-5 p-6">
@@ -48,6 +50,8 @@ const LogoPage = () => {
         subtitle="Provide additional information for logo approval"
         placeholder="Explain why this logo should be approved..."
         buttonText="Submit Request"
+        onSubmit={handleSendPcLogoRequest}
+        loading={loading}
       />
     </div>
   );

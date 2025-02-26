@@ -1,9 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { Button } from "../../../common/ui/button";
 import { Card } from "../../../common/ui/card";
-import { Textarea } from "../../../common/ui/textarea";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
 import {
   Form,
   FormControl,
@@ -12,28 +11,31 @@ import {
   FormLabel,
   FormMessage,
 } from "../../../common/ui/form";
-import { usePcBankRequest } from "../bank/use-pc-bank";
+import { Textarea } from "../../../common/ui/textarea";
 
-export const pcBankRequestFormSchema = z.object({
+export const pcRequestFormSchema = z.object({
   purpose: z.string().min(1, { message: "Purpose is required" }),
 });
 
-export type PcBankRequestFormValues = z.infer<typeof pcBankRequestFormSchema>;
+export type PcBankRequestFormValues = z.infer<typeof pcRequestFormSchema>;
 
 const RequestForm = ({
   title,
   subtitle,
   placeholder,
   buttonText,
+  loading,
+  onSubmit,
 }: {
   title: string;
   subtitle: string;
   placeholder: string;
   buttonText: string;
+  loading: boolean;
+  onSubmit: (data: { purpose: string }) => void;
 }) => {
-  const { handleSendPcBankRequest, loading } = usePcBankRequest();
   const form = useForm<PcBankRequestFormValues>({
-    resolver: zodResolver(pcBankRequestFormSchema),
+    resolver: zodResolver(pcRequestFormSchema),
     defaultValues: {
       purpose: "",
     },
@@ -46,7 +48,7 @@ const RequestForm = ({
 
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(handleSendPcBankRequest)}
+          onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-8 w-full"
         >
           <FormField
