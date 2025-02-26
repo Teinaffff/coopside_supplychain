@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
-import { ContactFormValues, contactSchema } from "../constants/schema";
+import { ContactFormValues, contactSchema } from "../constants/schema/auth";
 
 const submitContactForm = async (data: ContactFormValues) => {
   // Replace with your actual API call
