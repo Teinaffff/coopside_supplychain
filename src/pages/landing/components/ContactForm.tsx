@@ -15,7 +15,7 @@ export const ContactForm = () => {
   const { form, isLoading, onSubmit } = useContactForm();
 
   return (
-    <div className="lg:w-1/2 bg-white shadow-lg p-6 rounded-lg">
+    <div className="w-full lg:w-1/2 bg-white shadow-lg p-6 rounded-lg">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full">
           <FormField

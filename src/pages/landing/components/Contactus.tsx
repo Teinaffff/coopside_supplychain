@@ -17,7 +17,7 @@ export default ContactUs;
 
 const ContactInfo = () => {
   return (
-    <div className="lg:w-1/2 mb-8 lg:mb-0">
+    <div className="w-full lg:w-1/2 mb-8 lg:mb-0">
       <button className="bg-cyan-600 text-white px-4 py-2 rounded-full text-sm font-medium inline-block">
         Contact Us
       </button>
