@@ -22,7 +22,15 @@ const StatCard: React.FC<StatCardProps> = ({
     <Card className="dark:bg-slate-800">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 py-3">
         <CardTitle
-          className={`text-lg font-medium text-${color}-500 dark:text-slate-200`}
+          className={`text-lg font-medium ${
+            color === "emerald"
+              ? "text-emerald-500"
+              : color === "orange"
+              ? "text-orange-500"
+              : color === "purple"
+              ? "text-purple-500"
+              : "text-cyan-500"
+          } dark:text-slate-200`}
         >
           {title}
         </CardTitle>
