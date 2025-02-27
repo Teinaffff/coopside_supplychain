@@ -4,10 +4,9 @@ import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "../../../../common/ui/button";
 import { Checkbox } from "../../../../common/ui/checkbox";
+import { TableCell } from "../../../../common/ui/table";
 import { Share } from "../../../../constants/interface/pc/share";
 import { CellAction } from "./cell-actions";
-import { TableCell } from "../../../../common/ui/table";
-import { data } from "react-router-dom";
 
 export const columns: ColumnDef<Share>[] = [
   {

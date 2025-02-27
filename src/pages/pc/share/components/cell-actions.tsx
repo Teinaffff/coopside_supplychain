@@ -12,9 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "../../../../common/ui/dropdown-menu";
 import { Share } from "../../../../constants/interface/pc/share";
-import { useEditMemberModal } from "../../../../hooks/use-edit-member-modal";
+import { useEditShareModal } from "../../../../hooks/use-edit-share-modal";
 import { useAppDispatch, useAppSelector } from "../../../../store";
-import { deleteMemberData } from "../../../../store/pc/member/member-extra";
 import { membersPageSelector } from "../../../../store/pc/member/selectors";
 
 export const CellAction: React.FC<{ data: Share }> = ({ data }) => {
@@ -25,7 +24,7 @@ export const CellAction: React.FC<{ data: Share }> = ({ data }) => {
 
   const dispatch = useAppDispatch();
   const Member = useAppSelector(membersPageSelector);
-  const editMemberModal = useEditMemberModal();
+  const editShareModal = useEditShareModal();
 
   const navigate = useNavigate();
 
@@ -93,7 +92,7 @@ export const CellAction: React.FC<{ data: Share }> = ({ data }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem onClick={() => editMemberModal.onOpen(data)}>
+          <DropdownMenuItem onClick={() => editShareModal.onOpen(data)}>
             <Edit className="mr-2 h-4 w-4" />
             Edit
           </DropdownMenuItem>
