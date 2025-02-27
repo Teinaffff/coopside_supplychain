@@ -243,7 +243,7 @@ const MemberForm: React.FC<MemberFormProps> = ({
         </div>
         <div className="pt-6 space-x-2 flex items-center justify-center w-full">
           <Button
-            variant="secondary"
+            variant="outline"
             onClick={() => {
               form.reset();
               onClose();
