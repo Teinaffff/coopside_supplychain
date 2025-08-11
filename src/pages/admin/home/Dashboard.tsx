@@ -1,18 +1,12 @@
 import React, { useState } from "react";
-import {
-  pcStatsData,
-  recentTransactions,
-  topMembers,
-} from "../../../common/data/data";
 import Loader from "../../../common/Loader";
-import MembershipLineChart from "../components/charts/MembershipLineChart";
-import ProductBarChart from "../components/charts/ProductBarChart";
-import ProfitTrendLineChart from "../components/charts/ProfitTrendLineChart";
-import SalesDistributionChart from "../components/charts/SalesDistributionChart";
-import { DashboardStats } from "../components/DashboardStats";
-import RecentTransactionTable from "../components/tables/RecentTransactionTable";
-import TopMembersTable from "../components/tables/TopMembersTable";
-
+import { memberStatsData, recentTransactions } from "../../../common/data/data";
+import { DashboardStats } from "../../pc/components/DashboardStats";
+import ProfitTrendLineChart from "../../pc/components/charts/ProfitTrendLineChart";
+import MembershipLineChart from "../../pc/components/charts/MembershipLineChart";
+import ProductBarChart from "../../pc/components/charts/ProductBarChart";
+import SalesDistributionChart from "../../pc/components/charts/SalesDistributionChart";
+import RecentTransactionTable from "../../pc/components/tables/RecentTransactionTable";
 const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -20,7 +14,7 @@ const Dashboard: React.FC = () => {
     <Loader />
   ) : (
     <div className="space-y-4">
-      <DashboardStats statsData={pcStatsData} />
+      <DashboardStats statsData={memberStatsData} />
 
       <div className="grid xl:grid-cols-2 gap-4">
         <ProfitTrendLineChart />

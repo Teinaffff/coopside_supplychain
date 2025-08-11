@@ -4,10 +4,11 @@ import Login from "./pages/auth/Login";
 import RequireAuth from "./pages/auth/RequireAuth";
 import Landing from "./pages/landing";
 import PC from "./pages/pc";
-import Union from "./pages/union";
+import Admin from "./pages/admin";
 import SignupPage from "./pages/auth/Signup";
 import PageNotFound from "./common/PageNotFound";
-import Member from "./pages/member";
+import Agent from "./pages/agent";
+import Coop from "./pages/coop";
 
 function App() {
   return (
@@ -17,8 +18,9 @@ function App() {
 
         <Route element={<RequireAuth allowedRoles={"admin"} />}>
           <Route path="/pc/*" element={<PC />} /> 
-          <Route path="/union/*" element={<Union />} />
-          <Route path="/member/*" element={<Member />} />
+          <Route path="/admin/*" element={<Admin />} /> 
+          <Route path="/agent/*" element={<Agent />} />
+          <Route path="/coop/*" element={<Coop />} />
         </Route>
 
         <Route path="/login" element={<Login />} />
