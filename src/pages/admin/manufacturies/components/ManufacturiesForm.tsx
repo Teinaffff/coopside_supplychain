@@ -17,7 +17,7 @@ import {
   PcMembersFormValues,
 } from "../../../../schema/pc/members";
 
-interface ConsumerFormProps {
+interface ManufacturiesFormProps {
   defaultValues: Partial<PcMembersFormValues>;
   onSubmit: (data: Member) => void;
   loading: boolean;
@@ -25,7 +25,7 @@ interface ConsumerFormProps {
   buttonTitle: string;
 }
 
-const ConsumerForm: React.FC<ConsumerFormProps> = ({
+const ManufacturiesForm: React.FC<ManufacturiesFormProps> = ({
   defaultValues,
   onSubmit,
   loading,
@@ -266,4 +266,4 @@ const ConsumerForm: React.FC<ConsumerFormProps> = ({
   );
 };
 
-export default ConsumerForm;
+export default ManufacturiesForm;

@@ -9,12 +9,12 @@ import { useAddMemberModal } from "../../../hooks/use-add-member-modal";
 import { useAppDispatch, useAppSelector } from "../../../store";
 import { getMembersData } from "../../../store/pc/member/member-extra";
 import { membersPageSelector } from "../../../store/pc/member/selectors";
-import { AddConsumerModal } from "./components/AddConsumersModal";
-import { EditConsumerModal } from "./components/EditConsumersModal";
+import { AddInstitutionsModal } from "./components/AddInstitutionsModal";
+import { EditInstitutionsModal } from "./components/EditInstitutionsModal";
 import ExportMembersDataToExcel from "./components/ExportMembersDataToExcel";
 import { columns } from "./components/columns";
 
-const ConsumersPage = () => {
+const InstitutionsPage = () => {
   const dispatch = useAppDispatch();
   const { members } = useAppSelector(membersPageSelector);
 
@@ -39,8 +39,8 @@ const ConsumersPage = () => {
 
   return (
     <>
-      <AddConsumerModal />
-      <EditConsumerModal />
+      <AddInstitutionsModal />
+      <EditInstitutionsModal />
       <div className="flex justify-end pb-5 mx-5">
         <Button
           className="bg-cyan-600 hover:bg-cyan-600"
@@ -53,8 +53,8 @@ const ConsumersPage = () => {
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
-            title={`Consumers (${formattedMembers.length})`}
-            description="Manage Consumers"
+            title={`Institutions (${formattedMembers.length})`}
+            description="Manage Institutions"
           />
           <div></div>
           <div>
@@ -85,4 +85,4 @@ const ConsumersPage = () => {
   );
 };
 
-export default ConsumersPage;
+export default InstitutionsPage;

@@ -1,7 +1,11 @@
 import {
   LucideHome,
-  User,
-  Users
+  UserCircle2,
+  Users2,
+  Factory,
+  Building2,
+  User2,
+  FileBarChart
 } from "lucide-react";
 
 export const menuItems = [
@@ -15,36 +19,36 @@ export const menuItems = [
     label: "Agents",
     to: "/admin/agents",
     pathname: "/admin/agents",
-    icon: <User width={18} height={18} />,
+    icon: <UserCircle2 width={18} height={18} />,
   },
   {
     label: "Primary Cooperatives",
     to: "/admin/pc",
     pathname: "/admin/pc",
-    icon: <Users width={18} height={18} />,
+    icon: <Users2 width={18} height={18} />,
   },
   {
     label: "Manufacturies",
     to: "/admin/manufacturies",
     pathname: "/admin/manufacturies",
-    icon: <User width={18} height={18} />,
+    icon: <Factory width={18} height={18} />,
   },
   {
     label: "Institutions",
     to: "/admin/institutions",
     pathname: "/admin/institutions",
-    icon: <Users width={18} height={18} />,
+    icon: <Building2 width={18} height={18} />,
   },
   {
     label: "Consumers",
     to: "/admin/consumers",
     pathname: "/admin/consumers",
-    icon: <User width={18} height={18} />,
+    icon: <User2 width={18} height={18} />,
   },
   {
     label: "Reports",
     to: "/admin/reports",
     pathname: "/admin/reports",
-    icon: <Users width={18} height={18} />,
+    icon: <FileBarChart width={18} height={18} />,
   },
 ];

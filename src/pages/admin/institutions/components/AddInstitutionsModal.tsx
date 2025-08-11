@@ -1,10 +1,10 @@
 import { Modal } from "../../../../common/ui/modal";
 import { Member } from "../../../../constants/interface/pc/members";
 import { useAddMemberModal } from "../../../../hooks/use-add-member-modal";
-import { usePcMembers } from "../../../pc/members/use-pc-members";
 import MemberForm from "../../../pc/members/components/MemberForm";
+import { usePcMembers } from "../../../pc/members/use-pc-members";
 
-export const AddConsumerModal = () => {
+export const AddInstitutionsModal = () => {
   const { isOpen, onClose, defaultValues } = useAddMemberModal();
   const { handleAddMember, loading } = usePcMembers();
 
@@ -16,8 +16,8 @@ export const AddConsumerModal = () => {
   return (
     <div>
       <Modal
-        title="Create Consumers"
-        description="Manage Consumers Information"
+        title="Create Institutions"
+        description="Manage Institutions Information"
         isOpen={isOpen}
         onClose={onClose}
         className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"

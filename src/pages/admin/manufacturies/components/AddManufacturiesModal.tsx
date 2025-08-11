@@ -1,30 +1,30 @@
 import { Modal } from "../../../../common/ui/modal";
 import { Member } from "../../../../constants/interface/pc/members";
-import { useEditMemberModal } from "../../../../hooks/use-edit-member-modal";
+import { useAddMemberModal } from "../../../../hooks/use-add-member-modal";
+import MemberForm from "../../../pc/members/components/MemberForm";
 import { usePcMembers } from "../../../pc/members/use-pc-members";
-import ConsumerForm from "./ConsumerForm";
 
-export const EditConsumerModal = () => {
-  const { isOpen, onClose, defaultValues } = useEditMemberModal();
-  const { handleEditMember, loading } = usePcMembers();
+export const AddManufacturiesModal = () => {
+  const { isOpen, onClose, defaultValues } = useAddMemberModal();
+  const { handleAddMember, loading } = usePcMembers();
 
   const handleSubmit = (data: Member) => {
-    handleEditMember(data);
+    handleAddMember(data);
     onClose();
   };
+
   return (
     <div>
       <Modal
-        title="Update Consumer"
-        description="Manage Consumer Information"
+        title="Create Manufacturies"
+        description="Manage Manufacturies Information"
         isOpen={isOpen}
         onClose={onClose}
         className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"
       >
-        <ConsumerForm
+        <MemberForm
           defaultValues={
             defaultValues || {
-              memberId: -1,
               name: "",
               email: "",
               age: 0,
@@ -42,7 +42,7 @@ export const EditConsumerModal = () => {
           onSubmit={handleSubmit}
           loading={loading}
           onClose={onClose}
-          buttonTitle="Update"
+          buttonTitle="Add"
         />
       </Modal>
     </div>
