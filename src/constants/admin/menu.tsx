@@ -24,6 +24,18 @@ export const menuItems = [
     icon: <Users width={18} height={18} />,
   },
   {
+    label: "Manufacturies",
+    to: "/admin/manufacturies",
+    pathname: "/admin/manufacturies",
+    icon: <User width={18} height={18} />,
+  },
+  {
+    label: "Institutions",
+    to: "/admin/institutions",
+    pathname: "/admin/institutions",
+    icon: <Users width={18} height={18} />,
+  },
+  {
     label: "Consumers",
     to: "/admin/consumers",
     pathname: "/admin/consumers",

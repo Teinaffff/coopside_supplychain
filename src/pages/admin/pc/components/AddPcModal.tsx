@@ -1,10 +1,10 @@
 import { Modal } from "../../../../common/ui/modal";
 import { Member } from "../../../../constants/interface/pc/members";
 import { useAddMemberModal } from "../../../../hooks/use-add-member-modal";
-import { usePcMembers } from "../use-pc-members";
-import MemberForm from "./MemberForm";
+import { usePcMembers } from "../../../pc/members/use-pc-members";
+import PcForm from "./PcForm";
 
-export const AddAgentModal = () => {
+export const AddPcModal = () => {
   const { isOpen, onClose, defaultValues } = useAddMemberModal();
   const { handleAddMember, loading } = usePcMembers();
 
@@ -16,13 +16,13 @@ export const AddAgentModal = () => {
   return (
     <div>
       <Modal
-        title="Create Agent"
-        description="Manage Agent Information"
+        title="Create Primary Cooperative"
+        description="Manage Primary Cooperative Information"
         isOpen={isOpen}
         onClose={onClose}
         className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"
       >
-        <MemberForm
+        <PcForm
           defaultValues={
             defaultValues || {
               name: "",

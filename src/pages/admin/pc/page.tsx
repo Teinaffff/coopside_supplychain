@@ -9,8 +9,8 @@ import { useAddMemberModal } from "../../../hooks/use-add-member-modal";
 import { useAppDispatch, useAppSelector } from "../../../store";
 import { getMembersData } from "../../../store/pc/member/member-extra";
 import { membersPageSelector } from "../../../store/pc/member/selectors";
-import { AddMemberModal } from "../../pc/members/components/AddMemberModal";
-import { EditMemberModal } from "../../pc/members/components/EditMemberModal";
+import { AddPcModal } from "./components/AddPcModal";
+import { EditPcModal } from "./components/EditPctModal";
 import ExportMembersDataToExcel from "./components/ExportMembersDataToExcel";
 import { columns } from "./components/columns";
 
@@ -39,8 +39,8 @@ const SharesPage = () => {
 
   return (
     <>
-      <AddMemberModal />
-      <EditMemberModal />
+      <AddPcModal />
+      <EditPcModal />
       <div className="flex justify-end pb-5 mx-5">
         <Button
           className="bg-cyan-600 hover:bg-cyan-600"
@@ -53,8 +53,8 @@ const SharesPage = () => {
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
-            title={`Union Members (${formattedMembers.length})`}
-            description="Manage Members"
+            title={`Primary Cooperatives (${formattedMembers.length})`}
+            description="Manage Primary Cooperatives"
           />
           <div></div>
           <div>

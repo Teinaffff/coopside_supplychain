@@ -1,11 +1,10 @@
 import { Modal } from "../../../../common/ui/modal";
 import { Member } from "../../../../constants/interface/pc/members";
 import { useEditMemberModal } from "../../../../hooks/use-edit-member-modal";
-import { usePcMembers } from "../use-pc-members";
-import AgentForm from "./AgentForm";
-import MemberForm from "./MemberForm";
+import { usePcMembers } from "../../../pc/members/use-pc-members";
+import ConsumerForm from "./ConsumerForm";
 
-export const EditAgentModal = () => {
+export const EditConsumerModal = () => {
   const { isOpen, onClose, defaultValues } = useEditMemberModal();
   const { handleEditMember, loading } = usePcMembers();
 
@@ -16,13 +15,13 @@ export const EditAgentModal = () => {
   return (
     <div>
       <Modal
-        title="Update Agent"
-        description="Manage Agent Information"
+        title="Update Consumer"
+        description="Manage Consumer Information"
         isOpen={isOpen}
         onClose={onClose}
         className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"
       >
-        <AgentForm
+        <ConsumerForm
           defaultValues={
             defaultValues || {
               memberId: -1,

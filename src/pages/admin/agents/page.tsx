@@ -9,8 +9,8 @@ import { useAddMemberModal } from "../../../hooks/use-add-member-modal";
 import { useAppDispatch, useAppSelector } from "../../../store";
 import { getMembersData } from "../../../store/pc/member/member-extra";
 import { membersPageSelector } from "../../../store/pc/member/selectors";
-import { AddAgentModal } from "../../pc/members/components/AddAgentModal";
-import { EditAgentModal } from "../../pc/members/components/EditAgentModal";
+import { AddAgentModal } from "./components/AddAgentModal";
+import { EditAgentModal } from "./components/EditAgentModal";
 import ExportMembersDataToExcel from "./components/ExportMembersDataToExcel";
 import { columns } from "./components/columns";
 

@@ -39,22 +39,11 @@ const SharesPage = () => {
 
   return (
     <>
-      <AddMemberModal />
-      <EditMemberModal />
-      <div className="flex justify-end pb-5 mx-5">
-        <Button
-          className="bg-cyan-600 hover:bg-cyan-600"
-          onClick={() => onOpen()}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add New
-        </Button>
-      </div>
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
-            title={`Union Members (${formattedMembers.length})`}
-            description="Manage Members"
+            title={`Reports (${formattedMembers.length})`}
+            description="View Reports"
           />
           <div></div>
           <div>
@@ -75,10 +64,7 @@ const SharesPage = () => {
           clickable={true}
           columns={columns}
           data={formattedMembers}
-          onConfirmFunction={deleteselectedMembers}
           onExport={ExportMembersDataToExcel}
-          buttonTitle="Delete Selection"
-          ButtonIcon={Trash}
         />
       </Card>
     </>
