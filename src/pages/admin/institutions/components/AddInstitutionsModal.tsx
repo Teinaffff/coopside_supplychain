@@ -1,46 +1,45 @@
 import { Modal } from "../../../../common/ui/modal";
-import { Member } from "../../../../constants/interface/pc/members";
-import { useAddMemberModal } from "../../../../hooks/use-add-member-modal";
-import MemberForm from "../../../pc/members/components/MemberForm";
-import { usePcMembers } from "../../../pc/members/use-pc-members";
+import { Institution } from "../../../../constants/interface/admin/institution";
+import { useAddInstitutionModal } from "../../hooks/use-add-institution-modal";
+import { useInstitutions } from "../../hooks/use-institutions";
+import InstitutionForm from "./InstitutionForm";
 
 export const AddInstitutionsModal = () => {
-  const { isOpen, onClose, defaultValues } = useAddMemberModal();
-  const { handleAddMember, loading } = usePcMembers();
+  const { isOpen, onClose, defaultValues } = useAddInstitutionModal();
+  const { handleAddInstitution, isAddInstitutionLoading } = useInstitutions();
 
-  const handleSubmit = (data: Member) => {
-    handleAddMember(data);
+  const handleSubmit = (data: Institution) => {
+    handleAddInstitution(data);
     onClose();
   };
 
   return (
     <div>
       <Modal
-        title="Create Institutions"
-        description="Manage Institutions Information"
+        title="Create Institution"
+        description="Manage Institution Information"
         isOpen={isOpen}
         onClose={onClose}
         className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"
       >
-        <MemberForm
+        <InstitutionForm
           defaultValues={
             defaultValues || {
               name: "",
               email: "",
-              age: 0,
+              phone: "",
+              institutionType: "",
+              contactPerson: "",
               city: "",
               subcity: "",
               woreda: "",
-              startDate: "",
-              photo: undefined,
-              registrationFee: 0,
-              collateral: "",
-              inheritor: "",
-              share: 0,
+              establishedDate: "",
+              institutionStatus: "",
+              logo: undefined,
             }
           }
           onSubmit={handleSubmit}
-          loading={loading}
+          loading={isAddInstitutionLoading}
           onClose={onClose}
           buttonTitle="Add"
         />

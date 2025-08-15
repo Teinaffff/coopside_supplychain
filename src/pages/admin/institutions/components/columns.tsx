@@ -1,13 +1,13 @@
-"use client";
+  
 
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "../../../../common/ui/button";
 import { Checkbox } from "../../../../common/ui/checkbox";
-import { Member } from "../../../../constants/interface/pc/members";
+import { Institution } from "../../../../constants/interface/admin/institution";
 import { CellAction } from "./cell-actions";
 
-export const columns: ColumnDef<Member>[] = [
+export const columns: ColumnDef<Institution>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -22,10 +22,6 @@ export const columns: ColumnDef<Member>[] = [
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
-        // disabled={
-        //   row.original.agencyStatus === 'Active' ||
-        //   row.original.agencyStatus === 'Suspended'
-        // }
       />
     ),
     enableSorting: false,
@@ -60,28 +56,42 @@ export const columns: ColumnDef<Member>[] = [
     },
   },
   {
-    accessorKey: "age",
+    accessorKey: "institutionType",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Age
+          Type
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
   {
-    accessorKey: "nationality",
+    accessorKey: "contactPerson",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Nationality
+          Contact Person
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+  },
+  {
+    accessorKey: "institutionStatus",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Status
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );

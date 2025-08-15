@@ -11,15 +11,21 @@ import {
 } from "../../../../common/ui/form";
 import { Input } from "../../../../common/ui/input";
 import { Loader } from "../../../../common/ui/loader";
-import { Member } from "../../../../constants/interface/pc/members";
 import {
-  pcMembersFormSchema,
-  PcMembersFormValues,
-} from "../../../../schema/pc/members";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../../common/ui/select";
+import {
+  agentFormSchema,
+  AgentFormValues,
+} from "../../../../schema/admin/agent";
 
 interface AgentFormProps {
-  defaultValues: Partial<PcMembersFormValues>;
-  onSubmit: (data: Member) => void;
+  defaultValues: Partial<AgentFormValues>;
+  onSubmit: (data: AgentFormValues) => void;
   loading: boolean;
   onClose: () => void;
   buttonTitle: string;
@@ -32,12 +38,12 @@ const AgentForm: React.FC<AgentFormProps> = ({
   onClose,
   buttonTitle,
 }) => {
-  const form = useForm<PcMembersFormValues>({
-    resolver: zodResolver(pcMembersFormSchema),
+  const form = useForm<AgentFormValues>({
+    resolver: zodResolver(agentFormSchema),
     defaultValues,
   });
 
-  const handleSubmit = async (data: Member) => {
+  const handleSubmit = async (data: AgentFormValues) => {
     onSubmit(data);
     form.reset();
   };
@@ -71,6 +77,20 @@ const AgentForm: React.FC<AgentFormProps> = ({
             )}
           />
           <FormField
+            name="phone"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Phone:</FormLabel>
+                <FormControl>
+                  <Input type="tel" {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
             name="email"
             control={form.control}
             render={({ field }) => (
@@ -83,13 +103,44 @@ const AgentForm: React.FC<AgentFormProps> = ({
               </FormItem>
             )}
           />
+
+          <FormField
+            name="gender"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Gender:</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  disabled={loading}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a gender" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem key={"male"} value={"male"}>
+                      Male
+                    </SelectItem>
+                    <SelectItem key={"female"} value={"female"}>
+                      Female
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             name="age"
             control={form.control}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Age:</FormLabel>
-                <FormControl>
+                <FormControl className="hide-incrementor">
                   <Input
                     type="number"
                     {...field}
@@ -142,73 +193,6 @@ const AgentForm: React.FC<AgentFormProps> = ({
               </FormItem>
             )}
           />
-          <FormField
-            name="collateral"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Collateral:</FormLabel>
-                <FormControl>
-                  <Input {...field} disabled={loading} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="inheritor"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Inheritor:</FormLabel>
-                <FormControl>
-                  <Input {...field} disabled={loading} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="share"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Share:</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    onChange={(e) =>
-                      field.onChange(parseInt(e.target.value, 10))
-                    }
-                    disabled={loading}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="registrationFee"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Reg. Fee:</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    onChange={(e) =>
-                      field.onChange(parseInt(e.target.value, 10))
-                    }
-                    disabled={loading}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           <FormField
             name="startDate"
             control={form.control}

@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import Loader from "../../../common/Loader";
 import { memberStatsData, recentTransactions } from "../../../common/data/data";
-import { DashboardStats } from "../../pc/components/DashboardStats";
-import ProfitTrendLineChart from "../../pc/components/charts/ProfitTrendLineChart";
-import MembershipLineChart from "../../pc/components/charts/MembershipLineChart";
-import ProductBarChart from "../../pc/components/charts/ProductBarChart";
-import SalesDistributionChart from "../../pc/components/charts/SalesDistributionChart";
-import RecentTransactionTable from "../../pc/components/tables/RecentTransactionTable";
+import { DashboardStats } from "../../components/DashboardStats";
+import ProfitTrendLineChart from "../../components/charts/ProfitTrendLineChart";
+import MembershipLineChart from "../../components/charts/MembershipLineChart";
+import ProductBarChart from "../../components/charts/ProductBarChart";
+import SalesDistributionChart from "../../components/charts/SalesDistributionChart";
+import RecentTransactionTable from "../../components/tables/RecentTransactionTable";
+
 const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
 

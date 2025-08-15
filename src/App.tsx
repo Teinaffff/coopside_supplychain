@@ -1,14 +1,12 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import PageNotFound from "./common/PageNotFound";
 import Layout from "./layout/Layout";
+import Admin from "./pages/admin";
 import Login from "./pages/auth/Login";
 import RequireAuth from "./pages/auth/RequireAuth";
-import Landing from "./pages/landing";
-import PC from "./pages/pc";
-import Admin from "./pages/admin";
 import SignupPage from "./pages/auth/Signup";
-import PageNotFound from "./common/PageNotFound";
-import Agent from "./pages/agent";
 import Coop from "./pages/coop";
+import Landing from "./pages/landing";
 
 function App() {
   return (
@@ -17,9 +15,7 @@ function App() {
         <Route path="/" element={<Landing />} />
 
         <Route element={<RequireAuth allowedRoles={"admin"} />}>
-          <Route path="/pc/*" element={<PC />} /> 
-          <Route path="/admin/*" element={<Admin />} /> 
-          <Route path="/agent/*" element={<Agent />} />
+          <Route path="/admin/*" element={<Admin />} />
           <Route path="/coop/*" element={<Coop />} />
         </Route>
 

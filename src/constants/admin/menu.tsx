@@ -1,11 +1,11 @@
 import {
+  Building2,
+  Factory,
+  FileBarChart,
   LucideHome,
+  User2,
   UserCircle2,
   Users2,
-  Factory,
-  Building2,
-  User2,
-  FileBarChart
 } from "lucide-react";
 
 export const menuItems = [
@@ -22,9 +22,9 @@ export const menuItems = [
     icon: <UserCircle2 width={18} height={18} />,
   },
   {
-    label: "Primary Cooperatives",
-    to: "/admin/pc",
-    pathname: "/admin/pc",
+    label: "Sellers",
+    to: "/admin/seller",
+    pathname: "/admin/seller",
     icon: <Users2 width={18} height={18} />,
   },
   {

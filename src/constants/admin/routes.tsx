@@ -3,8 +3,8 @@ import Consumers from "../../pages/admin/consumers/page";
 import Dashboard from "../../pages/admin/home/Dashboard";
 import Institutions from "../../pages/admin/institutions/page";
 import Manufacturies from "../../pages/admin/manufacturies/page";
-import PC from "../../pages/admin/pc/page";
 import Reports from "../../pages/admin/reports/page";
+import Seller from "../../pages/admin/seller/page";
 
 export const ROUTES = [
   {
@@ -13,9 +13,9 @@ export const ROUTES = [
     element: <Dashboard />,
   },
   {
-    path: "pc",
+    path: "Seller",
     title: "Primary Cooperatives",
-    element: <PC />,
+    element: <Seller />,
   },
   {
     path: "agents",

@@ -1,13 +1,13 @@
-"use client";
+  
 
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "../../../../common/ui/button";
 import { Checkbox } from "../../../../common/ui/checkbox";
-import { Member } from "../../../../constants/interface/pc/members";
+import { Consumer } from "../../../../constants/interface/admin/consumer";
 import { CellAction } from "./cell-actions";
 
-export const columns: ColumnDef<Member>[] = [
+export const columns: ColumnDef<Consumer>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -22,10 +22,6 @@ export const columns: ColumnDef<Member>[] = [
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
-        // disabled={
-        //   row.original.agencyStatus === 'Active' ||
-        //   row.original.agencyStatus === 'Suspended'
-        // }
       />
     ),
     enableSorting: false,
@@ -60,6 +56,20 @@ export const columns: ColumnDef<Member>[] = [
     },
   },
   {
+    accessorKey: "phone",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Phone
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+  },
+  {
     accessorKey: "age",
     header: ({ column }) => {
       return (
@@ -74,14 +84,28 @@ export const columns: ColumnDef<Member>[] = [
     },
   },
   {
-    accessorKey: "nationality",
+    accessorKey: "gender",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Nationality
+          Gender
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+  },
+  {
+    accessorKey: "consumerStatus",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Status
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );

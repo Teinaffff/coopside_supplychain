@@ -7,7 +7,7 @@ import Carousel, {
   Slider,
   SliderContainer,
   SliderDotButton,
-} from './carousel';
+} from '../common/ui/carousel';
 
 interface QuoteSliderProps {
   quotes: { quote: string; name: string }[];

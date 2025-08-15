@@ -1,23 +1,22 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import PageTitle from "../../components/PageTitle";
-import { menuItems } from "../../constants/agent/menu";
-import { ROUTES } from "../../constants/agent/routes";
+import { menuItems } from "../../constants/admin/menu";
+import { ROUTES } from "../../constants/admin/routes";
 import DefaultLayout from "../../layout/DefaultLayout";
 import { useAppDispatch } from "../../store";
 import { fetchNotificationsData } from "../../store/notification/notification-extra";
-import { getMembersData } from "../../store/pc/member/member-extra";
 
 const Member = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    dispatch(getMembersData());
+    // dispatch(getMembersData());
     dispatch(fetchNotificationsData());
   }, []);
 
   return (
-    <DefaultLayout menuItems={menuItems} rootPath='/agent'>
+    <DefaultLayout menuItems={menuItems} rootPath="/agent">
       <Routes>
         {ROUTES.map(({ title, path, element }, index) => (
           <Route

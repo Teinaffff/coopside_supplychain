@@ -1,18 +1,22 @@
 import { Modal } from "../../../../common/ui/modal";
-import { Member } from "../../../../constants/interface/pc/members";
-import { useEditMemberModal } from "../../../../hooks/use-edit-member-modal";
-import { usePcMembers } from "../../../pc/members/use-pc-members";
+import { AgentFormValues } from "../../../../schema/admin/agent";
+import { useAgents } from "../../../admin/hooks/use-agents";
+import { useEditAgentModal } from "../../hooks/use-edit-agent-modal";
 import AgentForm from "./AgentForm";
-import MemberForm from "../../../pc/members/components/MemberForm";
 
 export const EditAgentModal = () => {
-  const { isOpen, onClose, defaultValues } = useEditMemberModal();
-  const { handleEditMember, loading } = usePcMembers();
+  const { isOpen, onClose, defaultValues } = useEditAgentModal();
+  const { handleEditAgent, isEditAgentLoading } = useAgents();
 
-  const handleSubmit = (data: Member) => {
-    handleEditMember(data);
-    onClose();
+  const handleSubmit = async (data: AgentFormValues) => {
+    try {
+      await handleEditAgent(data);
+      onClose();
+    } catch (error) {
+      console.error("Error editing agent:", error);
+    }
   };
+
   return (
     <div>
       <Modal
@@ -25,8 +29,10 @@ export const EditAgentModal = () => {
         <AgentForm
           defaultValues={
             defaultValues || {
-              memberId: -1,
+              agentId: -1,
               name: "",
+              phone: "",
+              gender: "",
               email: "",
               age: 0,
               city: "",
@@ -34,14 +40,10 @@ export const EditAgentModal = () => {
               woreda: "",
               startDate: "",
               photo: undefined,
-              registrationFee: 0,
-              collateral: "",
-              inheritor: "",
-              share: 0,
             }
           }
           onSubmit={handleSubmit}
-          loading={loading}
+          loading={isEditAgentLoading}
           onClose={onClose}
           buttonTitle="Update"
         />

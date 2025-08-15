@@ -1,46 +1,46 @@
 import { Modal } from "../../../../common/ui/modal";
-import { Member } from "../../../../constants/interface/pc/members";
-import { useEditMemberModal } from "../../../../hooks/use-edit-member-modal";
-import { usePcMembers } from "../../../pc/members/use-pc-members";
-import InstitutionsForm from "./InstitutionsForm";
+import { Institution } from "../../../../constants/interface/admin/institution";
+import { useEditInstitutionModal } from "../../hooks/use-edit-institution-modal";
+import { useInstitutions } from "../../hooks/use-institutions";
+import InstitutionForm from "./InstitutionForm";
 
 export const EditInstitutionsModal = () => {
-  const { isOpen, onClose, defaultValues } = useEditMemberModal();
-  const { handleEditMember, loading } = usePcMembers();
+  const { isOpen, onClose, defaultValues } = useEditInstitutionModal();
+  const { handleEditInstitution, isEditInstitutionLoading } = useInstitutions();
 
-  const handleSubmit = (data: Member) => {
-    handleEditMember(data);
+  const handleSubmit = (data: Institution) => {
+    handleEditInstitution(data);
     onClose();
   };
+
   return (
     <div>
       <Modal
-        title="Update Institutions"
-        description="Manage Institutions Information"
+        title="Update Institution"
+        description="Manage Institution Information"
         isOpen={isOpen}
         onClose={onClose}
         className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"
       >
-        <InstitutionsForm
+        <InstitutionForm
           defaultValues={
             defaultValues || {
-              memberId: -1,
+              institutionId: -1,
               name: "",
               email: "",
-              age: 0,
+              phone: "",
+              institutionType: "",
+              contactPerson: "",
               city: "",
               subcity: "",
               woreda: "",
-              startDate: "",
-              photo: undefined,
-              registrationFee: 0,
-              collateral: "",
-              inheritor: "",
-              share: 0,
+              establishedDate: "",
+              institutionStatus: "",
+              logo: undefined,
             }
           }
           onSubmit={handleSubmit}
-          loading={loading}
+          loading={isEditInstitutionLoading}
           onClose={onClose}
           buttonTitle="Update"
         />

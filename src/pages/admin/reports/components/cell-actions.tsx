@@ -1,6 +1,13 @@
-"use client";
-
-import { Edit, MoreHorizontal, Trash } from "lucide-react";
+import {
+  Calendar,
+  Copy,
+  Download,
+  Eye,
+  MoreHorizontal,
+  RefreshCw,
+  Share2,
+  Trash
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { AlertModal } from "../../../../common/modals/alert-modal";
@@ -10,69 +17,68 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../../../common/ui/dropdown-menu";
-import { Member } from "../../../../constants/interface/pc/members";
-import { useEditMemberModal } from "../../../../hooks/use-edit-member-modal";
-import { useAppDispatch, useAppSelector } from "../../../../store";
-import { deleteMemberData } from "../../../../store/pc/member/member-extra";
-import { membersPageSelector } from "../../../../store/union/user/selectors";
+import { ReportData } from "../../../../constants/interface/admin/report";
 
-export const CellAction: React.FC<{ data: Member }> = ({ data }) => {
+export const CellAction: React.FC<{ data: ReportData }> = ({ data }) => {
   const [loading, setLoading] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
-  const [openDisable, setOpenDisable] = useState(false);
-  const [openEnable, setOpenEnable] = useState(false);
+  const [openRegenerate, setOpenRegenerate] = useState(false);
 
-  const dispatch = useAppDispatch();
-  const member = useAppSelector(membersPageSelector);
-  const editMemberModal = useEditMemberModal();
   const onDelete = async () => {
     try {
       setLoading(true);
-      const id = data.memberId ? data.memberId : -1;
-      dispatch(deleteMemberData(id.toString()));
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      toast.success("Report deleted successfully!");
     } catch (error) {
-      toast.error("Something went wrong!");
+      toast.error("Failed to delete report!");
     } finally {
       setLoading(false);
       setOpenDelete(false);
     }
   };
-  const onDisable = async () => {
+
+  const onRegenerate = async () => {
     try {
       setLoading(true);
-      // dispatch(disableAgency(data._id!.toString()) as any);
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      toast.success("Report regenerated successfully!");
     } catch (error) {
-      toast.error("Something went wrong!");
+      toast.error("Failed to regenerate report!");
     } finally {
       setLoading(false);
-      setOpenDisable(false);
+      setOpenRegenerate(false);
     }
   };
-  const onEnable = async () => {
-    try {
-      setLoading(true);
-      // dispatch(enableAgency(data._id!.toString()) as any);
-    } catch (error) {
-      toast.error("Something went wrong!");
-    } finally {
-      setLoading(false);
-      setOpenEnable(false);
-    }
+
+  const onView = () => {
+    toast.success("Opening report viewer...");
+    // Implement report viewer logic
   };
-  // const handleEditAgencies = (data: Agencies) => {
-  //   editFlightModal.onOpen({
-  //     id: data._id,
-  //     agencyName: data.agencyName,
-  //     agencyEmail: data.agencyEmail,
-  //     agencyPhone: data.agencyPhone,
-  //     agencyAddress: data.agencyAddress,
-  //     totalAgents: data.totalAgents,
-  //     description: data.description,
-  //     agencyStatus: data.agencyStatus,
-  //   });
-  // };
+
+  const onDownload = () => {
+    toast.success("Downloading report...");
+    // Implement download logic
+  };
+
+  const onShare = () => {
+    navigator.clipboard.writeText(`Report: ${data.title} - ${data.id}`);
+    toast.success("Report link copied to clipboard!");
+  };
+
+  const onCopy = () => {
+    navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    toast.success("Report data copied to clipboard!");
+  };
+
+  const onSchedule = () => {
+    toast.success("Opening schedule dialog...");
+    // Implement scheduling logic
+  };
 
   return (
     <>
@@ -81,38 +87,120 @@ export const CellAction: React.FC<{ data: Member }> = ({ data }) => {
         onClose={() => setOpenDelete(false)}
         onConfirm={onDelete}
         loading={loading}
+        title="Delete Report"
+        description={`Are you sure you want to delete "${data.title}"? This action cannot be undone.`}
       />
       <AlertModal
-        isOpen={openDisable}
-        onClose={() => setOpenDisable(false)}
-        onConfirm={onDisable}
+        isOpen={openRegenerate}
+        onClose={() => setOpenRegenerate(false)}
+        onConfirm={onRegenerate}
         loading={loading}
+        title="Regenerate Report"
+        description={`Are you sure you want to regenerate "${data.title}"? This will create a new version with current data.`}
       />
-      <AlertModal
-        isOpen={openEnable}
-        onClose={() => setOpenEnable(false)}
-        onConfirm={onEnable}
-        loading={loading}
-      />
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuItem onClick={() => editMemberModal.onOpen(data)}>
-            <Edit className="mr-2 h-4 w-4" />
-            Edit
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setOpenDelete(true)}>
-            <Trash className="mr-2 h-4 w-4" />
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+
+      <div className="flex items-center space-x-2">
+        {/* Quick Action Buttons */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onView}
+          className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600"
+          title="View Report"
+        >
+          <Eye className="h-4 w-4" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onDownload}
+          className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-600"
+          title="Download Report"
+        >
+          <Download className="h-4 w-4" />
+        </Button>
+
+        {/* More Actions Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="h-8 w-8 p-0 hover:bg-gray-100"
+              title="More actions"
+            >
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel className="font-semibold text-gray-900">
+              Report Actions
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem
+              onClick={onView}
+              className="cursor-pointer hover:bg-blue-50 focus:bg-blue-50"
+            >
+              <Eye className="mr-2 h-4 w-4 text-blue-600" />
+              <span>View Details</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              onClick={onDownload}
+              className="cursor-pointer hover:bg-green-50 focus:bg-green-50"
+            >
+              <Download className="mr-2 h-4 w-4 text-green-600" />
+              <span>Download</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              onClick={onShare}
+              className="cursor-pointer hover:bg-purple-50 focus:bg-purple-50"
+            >
+              <Share2 className="mr-2 h-4 w-4 text-purple-600" />
+              <span>Share Link</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              onClick={onCopy}
+              className="cursor-pointer hover:bg-gray-50 focus:bg-gray-50"
+            >
+              <Copy className="mr-2 h-4 w-4 text-gray-600" />
+              <span>Copy Data</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem
+              onClick={onSchedule}
+              className="cursor-pointer hover:bg-orange-50 focus:bg-orange-50"
+            >
+              <Calendar className="mr-2 h-4 w-4 text-orange-600" />
+              <span>Schedule</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              onClick={() => setOpenRegenerate(true)}
+              className="cursor-pointer hover:bg-blue-50 focus:bg-blue-50"
+            >
+              <RefreshCw className="mr-2 h-4 w-4 text-blue-600" />
+              <span>Regenerate</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
+            <DropdownMenuItem
+              onClick={() => setOpenDelete(true)}
+              className="cursor-pointer hover:bg-red-50 focus:bg-red-50 text-red-600 focus:text-red-600"
+            >
+              <Trash className="mr-2 h-4 w-4" />
+              <span>Delete</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </>
   );
 };

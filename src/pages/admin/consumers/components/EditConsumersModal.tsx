@@ -1,17 +1,19 @@
 import { Modal } from "../../../../common/ui/modal";
-import { Member } from "../../../../constants/interface/pc/members";
-import { useEditMemberModal } from "../../../../hooks/use-edit-member-modal";
-import { usePcMembers } from "../../../pc/members/use-pc-members";
+import { Consumer } from "../../../../constants/interface/admin/consumer";
+import { useEditConsumerModal } from "../../hooks/use-edit-consumer-modal";
+import { useConsumers } from "../../hooks/use-consumers";
 import ConsumerForm from "./ConsumerForm";
 
 export const EditConsumerModal = () => {
-  const { isOpen, onClose, defaultValues } = useEditMemberModal();
-  const { handleEditMember, loading } = usePcMembers();
+  const { isOpen, onClose, defaultValues } = useEditConsumerModal();
+  const { handleEditConsumer, isEditConsumerLoading } = useConsumers();
 
-  const handleSubmit = (data: Member) => {
-    handleEditMember(data);
+
+  const handleSubmit = (data: Consumer) => {
+    handleEditConsumer(data);
     onClose();
   };
+
   return (
     <div>
       <Modal
@@ -24,23 +26,22 @@ export const EditConsumerModal = () => {
         <ConsumerForm
           defaultValues={
             defaultValues || {
-              memberId: -1,
+              consumerId: -1,
               name: "",
               email: "",
+              phone: "",
               age: 0,
+              gender: "",
               city: "",
               subcity: "",
               woreda: "",
-              startDate: "",
+              registrationDate: "",
+              consumerStatus: "",
               photo: undefined,
-              registrationFee: 0,
-              collateral: "",
-              inheritor: "",
-              share: 0,
             }
           }
           onSubmit={handleSubmit}
-          loading={loading}
+          loading={isEditConsumerLoading}
           onClose={onClose}
           buttonTitle="Update"
         />

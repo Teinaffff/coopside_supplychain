@@ -11,15 +11,14 @@ import {
 } from "../../../../common/ui/form";
 import { Input } from "../../../../common/ui/input";
 import { Loader } from "../../../../common/ui/loader";
-import { Member } from "../../../../constants/interface/pc/members";
 import {
-  pcMembersFormSchema,
-  PcMembersFormValues,
-} from "../../../../schema/pc/members";
+  consumerFormSchema,
+  ConsumerFormValues,
+} from "../../../../schema/admin/consumer";
 
 interface ConsumerFormProps {
-  defaultValues: Partial<PcMembersFormValues>;
-  onSubmit: (data: Member) => void;
+  defaultValues: Partial<ConsumerFormValues>;
+  onSubmit: (data: ConsumerFormValues) => void;
   loading: boolean;
   onClose: () => void;
   buttonTitle: string;
@@ -32,12 +31,12 @@ const ConsumerForm: React.FC<ConsumerFormProps> = ({
   onClose,
   buttonTitle,
 }) => {
-  const form = useForm<PcMembersFormValues>({
-    resolver: zodResolver(pcMembersFormSchema),
+  const form = useForm<ConsumerFormValues>({
+    resolver: zodResolver(consumerFormSchema),
     defaultValues,
   });
 
-  const handleSubmit = async (data: Member) => {
+  const handleSubmit = async (data: ConsumerFormValues) => {
     onSubmit(data);
     form.reset();
   };
@@ -84,6 +83,19 @@ const ConsumerForm: React.FC<ConsumerFormProps> = ({
             )}
           />
           <FormField
+            name="phone"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Phone:</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
             name="age"
             control={form.control}
             render={({ field }) => (
@@ -98,6 +110,19 @@ const ConsumerForm: React.FC<ConsumerFormProps> = ({
                     }
                     disabled={loading}
                   />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            name="gender"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Gender:</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={loading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -143,80 +168,26 @@ const ConsumerForm: React.FC<ConsumerFormProps> = ({
             )}
           />
           <FormField
-            name="collateral"
+            name="registrationDate"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Collateral:</FormLabel>
-                <FormControl>
-                  <Input {...field} disabled={loading} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="inheritor"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Inheritor:</FormLabel>
-                <FormControl>
-                  <Input {...field} disabled={loading} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="share"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Share:</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    onChange={(e) =>
-                      field.onChange(parseInt(e.target.value, 10))
-                    }
-                    disabled={loading}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="registrationFee"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Reg. Fee:</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    onChange={(e) =>
-                      field.onChange(parseInt(e.target.value, 10))
-                    }
-                    disabled={loading}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            name="startDate"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Start Date:</FormLabel>
+                <FormLabel>Registration Date:</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            name="consumerStatus"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Consumer Status:</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={loading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

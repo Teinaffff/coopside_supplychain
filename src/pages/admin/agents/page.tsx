@@ -1,39 +1,20 @@
 import { Download, Plus, Trash } from "lucide-react";
-import { useEffect } from "react";
 import { Button } from "../../../common/ui/button";
 import { Card } from "../../../common/ui/card";
 import { DataTable } from "../../../common/ui/data-table";
 import { Heading } from "../../../common/ui/heading";
-import { Member } from "../../../constants/interface/pc/members";
-import { useAddMemberModal } from "../../../hooks/use-add-member-modal";
-import { useAppDispatch, useAppSelector } from "../../../store";
-import { getMembersData } from "../../../store/pc/member/member-extra";
-import { membersPageSelector } from "../../../store/pc/member/selectors";
+import { useAddAgentModal } from "../hooks/use-add-agent-modal";
+import { useAgents } from "../hooks/use-agents";
 import { AddAgentModal } from "./components/AddAgentModal";
 import { EditAgentModal } from "./components/EditAgentModal";
-import ExportMembersDataToExcel from "./components/ExportMembersDataToExcel";
+import ExportAgentsDataToExcel from "./components/ExportAgentsDataToExcel";
 import { columns } from "./components/columns";
 
 const SharesPage = () => {
-  const dispatch = useAppDispatch();
-  const { members } = useAppSelector(membersPageSelector);
-
-  const { onOpen } = useAddMemberModal();
-
-  useEffect(() => {
-    dispatch(getMembersData());
-  }, []);
-
-  console.log("Members", members);
-
-  const formattedMembers: Member[] = members.map((item: any) => ({
-    ...item,
-    _id: item.memberId,
-    name: item.name,
-    email: item.email,
-    age: item.age,
-    nationality: item.nationality,
-  }));
+  const { onOpen } = useAddAgentModal();
+  const { agents, isLoading, error } = useAgents({
+    isFetchAgents: true,
+  });
 
   const deleteselectedMembers = () => {};
 
@@ -53,7 +34,7 @@ const SharesPage = () => {
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
-            title={`Agents (${formattedMembers.length})`}
+            title={`Agents (${agents?.length})`}
             description="Manage Agents"
           />
           <div></div>
@@ -61,7 +42,7 @@ const SharesPage = () => {
             <Button
               className={`bg-cyan-600 hover:bg-cyan-600`}
               onClick={() =>
-                ExportMembersDataToExcel("notfiltered", formattedMembers)
+                ExportAgentsDataToExcel("notfiltered", agents || [])
               }
               title="disabled"
             >
@@ -72,11 +53,12 @@ const SharesPage = () => {
         </div>
         <DataTable
           searchKey="name"
+          searchPlaceholder="Search by name"
           clickable={true}
           columns={columns}
-          data={formattedMembers}
+          data={agents || []}
           onConfirmFunction={deleteselectedMembers}
-          onExport={ExportMembersDataToExcel}
+          onExport={ExportAgentsDataToExcel}
           buttonTitle="Delete Selection"
           ButtonIcon={Trash}
         />

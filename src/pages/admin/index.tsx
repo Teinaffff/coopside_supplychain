@@ -6,13 +6,12 @@ import { ROUTES } from "../../constants/admin/routes";
 import DefaultLayout from "../../layout/DefaultLayout";
 import { useAppDispatch } from "../../store";
 import { fetchNotificationsData } from "../../store/notification/notification-extra";
-import { getMembersData } from "../../store/pc/member/member-extra";
 
 const Member = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    dispatch(getMembersData());
+    // dispatch(getMembersData());
     dispatch(fetchNotificationsData());
   }, []);
 

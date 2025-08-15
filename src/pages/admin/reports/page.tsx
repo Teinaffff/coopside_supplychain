@@ -1,58 +1,30 @@
-import { Download, Plus, Trash } from "lucide-react";
-import { useEffect } from "react";
+import { Download } from "lucide-react";
 import { Button } from "../../../common/ui/button";
 import { Card } from "../../../common/ui/card";
 import { DataTable } from "../../../common/ui/data-table";
 import { Heading } from "../../../common/ui/heading";
-import { Member } from "../../../constants/interface/pc/members";
-import { useAddMemberModal } from "../../../hooks/use-add-member-modal";
-import { useAppDispatch, useAppSelector } from "../../../store";
-import { getMembersData } from "../../../store/pc/member/member-extra";
-import { membersPageSelector } from "../../../store/pc/member/selectors";
-import { AddMemberModal } from "../../pc/members/components/AddMemberModal";
-import { EditMemberModal } from "../../pc/members/components/EditMemberModal";
-import ExportMembersDataToExcel from "./components/ExportMembersDataToExcel";
+import { useReports } from "../hooks/use-reports";
 import { columns } from "./components/columns";
+import ExportReportsDataToExcel from "./components/ExportReportsDataToExcel";
 
-const SharesPage = () => {
-  const dispatch = useAppDispatch();
-  const { members } = useAppSelector(membersPageSelector);
-
-  const { onOpen } = useAddMemberModal();
-
-  useEffect(() => {
-    dispatch(getMembersData());
-  }, []);
-
-  console.log("Members", members);
-
-  const formattedMembers: Member[] = members.map((item: any) => ({
-    ...item,
-    _id: item.memberId,
-    name: item.name,
-    email: item.email,
-    age: item.age,
-    nationality: item.nationality,
-  }));
-
-  const deleteselectedMembers = () => {};
+const ReportsPage = () => {
+  const { reports } = useReports({ isFetchReports: true });
 
   return (
     <>
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
-            title={`Reports (${formattedMembers.length})`}
-            description="View Reports"
+            title={`Reports (${reports?.length})`}
+            description="View and manage system reports"
           />
           <div></div>
           <div>
             <Button
               className={`bg-cyan-600 hover:bg-cyan-600`}
               onClick={() =>
-                ExportMembersDataToExcel("notfiltered", formattedMembers)
+                ExportReportsDataToExcel("all_reports", reports ?? [])
               }
-              title="disabled"
             >
               <Download className="mr-2 h-4 w-4" />
               Export All
@@ -60,15 +32,15 @@ const SharesPage = () => {
           </div>
         </div>
         <DataTable
-          searchKey="name"
+          searchKey="title"
           clickable={true}
           columns={columns}
-          data={formattedMembers}
-          onExport={ExportMembersDataToExcel}
+          data={reports ?? []}
+          onExport={ExportReportsDataToExcel}
         />
       </Card>
     </>
   );
 };
 
-export default SharesPage;
+export default ReportsPage;
