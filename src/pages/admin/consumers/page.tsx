@@ -3,7 +3,6 @@ import { Button } from "../../../common/ui/button";
 import { Card } from "../../../common/ui/card";
 import { DataTable } from "../../../common/ui/data-table";
 import { Heading } from "../../../common/ui/heading";
-import { Consumer } from "../../../constants/interface/admin/consumer";
 import { useAddConsumerModal } from "../hooks/use-add-consumer-modal";
 import { useConsumers } from "../hooks/use-consumers";
 import { AddConsumerModal } from "./components/AddConsumersModal";

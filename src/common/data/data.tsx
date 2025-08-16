@@ -1521,3 +1521,222 @@ export const reportStatuses = [
   { value: "failed", label: "Failed", color: "red" },
   { value: "scheduled", label: "Scheduled", color: "purple" }
 ];
+
+
+// ... existing code ...
+
+export const requestsMockData = [
+  {
+    requestId: "1",
+    requestType: "Loan Application",
+    title: "Agricultural Equipment Loan Request",
+    description: "Request for loan to purchase new agricultural equipment for the cooperative",
+    requestedBy: "John Doe",
+    requestedDate: "2025-01-15T10:30:00Z",
+    status: "pending",
+    priority: "high",
+    category: "Finance",
+    assignedTo: "Finance Manager",
+    dueDate: "2025-02-15",
+    attachments: ["equipment_quote.pdf", "business_plan.pdf"],
+    comments: "Urgent request for planting season",
+    createdAt: "2025-01-15T10:30:00Z",
+    updatedAt: "2025-01-15T10:30:00Z"
+  },
+  {
+    requestId: "2",
+    requestType: "Membership Application",
+    title: "New Member Registration Request",
+    description: "Application for new cooperative membership",
+    requestedBy: "Sarah Johnson",
+    requestedDate: "2025-01-14T14:20:00Z",
+    status: "approved",
+    priority: "medium",
+    category: "Membership",
+    assignedTo: "HR Manager",
+    dueDate: "2025-01-30",
+    attachments: ["id_copy.pdf", "application_form.pdf"],
+    comments: "All documents verified",
+    approvedBy: "HR Manager",
+    approvedDate: "2025-01-16T09:15:00Z",
+    createdAt: "2025-01-14T14:20:00Z",
+    updatedAt: "2025-01-16T09:15:00Z"
+  },
+  {
+    requestId: "3",
+    requestType: "Training Request",
+    title: "Digital Literacy Training Program",
+    description: "Request for organizing digital literacy training for members",
+    requestedBy: "Michael Brown",
+    requestedDate: "2025-01-13T16:45:00Z",
+    status: "in_progress",
+    priority: "medium",
+    category: "Training",
+    assignedTo: "Training Coordinator",
+    dueDate: "2025-03-01",
+    attachments: ["training_proposal.pdf"],
+    comments: "Budget approval pending",
+    createdAt: "2025-01-13T16:45:00Z",
+    updatedAt: "2025-01-18T11:30:00Z"
+  },
+  {
+    requestId: "4",
+    requestType: "Infrastructure",
+    title: "Storage Facility Upgrade",
+    description: "Request for upgrading storage facility infrastructure",
+    requestedBy: "Emily Davis",
+    requestedDate: "2025-01-12T11:15:00Z",
+    status: "rejected",
+    priority: "low",
+    category: "Infrastructure",
+    assignedTo: "Operations Manager",
+    dueDate: "2025-04-01",
+    attachments: ["facility_assessment.pdf", "cost_estimate.pdf"],
+    comments: "Budget constraints - resubmit next quarter",
+    createdAt: "2025-01-12T11:15:00Z",
+    updatedAt: "2025-01-20T14:45:00Z"
+  },
+  {
+    requestId: "5",
+    requestType: "Equipment Request",
+    title: "Office Equipment Purchase",
+    description: "Request for purchasing new office equipment including computers and printers",
+    requestedBy: "David Wilson",
+    requestedDate: "2025-01-11T09:30:00Z",
+    status: "pending",
+    priority: "medium",
+    category: "Equipment",
+    assignedTo: "Procurement Officer",
+    dueDate: "2025-02-28",
+    attachments: ["equipment_list.pdf", "vendor_quotes.pdf"],
+    comments: "Awaiting vendor comparison",
+    createdAt: "2025-01-11T09:30:00Z",
+    updatedAt: "2025-01-11T09:30:00Z"
+  }
+];
+
+export const reportsMockDataCoop = [
+  {
+    reportId: "1",
+    reportType: "Financial",
+    title: "Monthly Financial Summary",
+    description: "Comprehensive financial report including revenue, expenses, and profit analysis",
+    generatedBy: "Finance Manager",
+    generatedDate: "2025-01-15T10:30:00Z",
+    status: "completed",
+    category: "Finance",
+    totalRecords: 1250,
+    fileSize: "2.4 MB",
+    downloadUrl: "/reports/financial-jan-2025.pdf",
+    expiryDate: "2025-07-15",
+    tags: ["monthly", "financial", "summary"],
+    visibility: "internal",
+    createdAt: "2025-01-15T10:30:00Z",
+    updatedAt: "2025-01-15T10:30:00Z"
+  },
+  {
+    reportId: "2",
+    reportType: "Member Activity",
+    title: "Member Engagement Report",
+    description: "Analysis of member participation and engagement levels",
+    generatedBy: "HR Manager",
+    generatedDate: "2025-01-14T14:20:00Z",
+    status: "pending",
+    category: "Membership",
+    totalRecords: 850,
+    fileSize: "1.8 MB",
+    downloadUrl: "/reports/member-engagement-jan-2025.pdf",
+    expiryDate: "2025-06-14",
+    tags: ["members", "engagement", "activity"],
+    visibility: "restricted",
+    createdAt: "2025-01-14T14:20:00Z",
+    updatedAt: "2025-01-14T14:20:00Z"
+  },
+  {
+    reportId: "3",
+    reportType: "Production",
+    title: "Agricultural Production Report",
+    description: "Quarterly production analysis and yield statistics",
+    generatedBy: "Production Manager",
+    generatedDate: "2025-01-13T16:45:00Z",
+    status: "completed",
+    category: "Production",
+    totalRecords: 2100,
+    fileSize: "3.2 MB",
+    downloadUrl: "/reports/production-q4-2024.pdf",
+    expiryDate: "2025-12-31",
+    tags: ["quarterly", "production", "agriculture"],
+    visibility: "public",
+    createdAt: "2025-01-13T16:45:00Z",
+    updatedAt: "2025-01-13T16:45:00Z"
+  },
+  {
+    reportId: "4",
+    reportType: "Training",
+    title: "Training Programs Effectiveness",
+    description: "Evaluation of training programs and their impact on member skills",
+    generatedBy: "Training Coordinator",
+    generatedDate: "2025-01-12T11:15:00Z",
+    status: "draft",
+    category: "Training",
+    totalRecords: 450,
+    fileSize: "1.5 MB",
+    downloadUrl: "/reports/training-effectiveness-2024.pdf",
+    expiryDate: "2025-08-12",
+    tags: ["training", "effectiveness", "skills"],
+    visibility: "internal",
+    createdAt: "2025-01-12T11:15:00Z",
+    updatedAt: "2025-01-18T09:30:00Z"
+  },
+  {
+    reportId: "5",
+    reportType: "Inventory",
+    title: "Equipment and Asset Inventory",
+    description: "Complete inventory of cooperative equipment and assets",
+    generatedBy: "Operations Manager",
+    generatedDate: "2025-01-11T09:30:00Z",
+    status: "completed",
+    category: "Operations",
+    totalRecords: 680,
+    fileSize: "2.1 MB",
+    downloadUrl: "/reports/inventory-jan-2025.pdf",
+    expiryDate: "2025-07-11",
+    tags: ["inventory", "assets", "equipment"],
+    visibility: "restricted",
+    createdAt: "2025-01-11T09:30:00Z",
+    updatedAt: "2025-01-11T09:30:00Z"
+  }
+];
+
+export const requestCategories = [
+  { label: "Finance", value: "Finance" },
+  { label: "Membership", value: "Membership" },
+  { label: "Training", value: "Training" },
+  { label: "Infrastructure", value: "Infrastructure" },
+  { label: "Equipment", value: "Equipment" },
+  { label: "Operations", value: "Operations" }
+];
+
+export const requestStatuses = [
+  { label: "Pending", value: "pending" },
+  { label: "In Progress", value: "in_progress" },
+  { label: "Approved", value: "approved" },
+  { label: "Rejected", value: "rejected" },
+  { label: "Completed", value: "completed" }
+];
+
+export const reportCategoriesCoop = [
+  { label: "Finance", value: "Finance" },
+  { label: "Membership", value: "Membership" },
+  { label: "Production", value: "Production" },
+  { label: "Training", value: "Training" },
+  { label: "Operations", value: "Operations" },
+  { label: "Marketing", value: "Marketing" }
+];
+
+export const reportStatusesCoop = [
+  { label: "Draft", value: "draft" },
+  { label: "Pending", value: "pending" },
+  { label: "Completed", value: "completed" },
+  { label: "Archived", value: "archived" }
+];

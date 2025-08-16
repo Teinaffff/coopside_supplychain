@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Loader from "../../../common/Loader";
 import { memberStatsData } from "../../../common/data/data";
-import { DashboardStats } from "../../pc/components/DashboardStats";
+import { DashboardStats } from "../../components/DashboardStats";
 const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
 

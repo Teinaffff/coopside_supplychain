@@ -1,22 +1,21 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import PageTitle from "../../components/PageTitle";
-import { menuItems } from "../../constants/admin/menu";
-import { ROUTES } from "../../constants/admin/routes";
+import { menuItems } from "../../constants/coop/menu";
+import { ROUTES } from "../../constants/coop/routes";
 import DefaultLayout from "../../layout/DefaultLayout";
 import { useAppDispatch } from "../../store";
 import { fetchNotificationsData } from "../../store/notification/notification-extra";
 
-const Member = () => {
+const Coop = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    // dispatch(getMembersData());
     dispatch(fetchNotificationsData());
   }, []);
 
   return (
-    <DefaultLayout menuItems={menuItems} rootPath="/agent">
+    <DefaultLayout menuItems={menuItems} rootPath="/coop">
       <Routes>
         {ROUTES.map(({ title, path, element }, index) => (
           <Route
@@ -24,7 +23,7 @@ const Member = () => {
             path={path}
             element={
               <>
-                <PageTitle title={`${title} - Admin Dashboard`} />
+                <PageTitle title={`${title} - Cooperative Dashboard`} />
                 {element}
               </>
             }
@@ -36,4 +35,4 @@ const Member = () => {
   );
 };
 
-export default Member;
+export default Coop;
