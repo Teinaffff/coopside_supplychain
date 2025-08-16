@@ -1,31 +1,43 @@
-import React, { useState } from "react";
+import React from "react";
 import Loader from "../../../common/Loader";
-import { memberStatsData, recentTransactions } from "../../../common/data/data";
+import { recentTransactions } from "../../../common/data/data";
 import { DashboardStats } from "../../components/DashboardStats";
-import ProfitTrendLineChart from "../../components/charts/ProfitTrendLineChart";
-import MembershipLineChart from "../../components/charts/MembershipLineChart";
-import ProductBarChart from "../../components/charts/ProductBarChart";
-import SalesDistributionChart from "../../components/charts/SalesDistributionChart";
+import TodayActivityCard from "../../components/cards/TodayActivityCard";
+import EntityDistributionChart from "../../components/charts/EntityDistributionChart";
+import EntityStatsChart from "../../components/charts/EntityStatsChart";
+import TopSellingChart from "../../components/charts/TopSellingChart";
 import RecentTransactionTable from "../../components/tables/RecentTransactionTable";
+import { useHomeStats } from "../hooks/use-home";
 
 const Dashboard: React.FC = () => {
-  const [loading, setLoading] = useState<boolean>(false);
+  const { kpi, isLoading } = useHomeStats({ enabled: true });
 
-  return loading ? (
+  return isLoading ? (
     <Loader />
   ) : (
-    <div className="space-y-4">
-      <DashboardStats statsData={memberStatsData} />
+    <div className="space-y-6">
+      {/* Stats Cards */}
+      <DashboardStats statsData={kpi} />
 
-      <div className="grid xl:grid-cols-2 gap-4">
-        <ProfitTrendLineChart />
-        <MembershipLineChart />
-        <ProductBarChart />
-        <SalesDistributionChart />
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-12 gap-6">
+        {/* Left Side - Charts Grid */}
+        <div className="col-span-9 space-y-6">
+          <EntityStatsChart />
+          <div className="grid grid-cols-2 gap-4">
+            <EntityDistributionChart />
+            <TopSellingChart />
+          </div>
+        </div>
+
+        {/* Right Side - Larger Height Card */}
+        <div className="col-span-3">
+          <TodayActivityCard />
+        </div>
       </div>
 
-      <div className="flex flex-col space-y-4">
-        {/* <TopMembersTable data={topMembers} /> */}
+      {/* Latest Transactions Table */}
+      <div className="space-y-4">
         <RecentTransactionTable data={recentTransactions} />
       </div>
     </div>

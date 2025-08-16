@@ -1,4 +1,4 @@
-import { Coins, DollarSign, TrendingUp, Users } from "lucide-react";
+import { Building2, Coins, DollarSign, Store, TrendingUp, UserCheck, Users } from "lucide-react";
 import { Notification } from "../../constants/interface/notification";
 
 export const notifications: Notification[] = [
@@ -650,7 +650,38 @@ export const mockShares = [
   },
 ];
 
-export const pcStatsData = [
+export const adminStatsData = [
+  {
+    title: "Agents",
+    value: 156,
+    change: 12,
+    trend: "up",
+    icon: Users, 
+  },
+  {
+    title: "Institutions", 
+    value: 89,
+    change: 8,
+    trend: "up",
+    icon: Building2,
+  },
+  {
+    title: "Sellers",
+    value: 234,
+    change: 15,
+    trend: "up", 
+    icon: Store,
+  },
+  {
+    title: "Consumers",
+    value: 1847,
+    change: 23,
+    trend: "up",
+    icon: UserCheck,
+  }
+];
+
+export const sellerStatsData = [
   {
     title: "Members",
     value: 50,
@@ -1739,4 +1770,184 @@ export const reportStatusesCoop = [
   { label: "Pending", value: "pending" },
   { label: "Completed", value: "completed" },
   { label: "Archived", value: "archived" }
+];
+
+export const logsMockData = [
+  {
+    id: "1",
+    activityType: "User Management",
+    action: "User Login",
+    performedBy: "john.doe@example.com",
+    targetEntity: "User",
+    targetId: "user_123",
+    timestamp: "2025-01-20T10:30:00Z",
+    ipAddress: "192.168.1.100",
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    status: "success",
+    description: "User successfully logged into the system",
+    module: "Authentication",
+    severity: "low"
+  },
+  {
+    id: "2",
+    activityType: "Data Management",
+    action: "Report Generated",
+    performedBy: "admin@example.com",
+    targetEntity: "Report",
+    targetId: "report_456",
+    timestamp: "2025-01-20T09:15:00Z",
+    ipAddress: "192.168.1.101",
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    status: "success",
+    description: "Financial report generated successfully",
+    details: { reportType: "Financial", recordCount: 1250 },
+    module: "Reports",
+    severity: "medium"
+  },
+  {
+    id: "3",
+    activityType: "Security",
+    action: "Failed Login Attempt",
+    performedBy: "unknown@example.com",
+    targetEntity: "User",
+    timestamp: "2025-01-20T08:45:00Z",
+    ipAddress: "203.0.113.45",
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    status: "failed",
+    description: "Multiple failed login attempts detected",
+    details: { attemptCount: 5, reason: "Invalid credentials" },
+    module: "Authentication",
+    severity: "high"
+  },
+  {
+    id: "4",
+    activityType: "System Management",
+    action: "Database Backup",
+    performedBy: "system",
+    targetEntity: "Database",
+    timestamp: "2025-01-20T02:00:00Z",
+    ipAddress: "127.0.0.1",
+    userAgent: "System Process",
+    status: "success",
+    description: "Automated database backup completed",
+    details: { backupSize: "2.4 GB", duration: "45 minutes" },
+    module: "System",
+    severity: "low"
+  },
+  {
+    id: "5",
+    activityType: "User Management",
+    action: "User Created",
+    performedBy: "admin@example.com",
+    targetEntity: "User",
+    targetId: "user_789",
+    timestamp: "2025-01-19T16:20:00Z",
+    ipAddress: "192.168.1.101",
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    status: "success",
+    description: "New user account created",
+    details: { userRole: "Agent", department: "Sales" },
+    module: "User Management",
+    severity: "medium"
+  },
+  {
+    id: "6",
+    activityType: "Data Management",
+    action: "Data Export",
+    performedBy: "manager@example.com",
+    targetEntity: "Export",
+    timestamp: "2025-01-19T14:30:00Z",
+    ipAddress: "192.168.1.102",
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    status: "success",
+    description: "Customer data exported to Excel",
+    details: { recordCount: 850, fileSize: "1.2 MB" },
+    module: "Data Export",
+    severity: "medium"
+  },
+  {
+    id: "7",
+    activityType: "System Management",
+    action: "System Error",
+    performedBy: "system",
+    targetEntity: "Application",
+    timestamp: "2025-01-19T12:15:00Z",
+    ipAddress: "127.0.0.1",
+    userAgent: "System Process",
+    status: "failed",
+    description: "Application encountered an unexpected error",
+    details: { errorCode: "ERR_500", component: "Payment Gateway" },
+    module: "System",
+    severity: "critical"
+  },
+  {
+    id: "8",
+    activityType: "Financial",
+    action: "Transaction Processed",
+    performedBy: "finance@example.com",
+    targetEntity: "Transaction",
+    targetId: "txn_001",
+    timestamp: "2025-01-19T11:00:00Z",
+    ipAddress: "192.168.1.103",
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    status: "success",
+    description: "Payment transaction processed successfully",
+    details: { amount: "$5,000", currency: "USD", method: "Bank Transfer" },
+    module: "Finance",
+    severity: "medium"
+  },
+  {
+    id: "9",
+    activityType: "Security",
+    action: "Permission Changed",
+    performedBy: "admin@example.com",
+    targetEntity: "User",
+    targetId: "user_456",
+    timestamp: "2025-01-19T09:30:00Z",
+    ipAddress: "192.168.1.101",
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    status: "success",
+    description: "User permissions updated",
+    details: { oldRole: "User", newRole: "Manager", changedBy: "admin" },
+    module: "User Management",
+    severity: "high"
+  },
+  {
+    id: "10",
+    activityType: "Data Management",
+    action: "Data Import",
+    performedBy: "operator@example.com",
+    targetEntity: "Import",
+    timestamp: "2025-01-18T15:45:00Z",
+    ipAddress: "192.168.1.104",
+    userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    status: "warning",
+    description: "Data import completed with warnings",
+    details: { totalRecords: 1000, successfulRecords: 950, failedRecords: 50 },
+    module: "Data Import",
+    severity: "medium"
+  }
+];
+
+export const logActivityTypes = [
+  "User Management",
+  "Data Management", 
+  "Security",
+  "System Management",
+  "Financial",
+  "Authentication",
+  "Reports"
+];
+
+export const logStatuses = [
+  { value: "success", label: "Success", color: "green" },
+  { value: "failed", label: "Failed", color: "red" },
+  { value: "warning", label: "Warning", color: "yellow" }
+];
+
+export const logSeverities = [
+  { value: "low", label: "Low", color: "blue" },
+  { value: "medium", label: "Medium", color: "yellow" },
+  { value: "high", label: "High", color: "orange" },
+  { value: "critical", label: "Critical", color: "red" }
 ];

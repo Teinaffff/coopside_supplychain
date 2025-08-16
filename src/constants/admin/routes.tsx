@@ -2,6 +2,7 @@ import Agents from "../../pages/admin/agents/page";
 import Consumers from "../../pages/admin/consumers/page";
 import Dashboard from "../../pages/admin/home/Dashboard";
 import Institutions from "../../pages/admin/institutions/page";
+import Logs from "../../pages/admin/logs/page";
 import Manufacturies from "../../pages/admin/manufacturies/page";
 import Reports from "../../pages/admin/reports/page";
 import Seller from "../../pages/admin/seller/page";
@@ -41,5 +42,10 @@ export const ROUTES = [
     path: "reports",
     title: "Reports",
     element: <Reports />,
+  },
+  {
+    path: "logs",
+    title: "Logs",
+    element: <Logs />,
   },
 ];

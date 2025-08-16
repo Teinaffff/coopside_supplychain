@@ -1,12 +1,7 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
 import React from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../../common/ui/card";
-import { StatCardProps } from "../../constants/interface/types";
+import { Card, CardContent, CardHeader, CardTitle } from "../../common/ui/card";
+import { StatCardProps } from "../../constants/interface/general";
 
 const StatCard: React.FC<StatCardProps> = ({
   title,
@@ -14,27 +9,49 @@ const StatCard: React.FC<StatCardProps> = ({
   change,
   trend,
   icon: Icon,
-  color,
+  index,
 }) => {
   const TrendIcon = trend === "up" ? ArrowUp : ArrowDown;
+  const color =
+    index === 0
+      ? "emerald"
+      : index === 1
+      ? "orange"
+      : index === 2
+      ? "purple"
+      : index === 3
+      ? "cyan"
+      : "emerald";
 
   return (
     <Card className="dark:bg-slate-800">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 py-3">
         <CardTitle
           className={`text-lg font-medium ${
-            color === "emerald"
+            index === 0
               ? "text-emerald-500"
-              : color === "orange"
+              : index === 1
               ? "text-orange-500"
-              : color === "purple"
+              : index === 2
               ? "text-purple-500"
               : "text-cyan-500"
           } dark:text-slate-200`}
         >
           {title}
         </CardTitle>
-        <div className={`p-3 bg-${color}-100 rounded-full`}>
+        <div
+          className={`p-3  ${
+            index === 0
+              ? "bg-emerald-100"
+              : index === 1
+              ? "bg-orange-100"
+              : index === 2
+              ? "bg-purple-100"
+              : index === 3
+              ? "bg-cyan-100"
+              : "bg-emerald-100"
+          } rounded-full`}
+        >
           <Icon className={`text-${color}-500`} />
         </div>
       </CardHeader>
