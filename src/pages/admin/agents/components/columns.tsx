@@ -1,12 +1,10 @@
-  
-
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Badge } from "../../../../common/ui/badge";
 import { Button } from "../../../../common/ui/button";
 import { Agent } from "../../../../constants/interface/admin/agent";
 import { CellActions } from "./cell-actions";
-import { Badge } from "../../../../common/ui/badge";
 
 export const columns: ColumnDef<Agent>[] = [
   {
@@ -84,48 +82,6 @@ export const columns: ColumnDef<Agent>[] = [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Age
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: "city",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          City
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: "subcity",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Subcity
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: "woreda",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Woreda
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );

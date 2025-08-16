@@ -1,4 +1,4 @@
-import { Edit, MoreHorizontal, Trash } from "lucide-react";
+import { Edit, MoreHorizontal, Trash, X } from "lucide-react";
 import { useState } from "react";
 import { AlertModal } from "../../../../common/modals/alert-modal";
 import { Button } from "../../../../common/ui/button";
@@ -51,6 +51,10 @@ export const CellActions: React.FC<CellActionsProps> = ({ data }) => {
           <DropdownMenuItem onClick={() => editAgentModal.onOpen(data)}>
             <Edit className="mr-2 h-4 w-4" />
             Edit
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setOpenDelete(true)}>
+            <X className="mr-2 h-4 w-4" />
+            Block
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setOpenDelete(true)}>
             <Trash className="mr-2 h-4 w-4" />

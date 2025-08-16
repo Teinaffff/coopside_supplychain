@@ -1,3 +1,4 @@
+import AgentDetails from "../../pages/admin/agents/components/AgentDetails";
 import Agents from "../../pages/admin/agents/page";
 import Consumers from "../../pages/admin/consumers/page";
 import Dashboard from "../../pages/admin/home/Dashboard";
@@ -22,6 +23,11 @@ export const ROUTES = [
     path: "agents",
     title: "Agents",
     element: <Agents />,
+  },
+  {
+    path: "agents/id",
+    title: "Agents Details",
+    element: <AgentDetails />,
   },
   {
     path: "institutions",
