@@ -25,7 +25,7 @@ export const ROUTES = [
     element: <Agents />,
   },
   {
-    path: "agents/id",
+    path: "agents/:id",
     title: "Agents Details",
     element: <AgentDetails />,
   },
