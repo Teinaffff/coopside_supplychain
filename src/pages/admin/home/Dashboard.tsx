@@ -4,8 +4,8 @@ import { recentTransactions } from "../../../common/data/data";
 import { DashboardStats } from "../../components/DashboardStats";
 import TodayActivityCard from "../../components/cards/TodayActivityCard";
 import EntityDistributionChart from "../../components/charts/EntityDistributionChart";
-import EntityStatsChart from "../../components/charts/EntityStatsChart";
 import TopSellingChart from "../../components/charts/TopSellingChart";
+import UsersStatsChart from "../../components/charts/UsersStatsChart";
 import RecentTransactionTable from "../../components/tables/RecentTransactionTable";
 import { useHomeStats } from "../hooks/use-home";
 
@@ -23,7 +23,7 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-12 gap-6">
         {/* Left Side - Charts Grid */}
         <div className="col-span-9 space-y-6">
-          <EntityStatsChart />
+          <UsersStatsChart />
           <div className="grid grid-cols-2 gap-4">
             <EntityDistributionChart />
             <TopSellingChart />
