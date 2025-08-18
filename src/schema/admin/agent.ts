@@ -1,19 +1,26 @@
 import { z } from "zod";
 
 export const agentFormSchema = z.object({
-  agentId: z.number().optional(), // Optional field for editing
-  name: z.string().min(1, { message: "Name is required" }),
+  id: z.number().optional(), // Optional field for editing
+  username: z.string().min(1, { message: "Username is required" }),
+  fullName: z.string().min(1, { message: "Full name is required" }),
   email: z.string().email({ message: "Invalid email format" }),
-  phone: z.string().min(1, { message: "Phone is required" }),
-  age: z.number().min(1, { message: "Age is required" }),
-  gender: z.string().min(1, { message: "Gender is required" }),
-  city: z.string().min(1, { message: "City is required" }),
-  subcity: z.string().min(1, { message: "Subcity is required" }),
-  woreda: z.string().min(1, { message: "Woreda is required" }),
-  startDate: z.string().min(1, { message: "Start date is required" }),
-  agentStatus: z.string().min(1, { message: "Agent status is required" }),
-  photo: z.any().refine((data) => data instanceof File, {
-    message: "Photo must be a valid file",
+  phoneNumber: z.string().min(1, { message: "Phone number is required" }),
+  agentType: z.string().min(1, { message: "Agent type is required" }),
+  idNumber: z.string().min(1, { message: "ID number is required" }),
+  commissionRate: z.number().min(0, { message: "Commission rate must be positive" }),
+  address: z.object({
+    street: z.string().min(1, { message: "Street is required" }),
+    city: z.string().min(1, { message: "City is required" }),
+    state: z.string().min(1, { message: "State is required" }),
+    postalCode: z.string().min(1, { message: "Postal code is required" }),
+    country: z.string().min(1, { message: "Country is required" }),
+  }),
+  isActive: z.boolean().default(true),
+  bankAccountNumber: z.string().min(1, { message: "Bank account number is required" }),
+  taxIdentificationNumber: z.string().min(1, { message: "Tax identification number is required" }),
+  profilePictureUrl: z.any().optional().refine((data) => !data || data instanceof File, {
+    message: "Profile picture must be a valid file",
   }),
 });
 

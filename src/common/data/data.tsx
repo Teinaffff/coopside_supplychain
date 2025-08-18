@@ -1,4 +1,9 @@
-import { Building2, Coins, DollarSign, Store, TrendingUp, UserCheck, Users } from "lucide-react";
+import {
+  Coins,
+  DollarSign,
+  TrendingUp,
+  Users
+} from "lucide-react";
 import { Notification } from "../../constants/interface/notification";
 
 export const notifications: Notification[] = [
@@ -656,29 +661,25 @@ export const adminStatsData = [
     value: 156,
     change: 12,
     trend: "up",
-    icon: Users, 
   },
   {
-    title: "Institutions", 
+    title: "Institutions",
     value: 89,
     change: 8,
     trend: "up",
-    icon: Building2,
   },
   {
     title: "Sellers",
     value: 234,
     change: 15,
-    trend: "up", 
-    icon: Store,
+    trend: "up",
   },
   {
     title: "Consumers",
     value: 1847,
     change: 23,
     trend: "up",
-    icon: UserCheck,
-  }
+  },
 ];
 
 export const sellerStatsData = [
@@ -753,324 +754,244 @@ export const memberStatsData = [
 
 export const agentsMockData = [
   {
-    agentId: "1",
-    name: "Abebe Kebede",
-    email: "abebe.kebede@example.com",
-    phone: "+251911234567",
-    age: 29,
-    gender: "Male",
-    city: "Addis Ababa",
-    subcity: "Bole",
-    woreda: "06",
-    startDate: "2024-03-15",
-    agentStatus: "active",
-    photoUrl: "photo1.jpg",
-    createdAt: "2024-03-15T10:30:00Z",
-    updatedAt: "2024-07-01T08:20:00Z",
+    id: 1,
+    username: "dawit.tesfaye",
+    email: "dawit.tesfaye@example.com",
+    fullName: "Dawit Tesfaye",
+    agentType: "Sales",
+    idNumber: "ID001234567",
+    factoryId: null,
+    commissionRate: 12.5,
+    phoneNumber: "+251911234567",
+    address: {
+      street: "Bole Road 123",
+      city: "Addis Ababa",
+      state: "Addis Ababa",
+      postalCode: "1000",
+      country: "Ethiopia"
+    },
+    isActive: true,
+    bankAccountNumber: "1234567890",
+    taxIdentificationNumber: "TIN001234567",
+    profilePictureUrl: "photo1.jpg",
+    createdAt: "2023-05-15T08:30:00Z",
+    updatedAt: "2024-08-10T14:20:00Z",
   },
   {
-    agentId: "2",
-    name: "Meskerem Getachew",
-    email: "meskerem.getachew@example.com",
-    phone: "+251922345678",
-    age: 34,
-    gender: "Female",
-    city: "Addis Ababa",
-    subcity: "Yeka",
-    woreda: "09",
-    startDate: "2023-11-05",
-    agentStatus: "active",
-    photoUrl: "photo2.jpg",
-    createdAt: "2023-11-05T09:10:00Z",
-    updatedAt: "2024-06-22T15:45:00Z",
+    id: 2,
+    username: "meron.abraham",
+    email: "meron.abraham@example.com",
+    fullName: "Meron Abraham",
+    agentType: "Regional",
+    idNumber: "ID002345678",
+    factoryId: 1,
+    commissionRate: 15.0,
+    phoneNumber: "+251922345678",
+    address: {
+      street: "Kazanchis Street 45",
+      city: "Addis Ababa",
+      state: "Addis Ababa",
+      postalCode: "1001",
+      country: "Ethiopia"
+    },
+    isActive: true,
+    bankAccountNumber: "2345678901",
+    taxIdentificationNumber: "TIN002345678",
+    profilePictureUrl: "photo2.jpg",
+    createdAt: "2023-03-22T10:15:00Z",
+    updatedAt: "2024-07-18T16:45:00Z",
   },
   {
-    agentId: "3",
-    name: "Tesfaye Alemu",
-    email: "tesfaye.alemu@example.com",
-    phone: "+251933456789",
-    age: 41,
-    gender: "Male",
-    city: "Hawassa",
-    subcity: "Tabour",
-    woreda: "03",
-    startDate: "2022-07-20",
-    agentStatus: "active",
-    photoUrl: "photo3.jpg",
-    createdAt: "2022-07-20T14:00:00Z",
-    updatedAt: "2024-05-10T12:30:00Z",
+    id: 3,
+    username: "yohannes.kebede",
+    email: "yohannes.kebede@example.com",
+    fullName: "Yohannes Kebede",
+    agentType: "District",
+    idNumber: "ID003456789",
+    factoryId: null,
+    commissionRate: 10.0,
+    phoneNumber: "+251933456789",
+    address: {
+      street: "Piassa Area 67",
+      city: "Addis Ababa",
+      state: "Addis Ababa",
+      postalCode: "1002",
+      country: "Ethiopia"
+    },
+    isActive: false,
+    bankAccountNumber: "3456789012",
+    taxIdentificationNumber: "TIN003456789",
+    profilePictureUrl: "photo3.jpg",
+    createdAt: "2023-08-07T12:00:00Z",
+    updatedAt: "2024-06-30T11:30:00Z",
   },
   {
-    agentId: "4",
-    name: "Muluwork Solomon",
+    id: 4,
+    username: "muluwork.solomon",
     email: "muluwork.solomon@example.com",
-    phone: "+251944567890",
-    age: 27,
-    gender: "Female",
-    city: "Bahir Dar",
-    subcity: "Gish Abay",
-    woreda: "05",
-    startDate: "2024-01-11",
-    agentStatus: "active",
-    photoUrl: "photo4.jpg",
+    fullName: "Muluwork Solomon",
+    agentType: "Sales",
+    idNumber: "ID004567890",
+    factoryId: 2,
+    commissionRate: 11.0,
+    phoneNumber: "+251944567890",
+    address: {
+      street: "Gish Abay Street 89",
+      city: "Bahir Dar",
+      state: "Amhara",
+      postalCode: "2000",
+      country: "Ethiopia"
+    },
+    isActive: true,
+    bankAccountNumber: "4567890123",
+    taxIdentificationNumber: "TIN004567890",
+    profilePictureUrl: "photo4.jpg",
     createdAt: "2024-01-11T08:40:00Z",
     updatedAt: "2024-06-02T09:20:00Z",
   },
   {
-    agentId: "5",
-    name: "Dereje Mekonnen",
+    id: 5,
+    username: "dereje.mekonnen",
     email: "dereje.mekonnen@example.com",
-    phone: "+251955678901",
-    age: 38,
-    gender: "Male",
-    city: "Dire Dawa",
-    subcity: "Sabian",
-    woreda: "02",
-    startDate: "2023-05-28",
-    agentStatus: "inactive",
-    photoUrl: "photo5.jpg",
+    fullName: "Dereje Mekonnen",
+    agentType: "Regional",
+    idNumber: "ID005678901",
+    factoryId: null,
+    commissionRate: 13.5,
+    phoneNumber: "+251955678901",
+    address: {
+      street: "Sabian Road 234",
+      city: "Dire Dawa",
+      state: "Dire Dawa",
+      postalCode: "3000",
+      country: "Ethiopia"
+    },
+    isActive: false,
+    bankAccountNumber: "5678901234",
+    taxIdentificationNumber: "TIN005678901",
+    profilePictureUrl: "photo5.jpg",
     createdAt: "2023-05-28T07:15:00Z",
     updatedAt: "2024-08-01T11:50:00Z",
   },
   {
-    agentId: "6",
-    name: "Lemlem Tadesse",
+    id: 6,
+    username: "lemlem.tadesse",
     email: "lemlem.tadesse@example.com",
-    phone: "+251966789012",
-    age: 32,
-    gender: "Female",
-    city: "Mekelle",
-    subcity: "Adihaki",
-    woreda: "04",
-    startDate: "2022-12-09",
-    agentStatus: "active",
-    photoUrl: "photo6.jpg",
+    fullName: "Lemlem Tadesse",
+    agentType: "District",
+    idNumber: "ID006789012",
+    factoryId: 3,
+    commissionRate: 9.5,
+    phoneNumber: "+251966789012",
+    address: {
+      street: "Adihaki Avenue 156",
+      city: "Mekelle",
+      state: "Tigray",
+      postalCode: "4000",
+      country: "Ethiopia"
+    },
+    isActive: true,
+    bankAccountNumber: "6789012345",
+    taxIdentificationNumber: "TIN006789012",
+    profilePictureUrl: "photo6.jpg",
     createdAt: "2022-12-09T10:45:00Z",
     updatedAt: "2024-07-25T13:35:00Z",
   },
   {
-    agentId: "7",
-    name: "Hana Worku",
+    id: 7,
+    username: "hana.worku",
     email: "hana.worku@example.com",
-    phone: "+251977890123",
-    age: 26,
-    gender: "Female",
-    city: "Jimma",
-    subcity: "Mendera Kochi",
-    woreda: "07",
-    startDate: "2024-02-17",
-    agentStatus: "active",
-    photoUrl: "photo7.jpg",
+    fullName: "Hana Worku",
+    agentType: "Sales",
+    idNumber: "ID007890123",
+    factoryId: null,
+    commissionRate: 14.0,
+    phoneNumber: "+251977890123",
+    address: {
+      street: "Mendera Kochi 78",
+      city: "Jimma",
+      state: "Oromia",
+      postalCode: "5000",
+      country: "Ethiopia"
+    },
+    isActive: true,
+    bankAccountNumber: "7890123456",
+    taxIdentificationNumber: "TIN007890123",
+    profilePictureUrl: "photo7.jpg",
     createdAt: "2024-02-17T09:25:00Z",
     updatedAt: "2024-08-05T16:15:00Z",
   },
   {
-    agentId: "8",
-    name: "Solomon Bekele",
+    id: 8,
+    username: "solomon.bekele",
     email: "solomon.bekele@example.com",
-    phone: "+251988901234",
-    age: 35,
-    gender: "Male",
-    city: "Adama",
-    subcity: "Bishoftu Road",
-    woreda: "01",
-    startDate: "2023-10-04",
-    agentStatus: "inactive",
-    photoUrl: "photo8.jpg",
+    fullName: "Solomon Bekele",
+    agentType: "Regional",
+    idNumber: "ID008901234",
+    factoryId: 1,
+    commissionRate: 12.0,
+    phoneNumber: "+251988901234",
+    address: {
+      street: "Bishoftu Road 345",
+      city: "Adama",
+      state: "Oromia",
+      postalCode: "6000",
+      country: "Ethiopia"
+    },
+    isActive: false,
+    bankAccountNumber: "8901234567",
+    taxIdentificationNumber: "TIN008901234",
+    profilePictureUrl: "photo8.jpg",
     createdAt: "2023-10-04T11:55:00Z",
     updatedAt: "2024-06-14T14:05:00Z",
   },
   {
-    agentId: "9",
-    name: "Rahel Abate",
+    id: 9,
+    username: "rahel.abate",
     email: "rahel.abate@example.com",
-    phone: "+251999012345",
-    gender: "Female",
-    age: 30,
-    city: "Gondar",
-    subcity: "Fasil",
-    woreda: "06",
-    startDate: "2023-04-19",
-    agentStatus: "active",
-    photoUrl: "photo9.jpg",
+    fullName: "Rahel Abate",
+    agentType: "District",
+    idNumber: "ID009012345",
+    factoryId: 2,
+    commissionRate: 10.5,
+    phoneNumber: "+251999012345",
+    address: {
+      street: "Fasil Street 567",
+      city: "Gondar",
+      state: "Amhara",
+      postalCode: "7000",
+      country: "Ethiopia"
+    },
+    isActive: true,
+    bankAccountNumber: "9012345678",
+    taxIdentificationNumber: "TIN009012345",
+    profilePictureUrl: "photo9.jpg",
     createdAt: "2023-04-19T12:10:00Z",
     updatedAt: "2024-05-28T08:55:00Z",
   },
   {
-    agentId: "10",
-    name: "Birhanu Fekadu",
+    id: 10,
+    username: "birhanu.fekadu",
     email: "birhanu.fekadu@example.com",
-    age: 44,
-    city: "Harar",
-    subcity: "Jugol",
-    woreda: "03",
-    phone: "+251911234567",
-    gender: "Male",
-    agentStatus: "active",
-    startDate: "2021-09-30",
-    photoUrl: "photo10.jpg",
+    fullName: "Birhanu Fekadu",
+    agentType: "Sales",
+    idNumber: "ID010123456",
+    factoryId: null,
+    commissionRate: 11.5,
+    phoneNumber: "+251911234567",
+    address: {
+      street: "Jugol Area 789",
+      city: "Harar",
+      state: "Harari",
+      postalCode: "8000",
+      country: "Ethiopia"
+    },
+    isActive: true,
+    bankAccountNumber: "0123456789",
+    taxIdentificationNumber: "TIN010123456",
+    profilePictureUrl: "photo10.jpg",
     createdAt: "2021-09-30T15:20:00Z",
     updatedAt: "2024-07-30T09:40:00Z",
-  },
-  {
-    agentId: "11",
-    name: "Selamawit Girma",
-    email: "selamawit.girma@example.com",
-    phone: "+251911234567",
-    gender: "Male",
-    agentStatus: "active",
-    age: 28,
-    city: "Shashemene",
-    subcity: "Arada",
-    woreda: "02",
-    startDate: "2023-02-14",
-    photoUrl: "photo11.jpg",
-    createdAt: "2023-02-14T07:35:00Z",
-    updatedAt: "2024-06-10T10:25:00Z",
-  },
-  {
-    agentId: "12",
-    name: "Kebede Alemayehu",
-    email: "kebede.alemayehu@example.com",
-    phone: "+251911234567",
-    gender: "Male",
-    agentStatus: "active",
-    age: 37,
-    city: "Woldia",
-    subcity: "Dessie Road",
-    woreda: "05",
-    startDate: "2023-06-08",
-    photoUrl: "photo12.jpg",
-    createdAt: "2023-06-08T08:50:00Z",
-    updatedAt: "2024-07-18T12:40:00Z",
-  },
-  {
-    agentId: "13",
-    name: "Saba Tesema",
-    email: "saba.tesema@example.com",
-    phone: "+251911234567",
-    gender: "Male",
-    agentStatus: "active",
-    age: 31,
-    city: "Debre Markos",
-    subcity: "Abay Mado",
-    woreda: "04",
-    startDate: "2022-08-23",
-    photoUrl: "photo13.jpg",
-    createdAt: "2022-08-23T09:00:00Z",
-    updatedAt: "2024-07-22T13:10:00Z",
-  },
-  {
-    agentId: "14",
-    name: "Fitsum Desta",
-    email: "fitsum.desta@example.com",
-    phone: "+251911234567",
-    gender: "Male",
-    agentStatus: "active",
-    age: 39,
-    city: "Debre Birhan",
-    subcity: "Kebele 01",
-    woreda: "01",
-    startDate: "2023-03-10",
-    photoUrl: "photo14.jpg",
-    createdAt: "2023-03-10T10:15:00Z",
-    updatedAt: "2024-08-08T15:05:00Z",
-  },
-  {
-    agentId: "15",
-    name: "Nardos Yonas",
-    email: "nardos.yonas@example.com",
-    phone: "+251911234567",
-    gender: "Male",
-    agentStatus: "active",
-    age: 25,
-    city: "Sebeta",
-    subcity: "Kebele 02",
-    woreda: "02",
-    startDate: "2024-05-01",
-    photoUrl: "photo15.jpg",
-    createdAt: "2024-05-01T08:05:00Z",
-    updatedAt: "2024-07-26T11:20:00Z",
-  },
-  {
-    agentId: "16",
-    name: "Biniam Yohannes",
-    email: "biniam.yohannes@example.com",
-    phone: "+251911234567",
-    gender: "Male",
-    agentStatus: "active",
-    age: 33,
-    city: "Arba Minch",
-    subcity: "Secha",
-    woreda: "03",
-    startDate: "2023-08-15",
-    photoUrl: "photo16.jpg",
-    createdAt: "2023-08-15T09:30:00Z",
-    updatedAt: "2024-07-12T14:50:00Z",
-  },
-  {
-    agentId: "17",
-    name: "Mahider Samuel",
-    email: "mahider.samuel@example.com",
-    phone: "+251911234567",
-    gender: "Male",
-    agentStatus: "active",
-    age: 36,
-    city: "Nekemte",
-    subcity: "Bacho",
-    woreda: "04",
-    startDate: "2022-11-27",
-    photoUrl: "photo17.jpg",
-    createdAt: "2022-11-27T08:55:00Z",
-    updatedAt: "2024-06-16T12:15:00Z",
-  },
-  {
-    agentId: "18",
-    name: "Amanuel Dawit",
-    email: "amanuel.dawit@example.com",
-    phone: "+251911234567",
-    gender: "Male",
-    agentStatus: "active",
-    age: 42,
-    city: "Dessie",
-    subcity: "Piassa",
-    woreda: "02",
-    startDate: "2021-04-07",
-    photoUrl: "photo18.jpg",
-    createdAt: "2021-04-07T07:40:00Z",
-    updatedAt: "2024-07-05T09:10:00Z",
-  },
-  {
-    agentId: "19",
-    name: "Lulit Assefa",
-    email: "lulit.assefa@example.com",
-    phone: "+251911234567",
-    gender: "Male",
-    agentStatus: "active",
-    age: 29,
-    city: "Assosa",
-    subcity: "Kebele 03",
-    woreda: "03",
-    startDate: "2023-09-19",
-    photoUrl: "photo19.jpg",
-    createdAt: "2023-09-19T09:15:00Z",
-    updatedAt: "2024-06-19T10:50:00Z",
-  },
-  {
-    agentId: "20",
-    name: "Yordanos Habte",
-    email: "yordanos.habte@example.com",
-    phone: "+251911234567",
-    gender: "Male",
-    agentStatus: "active",
-    age: 40,
-    city: "Debre Tabor",
-    subcity: "Kebele 01",
-    woreda: "01",
-    startDate: "2022-10-12",
-    photoUrl: "photo20.jpg",
-    createdAt: "2022-10-12T08:20:00Z",
-    updatedAt: "2024-07-15T14:00:00Z",
   },
 ];
 
@@ -1411,7 +1332,6 @@ export const manufacturerMockData = [
   },
 ];
 
-
 // ... existing code ...
 
 export const reportsMockData = [
@@ -1425,9 +1345,10 @@ export const reportsMockData = [
     category: "Finance",
     totalRecords: 1250,
     fileSize: "2.4 MB",
-    description: "Comprehensive financial report including revenue, expenses, and profit analysis for January 2025",
+    description:
+      "Comprehensive financial report including revenue, expenses, and profit analysis for January 2025",
     downloadUrl: "/reports/financial-jan-2025.pdf",
-    expiryDate: "2025-07-15"
+    expiryDate: "2025-07-15",
   },
   {
     id: "2",
@@ -1439,9 +1360,10 @@ export const reportsMockData = [
     category: "Members",
     totalRecords: 850,
     fileSize: "1.8 MB",
-    description: "Analysis of member participation, attendance, and engagement metrics",
+    description:
+      "Analysis of member participation, attendance, and engagement metrics",
     downloadUrl: "/reports/member-activity-jan-2025.pdf",
-    expiryDate: "2025-06-14"
+    expiryDate: "2025-06-14",
   },
   {
     id: "3",
@@ -1453,9 +1375,10 @@ export const reportsMockData = [
     category: "Sales",
     totalRecords: 2100,
     fileSize: "3.2 MB",
-    description: "Quarterly sales performance report with product-wise breakdown and trend analysis",
+    description:
+      "Quarterly sales performance report with product-wise breakdown and trend analysis",
     downloadUrl: "/reports/sales-q4-2024.pdf",
-    expiryDate: "2025-04-10"
+    expiryDate: "2025-04-10",
   },
   {
     id: "4",
@@ -1467,9 +1390,10 @@ export const reportsMockData = [
     category: "Inventory",
     totalRecords: 750,
     fileSize: "1.1 MB",
-    description: "Real-time inventory status with stock levels, reorder points, and supplier information",
+    description:
+      "Real-time inventory status with stock levels, reorder points, and supplier information",
     downloadUrl: null,
-    expiryDate: "2025-03-12"
+    expiryDate: "2025-03-12",
   },
   {
     id: "5",
@@ -1481,9 +1405,10 @@ export const reportsMockData = [
     category: "Compliance",
     totalRecords: 450,
     fileSize: "4.7 MB",
-    description: "Comprehensive compliance audit covering regulatory requirements and internal policies",
+    description:
+      "Comprehensive compliance audit covering regulatory requirements and internal policies",
     downloadUrl: "/reports/compliance-audit-2024.pdf",
-    expiryDate: "2026-01-08"
+    expiryDate: "2026-01-08",
   },
   {
     id: "6",
@@ -1497,7 +1422,7 @@ export const reportsMockData = [
     fileSize: "0.9 MB",
     description: "Performance metrics and KPI analysis for all active agents",
     downloadUrl: null,
-    expiryDate: "2025-05-13"
+    expiryDate: "2025-05-13",
   },
   {
     id: "7",
@@ -1509,9 +1434,10 @@ export const reportsMockData = [
     category: "Customer Service",
     totalRecords: 1680,
     fileSize: "2.1 MB",
-    description: "Analysis of customer feedback, satisfaction scores, and improvement recommendations",
+    description:
+      "Analysis of customer feedback, satisfaction scores, and improvement recommendations",
     downloadUrl: "/reports/customer-satisfaction-jan-2025.pdf",
-    expiryDate: "2025-07-11"
+    expiryDate: "2025-07-11",
   },
   {
     id: "8",
@@ -1523,9 +1449,10 @@ export const reportsMockData = [
     category: "Risk Management",
     totalRecords: 280,
     fileSize: "1.6 MB",
-    description: "Comprehensive risk assessment covering operational, financial, and strategic risks",
+    description:
+      "Comprehensive risk assessment covering operational, financial, and strategic risks",
     downloadUrl: "/reports/risk-assessment-jan-2025.pdf",
-    expiryDate: "2025-04-09"
+    expiryDate: "2025-04-09",
   },
   {
     id: "9",
@@ -1537,9 +1464,10 @@ export const reportsMockData = [
     category: "HR",
     totalRecords: 195,
     fileSize: "0.7 MB",
-    description: "Training completion rates, skill assessments, and development recommendations",
+    description:
+      "Training completion rates, skill assessments, and development recommendations",
     downloadUrl: null,
-    expiryDate: "2025-06-07"
+    expiryDate: "2025-06-07",
   },
   {
     id: "10",
@@ -1551,10 +1479,11 @@ export const reportsMockData = [
     category: "Market Research",
     totalRecords: 890,
     fileSize: "3.8 MB",
-    description: "Market trends analysis with competitor insights and growth opportunities",
+    description:
+      "Market trends analysis with competitor insights and growth opportunities",
     downloadUrl: "/reports/market-analysis-jan-2025.pdf",
-    expiryDate: "2025-12-06"
-  }
+    expiryDate: "2025-12-06",
+  },
 ];
 
 export const reportCategories = [
@@ -1567,7 +1496,7 @@ export const reportCategories = [
   "Customer Service",
   "Risk Management",
   "HR",
-  "Market Research"
+  "Market Research",
 ];
 
 export const reportStatuses = [
@@ -1575,9 +1504,8 @@ export const reportStatuses = [
   { value: "pending", label: "Pending", color: "yellow" },
   { value: "processing", label: "Processing", color: "blue" },
   { value: "failed", label: "Failed", color: "red" },
-  { value: "scheduled", label: "Scheduled", color: "purple" }
+  { value: "scheduled", label: "Scheduled", color: "purple" },
 ];
-
 
 // ... existing code ...
 
@@ -1586,7 +1514,8 @@ export const requestsMockData = [
     requestId: "1",
     requestType: "Loan Application",
     title: "Agricultural Equipment Loan Request",
-    description: "Request for loan to purchase new agricultural equipment for the cooperative",
+    description:
+      "Request for loan to purchase new agricultural equipment for the cooperative",
     requestedBy: "John Doe",
     requestedDate: "2025-01-15T10:30:00Z",
     status: "pending",
@@ -1597,7 +1526,7 @@ export const requestsMockData = [
     attachments: ["equipment_quote.pdf", "business_plan.pdf"],
     comments: "Urgent request for planting season",
     createdAt: "2025-01-15T10:30:00Z",
-    updatedAt: "2025-01-15T10:30:00Z"
+    updatedAt: "2025-01-15T10:30:00Z",
   },
   {
     requestId: "2",
@@ -1616,7 +1545,7 @@ export const requestsMockData = [
     approvedBy: "HR Manager",
     approvedDate: "2025-01-16T09:15:00Z",
     createdAt: "2025-01-14T14:20:00Z",
-    updatedAt: "2025-01-16T09:15:00Z"
+    updatedAt: "2025-01-16T09:15:00Z",
   },
   {
     requestId: "3",
@@ -1633,7 +1562,7 @@ export const requestsMockData = [
     attachments: ["training_proposal.pdf"],
     comments: "Budget approval pending",
     createdAt: "2025-01-13T16:45:00Z",
-    updatedAt: "2025-01-18T11:30:00Z"
+    updatedAt: "2025-01-18T11:30:00Z",
   },
   {
     requestId: "4",
@@ -1650,13 +1579,14 @@ export const requestsMockData = [
     attachments: ["facility_assessment.pdf", "cost_estimate.pdf"],
     comments: "Budget constraints - resubmit next quarter",
     createdAt: "2025-01-12T11:15:00Z",
-    updatedAt: "2025-01-20T14:45:00Z"
+    updatedAt: "2025-01-20T14:45:00Z",
   },
   {
     requestId: "5",
     requestType: "Equipment Request",
     title: "Office Equipment Purchase",
-    description: "Request for purchasing new office equipment including computers and printers",
+    description:
+      "Request for purchasing new office equipment including computers and printers",
     requestedBy: "David Wilson",
     requestedDate: "2025-01-11T09:30:00Z",
     status: "pending",
@@ -1667,8 +1597,8 @@ export const requestsMockData = [
     attachments: ["equipment_list.pdf", "vendor_quotes.pdf"],
     comments: "Awaiting vendor comparison",
     createdAt: "2025-01-11T09:30:00Z",
-    updatedAt: "2025-01-11T09:30:00Z"
-  }
+    updatedAt: "2025-01-11T09:30:00Z",
+  },
 ];
 
 export const reportsMockDataCoop = [
@@ -1676,7 +1606,8 @@ export const reportsMockDataCoop = [
     reportId: "1",
     reportType: "Financial",
     title: "Monthly Financial Summary",
-    description: "Comprehensive financial report including revenue, expenses, and profit analysis",
+    description:
+      "Comprehensive financial report including revenue, expenses, and profit analysis",
     generatedBy: "Finance Manager",
     generatedDate: "2025-01-15T10:30:00Z",
     status: "completed",
@@ -1688,7 +1619,7 @@ export const reportsMockDataCoop = [
     tags: ["monthly", "financial", "summary"],
     visibility: "internal",
     createdAt: "2025-01-15T10:30:00Z",
-    updatedAt: "2025-01-15T10:30:00Z"
+    updatedAt: "2025-01-15T10:30:00Z",
   },
   {
     reportId: "2",
@@ -1706,7 +1637,7 @@ export const reportsMockDataCoop = [
     tags: ["members", "engagement", "activity"],
     visibility: "restricted",
     createdAt: "2025-01-14T14:20:00Z",
-    updatedAt: "2025-01-14T14:20:00Z"
+    updatedAt: "2025-01-14T14:20:00Z",
   },
   {
     reportId: "3",
@@ -1724,13 +1655,14 @@ export const reportsMockDataCoop = [
     tags: ["quarterly", "production", "agriculture"],
     visibility: "public",
     createdAt: "2025-01-13T16:45:00Z",
-    updatedAt: "2025-01-13T16:45:00Z"
+    updatedAt: "2025-01-13T16:45:00Z",
   },
   {
     reportId: "4",
     reportType: "Training",
     title: "Training Programs Effectiveness",
-    description: "Evaluation of training programs and their impact on member skills",
+    description:
+      "Evaluation of training programs and their impact on member skills",
     generatedBy: "Training Coordinator",
     generatedDate: "2025-01-12T11:15:00Z",
     status: "draft",
@@ -1742,7 +1674,7 @@ export const reportsMockDataCoop = [
     tags: ["training", "effectiveness", "skills"],
     visibility: "internal",
     createdAt: "2025-01-12T11:15:00Z",
-    updatedAt: "2025-01-18T09:30:00Z"
+    updatedAt: "2025-01-18T09:30:00Z",
   },
   {
     reportId: "5",
@@ -1760,8 +1692,8 @@ export const reportsMockDataCoop = [
     tags: ["inventory", "assets", "equipment"],
     visibility: "restricted",
     createdAt: "2025-01-11T09:30:00Z",
-    updatedAt: "2025-01-11T09:30:00Z"
-  }
+    updatedAt: "2025-01-11T09:30:00Z",
+  },
 ];
 
 export const requestCategories = [
@@ -1770,7 +1702,7 @@ export const requestCategories = [
   { label: "Training", value: "Training" },
   { label: "Infrastructure", value: "Infrastructure" },
   { label: "Equipment", value: "Equipment" },
-  { label: "Operations", value: "Operations" }
+  { label: "Operations", value: "Operations" },
 ];
 
 export const requestStatuses = [
@@ -1778,7 +1710,7 @@ export const requestStatuses = [
   { label: "In Progress", value: "in_progress" },
   { label: "Approved", value: "approved" },
   { label: "Rejected", value: "rejected" },
-  { label: "Completed", value: "completed" }
+  { label: "Completed", value: "completed" },
 ];
 
 export const reportCategoriesCoop = [
@@ -1787,14 +1719,14 @@ export const reportCategoriesCoop = [
   { label: "Production", value: "Production" },
   { label: "Training", value: "Training" },
   { label: "Operations", value: "Operations" },
-  { label: "Marketing", value: "Marketing" }
+  { label: "Marketing", value: "Marketing" },
 ];
 
 export const reportStatusesCoop = [
   { label: "Draft", value: "draft" },
   { label: "Pending", value: "pending" },
   { label: "Completed", value: "completed" },
-  { label: "Archived", value: "archived" }
+  { label: "Archived", value: "archived" },
 ];
 
 export const logsMockData = [
@@ -1811,7 +1743,7 @@ export const logsMockData = [
     status: "success",
     description: "User successfully logged into the system",
     module: "Authentication",
-    severity: "low"
+    severity: "low",
   },
   {
     id: "2",
@@ -1827,7 +1759,7 @@ export const logsMockData = [
     description: "Financial report generated successfully",
     details: { reportType: "Financial", recordCount: 1250 },
     module: "Reports",
-    severity: "medium"
+    severity: "medium",
   },
   {
     id: "3",
@@ -1842,7 +1774,7 @@ export const logsMockData = [
     description: "Multiple failed login attempts detected",
     details: { attemptCount: 5, reason: "Invalid credentials" },
     module: "Authentication",
-    severity: "high"
+    severity: "high",
   },
   {
     id: "4",
@@ -1857,7 +1789,7 @@ export const logsMockData = [
     description: "Automated database backup completed",
     details: { backupSize: "2.4 GB", duration: "45 minutes" },
     module: "System",
-    severity: "low"
+    severity: "low",
   },
   {
     id: "5",
@@ -1873,7 +1805,7 @@ export const logsMockData = [
     description: "New user account created",
     details: { userRole: "Agent", department: "Sales" },
     module: "User Management",
-    severity: "medium"
+    severity: "medium",
   },
   {
     id: "6",
@@ -1888,7 +1820,7 @@ export const logsMockData = [
     description: "Customer data exported to Excel",
     details: { recordCount: 850, fileSize: "1.2 MB" },
     module: "Data Export",
-    severity: "medium"
+    severity: "medium",
   },
   {
     id: "7",
@@ -1903,7 +1835,7 @@ export const logsMockData = [
     description: "Application encountered an unexpected error",
     details: { errorCode: "ERR_500", component: "Payment Gateway" },
     module: "System",
-    severity: "critical"
+    severity: "critical",
   },
   {
     id: "8",
@@ -1919,7 +1851,7 @@ export const logsMockData = [
     description: "Payment transaction processed successfully",
     details: { amount: "$5,000", currency: "USD", method: "Bank Transfer" },
     module: "Finance",
-    severity: "medium"
+    severity: "medium",
   },
   {
     id: "9",
@@ -1935,7 +1867,7 @@ export const logsMockData = [
     description: "User permissions updated",
     details: { oldRole: "User", newRole: "Manager", changedBy: "admin" },
     module: "User Management",
-    severity: "high"
+    severity: "high",
   },
   {
     id: "10",
@@ -1950,29 +1882,29 @@ export const logsMockData = [
     description: "Data import completed with warnings",
     details: { totalRecords: 1000, successfulRecords: 950, failedRecords: 50 },
     module: "Data Import",
-    severity: "medium"
-  }
+    severity: "medium",
+  },
 ];
 
 export const logActivityTypes = [
   "User Management",
-  "Data Management", 
+  "Data Management",
   "Security",
   "System Management",
   "Financial",
   "Authentication",
-  "Reports"
+  "Reports",
 ];
 
 export const logStatuses = [
   { value: "success", label: "Success", color: "green" },
   { value: "failed", label: "Failed", color: "red" },
-  { value: "warning", label: "Warning", color: "yellow" }
+  { value: "warning", label: "Warning", color: "yellow" },
 ];
 
 export const logSeverities = [
   { value: "low", label: "Low", color: "blue" },
   { value: "medium", label: "Medium", color: "yellow" },
   { value: "high", label: "High", color: "orange" },
-  { value: "critical", label: "Critical", color: "red" }
+  { value: "critical", label: "Critical", color: "red" },
 ];

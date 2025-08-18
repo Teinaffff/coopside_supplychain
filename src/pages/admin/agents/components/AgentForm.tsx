@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "../../../../common/ui/button";
+import { Checkbox } from "../../../../common/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -51,8 +52,8 @@ const AgentForm: React.FC<AgentFormProps> = ({
   const handleImageChange = (event: any) => {
     const selectedImage = event.target.files[0];
     if (selectedImage) {
-      form.setValue("photo", selectedImage);
-      form.clearErrors("photo");
+      form.setValue("profilePictureUrl", selectedImage);
+      form.clearErrors("profilePictureUrl");
     }
   };
 
@@ -64,11 +65,11 @@ const AgentForm: React.FC<AgentFormProps> = ({
       >
         <div className="grid md:grid-cols-2 gap-4">
           <FormField
-            name="name"
+            name="username"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Full Name:</FormLabel>
+                <FormLabel>Username:</FormLabel>
                 <FormControl>
                   <Input {...field} disabled={loading} />
                 </FormControl>
@@ -77,13 +78,13 @@ const AgentForm: React.FC<AgentFormProps> = ({
             )}
           />
           <FormField
-            name="phone"
+            name="fullName"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone:</FormLabel>
+                <FormLabel>Full Name:</FormLabel>
                 <FormControl>
-                  <Input type="tel" {...field} disabled={loading} />
+                  <Input {...field} disabled={loading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -105,11 +106,25 @@ const AgentForm: React.FC<AgentFormProps> = ({
           />
 
           <FormField
-            name="gender"
+            name="phoneNumber"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Gender:</FormLabel>
+                <FormLabel>Phone Number:</FormLabel>
+                <FormControl>
+                  <Input type="tel" {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            name="agentType"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Agent Type:</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -117,16 +132,16 @@ const AgentForm: React.FC<AgentFormProps> = ({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select a gender" />
+                      <SelectValue placeholder="Select agent type" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem key={"male"} value={"male"}>
-                      Male
+                    <SelectItem value="sales">Sales Agent</SelectItem>
+                    <SelectItem value="distribution">
+                      Distribution Agent
                     </SelectItem>
-                    <SelectItem key={"female"} value={"female"}>
-                      Female
-                    </SelectItem>
+                    <SelectItem value="field">Field Agent</SelectItem>
+                    <SelectItem value="regional">Regional Agent</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -135,18 +150,31 @@ const AgentForm: React.FC<AgentFormProps> = ({
           />
 
           <FormField
-            name="age"
+            name="idNumber"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Age:</FormLabel>
+                <FormLabel>ID Number:</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            name="commissionRate"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Commission Rate (%):</FormLabel>
                 <FormControl className="hide-incrementor">
                   <Input
                     type="number"
+                    step="0.01"
                     {...field}
-                    onChange={(e) =>
-                      field.onChange(parseInt(e.target.value, 10))
-                    }
+                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
                     disabled={loading}
                   />
                 </FormControl>
@@ -154,8 +182,23 @@ const AgentForm: React.FC<AgentFormProps> = ({
               </FormItem>
             )}
           />
+
           <FormField
-            name="city"
+            name="address.street"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Street Address:</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            name="address.city"
             control={form.control}
             render={({ field }) => (
               <FormItem>
@@ -167,12 +210,13 @@ const AgentForm: React.FC<AgentFormProps> = ({
               </FormItem>
             )}
           />
+
           <FormField
-            name="subcity"
+            name="address.state"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Sub city:</FormLabel>
+                <FormLabel>State:</FormLabel>
                 <FormControl>
                   <Input {...field} disabled={loading} />
                 </FormControl>
@@ -180,12 +224,13 @@ const AgentForm: React.FC<AgentFormProps> = ({
               </FormItem>
             )}
           />
+
           <FormField
-            name="woreda"
+            name="address.postalCode"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Woreda:</FormLabel>
+                <FormLabel>Postal Code:</FormLabel>
                 <FormControl>
                   <Input {...field} disabled={loading} />
                 </FormControl>
@@ -193,25 +238,75 @@ const AgentForm: React.FC<AgentFormProps> = ({
               </FormItem>
             )}
           />
+
           <FormField
-            name="startDate"
+            name="address.country"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Start Date:</FormLabel>
+                <FormLabel>Country:</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} disabled={loading} />
+                  <Input {...field} disabled={loading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
           <FormField
-            name="photo"
+            name="bankAccountNumber"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Photo:</FormLabel>
+                <FormLabel>Bank Account Number:</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            name="taxIdentificationNumber"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tax ID Number:</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            name="isActive"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={loading}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Active Status</FormLabel>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            name="profilePictureUrl"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Profile Picture:</FormLabel>
                 <FormControl>
                   <Input
                     type="file"

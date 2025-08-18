@@ -3,17 +3,26 @@ interface Timestamps {
   updatedAt?: string;
 }
 
-export interface Agent extends Timestamps {
-  agentId?: string;
-  name: string;
-  email: string;
-  phone: string;
-  age: number;
-  gender: string;
+interface Address {
+  street: string;
   city: string;
-  subcity: string;
-  woreda: string;
-  startDate: string;
-  agentStatus: string;
-  photoUrl?: string;
+  state: string;
+  postalCode: string;
+  country: string;
+}
+
+export interface Agent extends Timestamps {
+  id?: number;
+  username: string;
+  email: string;
+  fullName: string;
+  agentType: string;
+  idNumber: string;
+  commissionRate: number;
+  phoneNumber: string;
+  address: Address;
+  isActive: boolean;
+  bankAccountNumber: string;
+  taxIdentificationNumber: string;
+  profilePictureUrl?: string;
 }

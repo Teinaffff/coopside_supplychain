@@ -12,7 +12,7 @@ import { columns } from "./components/columns";
 
 const SharesPage = () => {
   const { onOpen } = useAddAgentModal();
-  const { agents, isLoading, error } = useAgents({
+  const { agents } = useAgents({
     isFetchAgents: true,
   });
 

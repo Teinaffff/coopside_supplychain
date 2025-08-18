@@ -29,16 +29,24 @@ export const AddAgentModal = () => {
         <AgentForm
           defaultValues={
             defaultValues || {
-              name: "",
+              username: "",
+              fullName: "",
               email: "",
-              phone: "",
-              age: 0,
-              city: "",
-              subcity: "",
-              woreda: "",
-              gender: "",
-              startDate: "",
-              photo: undefined,
+              phoneNumber: "",
+              agentType: "",
+              idNumber: "",
+              commissionRate: 0,
+              address: {
+                street: "",
+                city: "",
+                state: "",
+                postalCode: "",
+                country: "",
+              },
+              isActive: true,
+              bankAccountNumber: "",
+              taxIdentificationNumber: "",
+              profilePictureUrl: undefined,
             }
           }
           onSubmit={handleSubmit}

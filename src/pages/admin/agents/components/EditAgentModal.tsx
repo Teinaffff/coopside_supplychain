@@ -29,17 +29,25 @@ export const EditAgentModal = () => {
         <AgentForm
           defaultValues={
             defaultValues || {
-              agentId: -1,
-              name: "",
-              phone: "",
-              gender: "",
+              id: -1,
+              username: "",
+              fullName: "",
               email: "",
-              age: 0,
-              city: "",
-              subcity: "",
-              woreda: "",
-              startDate: "",
-              photo: undefined,
+              phoneNumber: "",
+              agentType: "",
+              idNumber: "",
+              commissionRate: 0,
+              address: {
+                street: "",
+                city: "",
+                state: "",
+                postalCode: "",
+                country: "",
+              },
+              isActive: true,
+              bankAccountNumber: "",
+              taxIdentificationNumber: "",
+              profilePictureUrl: undefined,
             }
           }
           onSubmit={handleSubmit}

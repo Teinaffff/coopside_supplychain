@@ -31,7 +31,7 @@ export const useAgents = (options?: { isFetchAgents: boolean }) => {
 
   const addAgentMutation = useMutation({
     mutationFn: async (data: Agent) => {
-      const { agentId, ...rest } = data;
+      const { id, ...rest } = data;
       const res = await fetch("/api/agents", {
         method: "POST",
         headers: {
@@ -54,9 +54,9 @@ export const useAgents = (options?: { isFetchAgents: boolean }) => {
 
   const editAgentMutation = useMutation({
     mutationFn: async (data: Agent) => {
-      const { agentId, ...rest } = data;
+      const { id, ...rest } = data;
 
-      const res = await fetch(`/api/agents/${agentId}`, {
+      const res = await fetch(`/api/agents/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

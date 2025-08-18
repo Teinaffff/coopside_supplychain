@@ -8,7 +8,7 @@ import { CellActions } from "./cell-actions";
 
 export const columns: ColumnDef<Agent>[] = [
   {
-    accessorKey: "name",
+    accessorKey: "fullName",
     header: ({ column }) => {
       return (
         <Button
@@ -23,16 +23,16 @@ export const columns: ColumnDef<Agent>[] = [
     cell: ({ row }) => {
       return (
         <Link
-          to={`/admin/agents/${row.original.agentId}`}
+          to={`/admin/agents/${row.original.id}`}
           className="hover:text-underline"
         >
-          <Button variant={'link'} className="text-slate-600">{row.original.name}</Button>
+          <Button variant={'link'} className="text-slate-600">{row.original.fullName}</Button>
         </Link>
       );
     },
   },
   {
-    accessorKey: "phone",
+    accessorKey: "phoneNumber",
     header: ({ column }) => {
       return (
         <Button
@@ -59,70 +59,68 @@ export const columns: ColumnDef<Agent>[] = [
       );
     },
   },
-
   {
-    accessorKey: "gender",
-    header: "Gender",
-    cell: ({ row }) => (row.original.gender === "male" ? "Male" : "Female"),
-    filterFn: (row, value) => {
-      if (value === "male") {
-        return row.original.gender === "male";
-      } else if (value === "female") {
-        return row.original.gender === "female";
-      }
-      return true;
-    },
-  },
-  {
-    accessorKey: "age",
+    accessorKey: "agentType",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Age
+          Type
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
   {
-    accessorKey: "startDate",
+    accessorKey: "address.city",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Start Date
+          City
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
+    cell: ({ row }) => {
+      return <span>{row.original.address.city}</span>;
+    },
   },
   {
-    accessorKey: "agentStatus",
-    header: "Agent Status",
+    accessorKey: "isActive",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Status
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       return (
         <Badge
-          variant="outline"
-          className={`capitalize ${
-            row.original.agentStatus === "active"
+          className={`text-white ${
+            row.original.isActive
               ? "bg-green-500"
               : "bg-red-500"
           }`}
         >
-          {row.original.agentStatus || "N/A"}
+          {row.original.isActive ? "Active" : "Inactive"}
         </Badge>
       );
     },
     filterFn: (row, value) => {
       if (value === "active") {
-        return row.original.agentStatus === "active";
+        return row.original.isActive === true;
       } else if (value === "inactive") {
-        return row.original.agentStatus === "inactive";
+        return row.original.isActive === false;
       }
       return true;
     },

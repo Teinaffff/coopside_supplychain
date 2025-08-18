@@ -1,4 +1,11 @@
-import { ArrowDown, ArrowUp } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Building2,
+  User2,
+  UserCircle2,
+  Users2,
+} from "lucide-react";
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../common/ui/card";
 import { StatCardProps } from "../../constants/interface/general";
@@ -8,50 +15,29 @@ const StatCard: React.FC<StatCardProps> = ({
   value,
   change,
   trend,
-  icon: Icon,
   index,
 }) => {
   const TrendIcon = trend === "up" ? ArrowUp : ArrowDown;
-  const color =
-    index === 0
-      ? "emerald"
-      : index === 1
-      ? "orange"
-      : index === 2
-      ? "purple"
-      : index === 3
-      ? "cyan"
-      : "emerald";
+
+  const cardConfig = {
+    0: { color: "emerald", icon: UserCircle2 },
+    1: { color: "orange", icon: Building2 },
+    2: { color: "purple", icon: Users2 },
+    3: { color: "cyan", icon: User2 },
+  };
+
+  const config = cardConfig[index as keyof typeof cardConfig] || cardConfig[0];
+  const { color, icon: Icon } = config;
 
   return (
     <Card className="dark:bg-slate-800">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 py-3">
         <CardTitle
-          className={`text-lg font-medium ${
-            index === 0
-              ? "text-emerald-500"
-              : index === 1
-              ? "text-orange-500"
-              : index === 2
-              ? "text-purple-500"
-              : "text-cyan-500"
-          } dark:text-slate-200`}
+          className={`text-lg font-medium text-${color}-500 dark:text-slate-200`}
         >
           {title}
         </CardTitle>
-        <div
-          className={`p-3  ${
-            index === 0
-              ? "bg-emerald-100"
-              : index === 1
-              ? "bg-orange-100"
-              : index === 2
-              ? "bg-purple-100"
-              : index === 3
-              ? "bg-cyan-100"
-              : "bg-emerald-100"
-          } rounded-full`}
-        >
+        <div className={`p-3 bg-${color}-100 rounded-full`}>
           <Icon className={`text-${color}-500`} />
         </div>
       </CardHeader>

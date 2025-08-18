@@ -24,7 +24,7 @@ export const CellActions: React.FC<CellActionsProps> = ({ data }) => {
 
   const onDelete = async () => {
     try {
-      await handleDeleteAgent(data.agentId?.toString() || "");
+      await handleDeleteAgent(data.id?.toString() || "");
       setOpenDelete(false);
     } catch (error) {
       console.error("Error deleting agent:", error);
