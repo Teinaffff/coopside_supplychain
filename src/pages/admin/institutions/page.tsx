@@ -3,7 +3,6 @@ import { Button } from "../../../common/ui/button";
 import { Card } from "../../../common/ui/card";
 import { DataTable } from "../../../common/ui/data-table";
 import { Heading } from "../../../common/ui/heading";
-import { Institution } from "../../../constants/interface/admin/institution";
 import { useAddInstitutionModal } from "../hooks/use-add-institution-modal";
 import { useInstitutions } from "../hooks/use-institutions";
 import { AddInstitutionsModal } from "./components/AddInstitutionsModal";
@@ -24,15 +23,6 @@ const InstitutionsPage = () => {
     <>
       <AddInstitutionsModal />
       <EditInstitutionsModal />
-      <div className="flex justify-end pb-5 mx-5">
-        <Button
-          className="bg-cyan-600 hover:bg-cyan-600"
-          onClick={() => onOpen()}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add New
-        </Button>
-      </div>
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
@@ -40,7 +30,11 @@ const InstitutionsPage = () => {
             description="Manage Institutions"
           />
           <div></div>
-          <div>
+          <div className="flex space-x-2">
+            <Button variant={"outline"} onClick={() => onOpen()}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add New
+            </Button>
             <Button
               className={`bg-cyan-600 hover:bg-cyan-600`}
               onClick={() =>
