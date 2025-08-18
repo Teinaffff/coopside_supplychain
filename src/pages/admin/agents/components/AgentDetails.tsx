@@ -141,10 +141,6 @@ const InfoFieldStart: React.FC<InfoFieldStartProps> = ({
   </div>
 );
 
-// Enhanced Profile Image Component with Card Effect
-interface ProfileImageProps {
-  agent: Agent;
-}
 
 // Reusable Status Button Component
 interface StatusButtonProps {
