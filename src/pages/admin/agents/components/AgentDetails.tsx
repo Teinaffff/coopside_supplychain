@@ -28,6 +28,7 @@ import {
   TabsTrigger,
 } from "../../../../common/ui/tabs";
 import { Agent } from "../../../../constants/interface/admin/agent";
+import OverlayCard from "../../components/OverlayCard";
 
 // Function to fetch a single agent by ID
 const fetchAgentById = async (agentId: string): Promise<Agent> => {
@@ -144,62 +145,6 @@ const InfoFieldStart: React.FC<InfoFieldStartProps> = ({
 interface ProfileImageProps {
   agent: Agent;
 }
-
-const ProfileImage: React.FC<ProfileImageProps> = ({ agent }) => (
-  <div className="relative group mx-auto">
-    {/* Main Card Container */}
-    <div className="w-full h-[280px] overflow-hidden transition-all duration-300 rounded-xl shadow-lg">
-      {agent.profilePictureUrl ? (
-        <img
-          src={agent.profilePictureUrl}
-          alt={agent.fullName}
-          className="h-full w-full scale-105 group-hover:scale-100 grayscale group-hover:grayscale-0 object-cover transition-all duration-300"
-        />
-      ) : (
-        <div className="h-full w-full scale-105 group-hover:scale-100 grayscale group-hover:grayscale-0 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center transition-all duration-300">
-          <User className="w-20 h-20 text-gray-400" />
-        </div>
-      )}
-    </div>
-
-    {/* Status Badge */}
-    <div className="absolute -bottom-2 -right-2 z-10">
-      <div
-        className={`w-8 h-8 rounded-full border-4 border-white flex items-center justify-center shadow-lg transition-all duration-300 ${
-          agent.isActive ? "bg-green-500" : "bg-gray-400"
-        }`}
-      >
-        {agent.isActive ? (
-          <CheckCircle className="w-4 h-4 text-white" />
-        ) : (
-          <XCircle className="w-4 h-4 text-white" />
-        )}
-      </div>
-    </div>
-
-    {/* Info Overlay */}
-    <div className="absolute bottom-0 left-0 right-0 h-20 group-hover:h-28 transition-all duration-500 ease-out bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 rounded-b-xl">
-      <div className="info translate-y-0 transition-all duration-500 ease-out">
-        <p className="text-white font-semibold text-lg truncate transform transition-all duration-300 group-hover:scale-105">
-          {agent.fullName}
-        </p>
-        <p className="text-white/80 text-sm transition-all duration-300 group-hover:text-white/90">@{agent.username}</p>
-      </div>
-
-      {/* Hidden Details on Hover */}
-      <div className="absolute -bottom-10 left-0 right-0 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 group-hover:bottom-3 transition-all duration-500 ease-out delay-100">
-        <div className="text-white text-center">
-          <Badge
-            variant="secondary"
-            className="text-xs bg-white/25 text-white border-white/40 backdrop-blur-sm transition-all duration-300 hover:bg-white/35 transform hover:scale-105"
-          >
-            {agent.agentType}
-          </Badge>
-        </div>
-      </div>
-    </div>
-  </div>
-);
 
 // Reusable Status Button Component
 interface StatusButtonProps {
@@ -345,7 +290,14 @@ const AgentDetails: React.FC = () => {
         {/* Enhanced Profile Image Card */}
         <Card className="lg:col-span-1 overflow-hidden">
           <CardContent className="p-6 text-center">
-            <ProfileImage agent={agent} />
+            <OverlayCard
+              imageUrl={agent.profilePictureUrl}
+              altText={agent.fullName}
+              title={agent.fullName}
+              subtitle={`@${agent.username}`}
+              badgeText={agent.agentType}
+              isActive={agent.isActive}
+            />
           </CardContent>
         </Card>
 
