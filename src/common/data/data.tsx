@@ -1,10 +1,6 @@
-import {
-  Coins,
-  DollarSign,
-  TrendingUp,
-  Users
-} from "lucide-react";
+import { Coins, DollarSign, TrendingUp, Users } from "lucide-react";
 import { Notification } from "../../constants/interface/notification";
+import { IMAGES } from "../../assets";
 
 export const notifications: Notification[] = [
   {
@@ -768,12 +764,12 @@ export const agentsMockData = [
       city: "Addis Ababa",
       state: "Addis Ababa",
       postalCode: "1000",
-      country: "Ethiopia"
+      country: "Ethiopia",
     },
     isActive: true,
     bankAccountNumber: "1234567890",
     taxIdentificationNumber: "TIN001234567",
-    profilePictureUrl: "photo1.jpg",
+    profilePictureUrl: IMAGES.blackMan,
     createdAt: "2023-05-15T08:30:00Z",
     updatedAt: "2024-08-10T14:20:00Z",
   },
@@ -792,7 +788,7 @@ export const agentsMockData = [
       city: "Addis Ababa",
       state: "Addis Ababa",
       postalCode: "1001",
-      country: "Ethiopia"
+      country: "Ethiopia",
     },
     isActive: true,
     bankAccountNumber: "2345678901",
@@ -816,7 +812,7 @@ export const agentsMockData = [
       city: "Addis Ababa",
       state: "Addis Ababa",
       postalCode: "1002",
-      country: "Ethiopia"
+      country: "Ethiopia",
     },
     isActive: false,
     bankAccountNumber: "3456789012",
@@ -840,7 +836,7 @@ export const agentsMockData = [
       city: "Bahir Dar",
       state: "Amhara",
       postalCode: "2000",
-      country: "Ethiopia"
+      country: "Ethiopia",
     },
     isActive: true,
     bankAccountNumber: "4567890123",
@@ -864,7 +860,7 @@ export const agentsMockData = [
       city: "Dire Dawa",
       state: "Dire Dawa",
       postalCode: "3000",
-      country: "Ethiopia"
+      country: "Ethiopia",
     },
     isActive: false,
     bankAccountNumber: "5678901234",
@@ -888,7 +884,7 @@ export const agentsMockData = [
       city: "Mekelle",
       state: "Tigray",
       postalCode: "4000",
-      country: "Ethiopia"
+      country: "Ethiopia",
     },
     isActive: true,
     bankAccountNumber: "6789012345",
@@ -912,7 +908,7 @@ export const agentsMockData = [
       city: "Jimma",
       state: "Oromia",
       postalCode: "5000",
-      country: "Ethiopia"
+      country: "Ethiopia",
     },
     isActive: true,
     bankAccountNumber: "7890123456",
@@ -936,7 +932,7 @@ export const agentsMockData = [
       city: "Adama",
       state: "Oromia",
       postalCode: "6000",
-      country: "Ethiopia"
+      country: "Ethiopia",
     },
     isActive: false,
     bankAccountNumber: "8901234567",
@@ -960,7 +956,7 @@ export const agentsMockData = [
       city: "Gondar",
       state: "Amhara",
       postalCode: "7000",
-      country: "Ethiopia"
+      country: "Ethiopia",
     },
     isActive: true,
     bankAccountNumber: "9012345678",
@@ -984,7 +980,7 @@ export const agentsMockData = [
       city: "Harar",
       state: "Harari",
       postalCode: "8000",
-      country: "Ethiopia"
+      country: "Ethiopia",
     },
     isActive: true,
     bankAccountNumber: "0123456789",

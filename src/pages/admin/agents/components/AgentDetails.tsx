@@ -5,9 +5,7 @@ import {
   CheckCircle,
   Clock,
   CreditCard,
-  Edit,
   IdCard,
-  MoreVertical,
   User,
   XCircle,
 } from "lucide-react";
@@ -64,6 +62,216 @@ const updateAgentStatus = async ({
   return agent;
 };
 
+// Reusable Loading Component
+const LoadingState: React.FC = () => (
+  <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+      <p className="text-gray-600">Loading agent details...</p>
+    </div>
+  </div>
+);
+
+// Reusable Error State Component
+interface ErrorStateProps {
+  error: Error | null;
+  onBack: () => void;
+}
+
+const ErrorState: React.FC<ErrorStateProps> = ({ error, onBack }) => (
+  <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
+    <div className="text-center">
+      <div className="text-red-500 mb-4">
+        <AlertTriangle className="w-12 h-12 mx-auto" />
+      </div>
+      <h2 className="text-xl font-semibold text-gray-900 mb-2">
+        Agent Not Found
+      </h2>
+      <p className="text-gray-600 mb-4">
+        {error instanceof Error
+          ? error.message
+          : "The requested agent could not be found."}
+      </p>
+      <Button onClick={onBack} variant="outline">
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Agents
+      </Button>
+    </div>
+  </div>
+);
+
+// Reusable Info Field Component
+interface InfoFieldProps {
+  label: string;
+  value: string | React.ReactNode;
+  className?: string;
+}
+
+const InfoField: React.FC<InfoFieldProps> = ({
+  label,
+  value,
+  className = "",
+}) => (
+  <div
+    className={`flex justify-between items-center p-3 bg-gray-50 rounded-lg ${className}`}
+  >
+    <span className="text-sm font-medium text-gray-600">{label}</span>
+    <span className="text-sm text-gray-900">{value}</span>
+  </div>
+);
+
+// Reusable Info Field with Start Alignment
+interface InfoFieldStartProps {
+  label: string;
+  value: React.ReactNode;
+  className?: string;
+}
+
+const InfoFieldStart: React.FC<InfoFieldStartProps> = ({
+  label,
+  value,
+  className = "",
+}) => (
+  <div
+    className={`flex justify-between items-start p-3 bg-gray-50 rounded-lg ${className}`}
+  >
+    <span className="text-sm font-medium text-gray-600">{label}</span>
+    <div className="text-sm text-gray-900 text-right">{value}</div>
+  </div>
+);
+
+// Enhanced Profile Image Component with Card Effect
+interface ProfileImageProps {
+  agent: Agent;
+}
+
+const ProfileImage: React.FC<ProfileImageProps> = ({ agent }) => (
+  <div className="relative group mx-auto">
+    {/* Main Card Container */}
+    <div className="w-full h-[280px] overflow-hidden transition-all duration-300 rounded-xl shadow-lg">
+      {agent.profilePictureUrl ? (
+        <img
+          src={agent.profilePictureUrl}
+          alt={agent.fullName}
+          className="h-full w-full scale-105 group-hover:scale-100 grayscale group-hover:grayscale-0 object-cover transition-all duration-300"
+        />
+      ) : (
+        <div className="h-full w-full scale-105 group-hover:scale-100 grayscale group-hover:grayscale-0 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center transition-all duration-300">
+          <User className="w-20 h-20 text-gray-400" />
+        </div>
+      )}
+    </div>
+
+    {/* Status Badge */}
+    <div className="absolute -bottom-2 -right-2 z-10">
+      <div
+        className={`w-8 h-8 rounded-full border-4 border-white flex items-center justify-center shadow-lg transition-all duration-300 ${
+          agent.isActive ? "bg-green-500" : "bg-gray-400"
+        }`}
+      >
+        {agent.isActive ? (
+          <CheckCircle className="w-4 h-4 text-white" />
+        ) : (
+          <XCircle className="w-4 h-4 text-white" />
+        )}
+      </div>
+    </div>
+
+    {/* Info Overlay */}
+    <div className="absolute bottom-0 left-0 right-0 h-20 group-hover:h-28 transition-all duration-500 ease-out bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 rounded-b-xl">
+      <div className="info translate-y-0 transition-all duration-500 ease-out">
+        <p className="text-white font-semibold text-lg truncate transform transition-all duration-300 group-hover:scale-105">
+          {agent.fullName}
+        </p>
+        <p className="text-white/80 text-sm transition-all duration-300 group-hover:text-white/90">@{agent.username}</p>
+      </div>
+
+      {/* Hidden Details on Hover */}
+      <div className="absolute -bottom-10 left-0 right-0 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 group-hover:bottom-3 transition-all duration-500 ease-out delay-100">
+        <div className="text-white text-center">
+          <Badge
+            variant="secondary"
+            className="text-xs bg-white/25 text-white border-white/40 backdrop-blur-sm transition-all duration-300 hover:bg-white/35 transform hover:scale-105"
+          >
+            {agent.agentType}
+          </Badge>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// Reusable Status Button Component
+interface StatusButtonProps {
+  agent: Agent;
+  onStatusChange: (status: boolean) => void;
+  isLoading: boolean;
+}
+
+const StatusButton: React.FC<StatusButtonProps> = ({
+  agent,
+  onStatusChange,
+  isLoading,
+}) => (
+  <Button
+    variant={agent.isActive ? "destructive" : "default"}
+    size="sm"
+    onClick={() => onStatusChange(!agent.isActive)}
+    disabled={isLoading}
+  >
+    {agent.isActive ? (
+      <>
+        <XCircle className="w-4 h-4 mr-1" />
+        Deactivate
+      </>
+    ) : (
+      <>
+        <CheckCircle className="w-4 h-4 mr-1" />
+        Activate
+      </>
+    )}
+  </Button>
+);
+
+// Reusable Summary Card Component
+interface SummaryCardProps {
+  icon: React.ReactNode;
+  value: string;
+  label: string;
+  colorClass: string;
+}
+
+const SummaryCard: React.FC<SummaryCardProps> = ({
+  icon,
+  value,
+  label,
+  colorClass,
+}) => (
+  <Card>
+    <CardContent className="p-4 text-center">
+      <div className={`${colorClass} mb-2`}>{icon}</div>
+      <div className={`text-lg font-bold ${colorClass}`}>{value}</div>
+      <div className="text-xs text-gray-600">{label}</div>
+    </CardContent>
+  </Card>
+);
+
+// Reusable Activity Item Component
+interface ActivityItemProps {
+  action: string;
+  timestamp: string;
+}
+
+const ActivityItem: React.FC<ActivityItemProps> = ({ action, timestamp }) => (
+  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+    <div className="flex-1">
+      <div className="text-sm font-medium">{action}</div>
+      <div className="text-xs text-gray-500">{timestamp}</div>
+    </div>
+  </div>
+);
+
 const AgentDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -103,46 +311,14 @@ const AgentDetails: React.FC = () => {
     statusMutation.mutate({ agentId: agent.id.toString(), status: newStatus });
   };
 
-  const handleEdit = () => {
-    // Navigate to edit page or open edit modal
-    console.log("Edit agent", agent?.id);
-  };
-
   // Loading state
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading agent details...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   // Error state
   if (error || !agent) {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-500 mb-4">
-            <AlertTriangle className="w-12 h-12 mx-auto" />
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Agent Not Found
-          </h2>
-          <p className="text-gray-600 mb-4">
-            {error instanceof Error
-              ? error.message
-              : "The requested agent could not be found."}
-          </p>
-          <Button onClick={handleBack} variant="outline">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Agents
-          </Button>
-        </div>
-      </div>
-    );
+    return <ErrorState error={error} onBack={handleBack} />;
   }
 
   // Mock data for demonstration
@@ -164,47 +340,12 @@ const AgentDetails: React.FC = () => {
         Back to Agents
       </Button>
 
-      {/* Header Section - Enhanced with Large Profile Image */}
+      {/* Header Section - Enhanced with Beautiful Profile Card */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        {/* Profile Image Card */}
-        <Card className="lg:col-span-1">
+        {/* Enhanced Profile Image Card */}
+        <Card className="lg:col-span-1 overflow-hidden">
           <CardContent className="p-6 text-center">
-            <div className="relative inline-block mb-4">
-              <div className="w-32 h-32 bg-gray-200 rounded-xl overflow-hidden shadow-lg">
-                {agent.profilePictureUrl ? (
-                  <img
-                    src={agent.profilePictureUrl}
-                    alt={agent.fullName}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <User className="w-16 h-16 text-gray-400" />
-                  </div>
-                )}
-              </div>
-              {/* Status Badge */}
-              <div className="absolute -bottom-2 -right-2">
-                <div
-                  className={`w-8 h-8 rounded-full border-4 border-white flex items-center justify-center shadow-lg ${
-                    agent.isActive ? "bg-green-500" : "bg-gray-400"
-                  }`}
-                >
-                  {agent.isActive ? (
-                    <CheckCircle className="w-4 h-4 text-white" />
-                  ) : (
-                    <XCircle className="w-4 h-4 text-white" />
-                  )}
-                </div>
-              </div>
-            </div>
-            <h1 className="text-xl font-bold text-gray-900 mb-2">
-              {agent.fullName}
-            </h1>
-            <p className="text-sm text-gray-500 mb-2">@{agent.username}</p>
-            <Badge variant="secondary" className="text-xs">
-              {agent.agentType}
-            </Badge>
+            <ProfileImage agent={agent} />
           </CardContent>
         </Card>
 
@@ -214,24 +355,11 @@ const AgentDetails: React.FC = () => {
             <CardTitle className="flex items-center justify-between">
               <span>Agent Information</span>
               <div className="flex items-center space-x-2">
-                <Button
-                  variant={agent.isActive ? "destructive" : "default"}
-                  size="sm"
-                  onClick={() => handleStatusChange(!agent.isActive)}
-                  disabled={statusMutation.isPending}
-                >
-                  {agent.isActive ? (
-                    <>
-                      <XCircle className="w-4 h-4 mr-1" />
-                      Deactivate
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-4 h-4 mr-1" />
-                      Activate
-                    </>
-                  )}
-                </Button>
+                <StatusButton
+                  agent={agent}
+                  onStatusChange={handleStatusChange}
+                  isLoading={statusMutation.isPending}
+                />
               </div>
             </CardTitle>
           </CardHeader>
@@ -239,76 +367,53 @@ const AgentDetails: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Left Column */}
               <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium text-gray-600">
-                    Email
-                  </span>
-                  <span className="text-sm text-gray-900">{agent.email}</span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium text-gray-600">
-                    Phone
-                  </span>
-                  <span className="text-sm text-gray-900">
-                    {agent.phoneNumber}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium text-gray-600">
-                    ID Number
-                  </span>
-                  <span className="text-sm text-gray-900">
-                    {agent.idNumber}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium text-gray-600">
-                    Status
-                  </span>
-                  <Badge variant={agent.isActive ? "default" : "secondary"}>
-                    {agent.isActive ? "Active" : "Inactive"}
-                  </Badge>
-                </div>
+                <InfoField label="Email" value={agent.email} />
+                <InfoField label="Phone" value={agent.phoneNumber} />
+                <InfoField label="ID Number" value={agent.idNumber} />
+                <InfoField
+                  label="Status"
+                  value={
+                    <Badge variant={agent.isActive ? "default" : "secondary"}>
+                      {agent.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  }
+                />
               </div>
 
               {/* Right Column */}
               <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium text-gray-600">
-                    Commission Rate
-                  </span>
-                  <span className="text-sm font-bold text-blue-600">
-                    {agent.commissionRate}%
-                  </span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium text-gray-600">
-                    Joined Date
-                  </span>
-                  <span className="text-sm text-gray-900">
-                    {new Date(agent.createdAt ?? "").toLocaleDateString(
-                      "en-US",
-                      {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      }
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between items-start p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm font-medium text-gray-600">
-                    Address
-                  </span>
-                  <div className="text-sm text-gray-900 text-right">
-                    <div>{agent.address.street}</div>
+                <InfoField
+                  label="Commission Rate"
+                  value={
+                    <span className="text-sm font-bold text-blue-600">
+                      {agent.commissionRate}%
+                    </span>
+                  }
+                />
+                <InfoField
+                  label="Joined Date"
+                  value={new Date(agent.createdAt ?? "").toLocaleDateString(
+                    "en-US",
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    }
+                  )}
+                />
+                <InfoFieldStart
+                  label="Address"
+                  value={
                     <div>
-                      {agent.address.city}, {agent.address.state}{" "}
-                      {agent.address.postalCode}
+                      <div>{agent.address.street}</div>
+                      <div>
+                        {agent.address.city}, {agent.address.state}{" "}
+                        {agent.address.postalCode}
+                      </div>
+                      <div>{agent.address.country}</div>
                     </div>
-                    <div>{agent.address.country}</div>
-                  </div>
-                </div>
+                  }
+                />
               </div>
             </div>
           </CardContent>
@@ -336,87 +441,47 @@ const AgentDetails: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600">Full Name</span>
-                    <span className="text-sm font-medium">
-                      {agent.fullName}
-                    </span>
-                  </div>
-                  <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600">Username</span>
-                    <span className="text-sm font-medium">
-                      @{agent.username}
-                    </span>
-                  </div>
-                  <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600">Agent Type</span>
-                    <span className="text-sm font-medium">
-                      {agent.agentType}
-                    </span>
-                  </div>
-                  <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600">Status</span>
-                    <Badge variant={agent.isActive ? "default" : "secondary"}>
-                      {agent.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                  </div>
+                  <InfoField label="Full Name" value={agent.fullName} />
+                  <InfoField label="Username" value={`@${agent.username}`} />
+                  <InfoField label="Agent Type" value={agent.agentType} />
+                  <InfoField
+                    label="Status"
+                    value={
+                      <Badge variant={agent.isActive ? "default" : "secondary"}>
+                        {agent.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    }
+                  />
                 </div>
               </CardContent>
             </Card>
 
             {/* Agent Details Cards */}
             <div className="grid grid-cols-2 gap-4">
-              {/* Commission Rate */}
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-blue-600 mb-2">
-                    <CreditCard className="w-8 h-8 mx-auto" />
-                  </div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {agent.commissionRate}%
-                  </div>
-                  <div className="text-xs text-gray-600">Commission Rate</div>
-                </CardContent>
-              </Card>
-
-              {/* ID Number */}
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-green-600 mb-2">
-                    <IdCard className="w-8 h-8 mx-auto" />
-                  </div>
-                  <div className="text-lg font-bold text-green-600">
-                    {agent.idNumber}
-                  </div>
-                  <div className="text-xs text-gray-600">ID Number</div>
-                </CardContent>
-              </Card>
-
-              {/* Bank Account */}
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-purple-600 mb-2">
-                    <CreditCard className="w-8 h-8 mx-auto" />
-                  </div>
-                  <div className="text-lg font-bold text-purple-600">
-                    ****{agent.bankAccountNumber?.slice(-4)}
-                  </div>
-                  <div className="text-xs text-gray-600">Bank Account</div>
-                </CardContent>
-              </Card>
-
-              {/* Tax ID */}
-              <Card>
-                <CardContent className="p-4 text-center">
-                  <div className="text-orange-600 mb-2">
-                    <IdCard className="w-8 h-8 mx-auto" />
-                  </div>
-                  <div className="text-lg font-bold text-orange-600">
-                    {agent.taxIdentificationNumber}
-                  </div>
-                  <div className="text-xs text-gray-600">Tax ID</div>
-                </CardContent>
-              </Card>
+              <SummaryCard
+                icon={<CreditCard className="w-8 h-8 mx-auto" />}
+                value={`${agent.commissionRate}%`}
+                label="Commission Rate"
+                colorClass="text-blue-600"
+              />
+              <SummaryCard
+                icon={<IdCard className="w-8 h-8 mx-auto" />}
+                value={agent.idNumber}
+                label="ID Number"
+                colorClass="text-green-600"
+              />
+              <SummaryCard
+                icon={<CreditCard className="w-8 h-8 mx-auto" />}
+                value={`****${agent.bankAccountNumber?.slice(-4)}`}
+                label="Bank Account"
+                colorClass="text-purple-600"
+              />
+              <SummaryCard
+                icon={<IdCard className="w-8 h-8 mx-auto" />}
+                value={agent.taxIdentificationNumber}
+                label="Tax ID"
+                colorClass="text-orange-600"
+              />
             </div>
           </div>
         </TabsContent>
@@ -433,20 +498,11 @@ const AgentDetails: React.FC = () => {
             <CardContent>
               <div className="space-y-4">
                 {recentActivities.map((activity, index) => (
-                  <div
+                  <ActivityItem
                     key={index}
-                    className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
-                  >
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">
-                        {activity.action}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {activity.timestamp}
-                      </div>
-                    </div>
-                  </div>
+                    action={activity.action}
+                    timestamp={activity.timestamp}
+                  />
                 ))}
               </div>
             </CardContent>
@@ -465,28 +521,20 @@ const AgentDetails: React.FC = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600">
-                      Commission Rate
-                    </span>
-                    <span className="text-sm font-medium">
-                      {agent.commissionRate}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600">Bank Account</span>
-                    <span className="text-sm font-medium">
-                      ****{agent.bankAccountNumber?.slice(-4)}
-                    </span>
-                  </div>
+                  <InfoField
+                    label="Commission Rate"
+                    value={`${agent.commissionRate}%`}
+                  />
+                  <InfoField
+                    label="Bank Account"
+                    value={`****${agent.bankAccountNumber?.slice(-4)}`}
+                  />
                 </div>
                 <div className="space-y-4">
-                  <div className="flex justify-between p-3 bg-gray-50 rounded-lg">
-                    <span className="text-sm text-gray-600">Tax ID</span>
-                    <span className="text-sm font-medium">
-                      {agent.taxIdentificationNumber}
-                    </span>
-                  </div>
+                  <InfoField
+                    label="Tax ID"
+                    value={agent.taxIdentificationNumber}
+                  />
                 </div>
               </div>
             </CardContent>
