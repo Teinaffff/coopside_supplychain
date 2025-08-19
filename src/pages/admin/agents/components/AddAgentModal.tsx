@@ -5,7 +5,7 @@ import { useAddAgentModal } from "../../hooks/use-add-agent-modal";
 import AgentForm from "./AgentForm";
 
 export const AddAgentModal = () => {
-  const { isOpen, onClose, defaultValues } = useAddAgentModal();
+  const { isOpen, onClose } = useAddAgentModal();
   const { handleAddAgent, isAddAgentLoading } = useAgents();
 
   const handleSubmit = async (data: AgentFormValues) => {
@@ -27,28 +27,26 @@ export const AddAgentModal = () => {
         className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"
       >
         <AgentForm
-          defaultValues={
-            defaultValues || {
-              username: "",
-              fullName: "",
-              email: "",
-              phoneNumber: "",
-              agentType: "",
-              idNumber: "",
-              commissionRate: 0,
-              address: {
-                street: "",
-                city: "",
-                state: "",
-                postalCode: "",
-                country: "",
-              },
-              isActive: true,
-              bankAccountNumber: "",
-              taxIdentificationNumber: "",
-              profilePictureUrl: undefined,
-            }
-          }
+          defaultValues={{
+            username: "",
+            fullName: "",
+            email: "",
+            phoneNumber: "",
+            agentType: "",
+            idNumber: "",
+            commissionRate: 0,
+            address: {
+              street: "",
+              city: "",
+              state: "",
+              postalCode: "",
+              country: "",
+            },
+            isActive: true,
+            bankAccountNumber: "",
+            taxIdentificationNumber: "",
+            profilePictureUrl: undefined,
+          }}
           onSubmit={handleSubmit}
           loading={isAddAgentLoading}
           onClose={onClose}

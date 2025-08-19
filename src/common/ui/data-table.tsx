@@ -31,6 +31,12 @@ import {
   TableRow,
 } from "./table";
 
+interface FacetedFilterConfig<TData> {
+  columnId: string;
+  title: string;
+  options: { label: string; value: any }[];
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -42,19 +48,21 @@ interface DataTableProps<TData, TValue> {
   buttonTitle?: string;
   ButtonIcon?: LucideIcon;
   onExport?: (filtered: string, data: Row<TData>[]) => void;
+  facetedFilters?: FacetedFilterConfig<TData>[];
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   searchKey,
-   searchPlaceholder,
+  searchPlaceholder,
   clickable,
   onConfirmFunction,
   getSelectedRow,
   buttonTitle,
   ButtonIcon,
   onExport,
+  facetedFilters,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -124,7 +132,7 @@ export function DataTable<TData, TValue>({
         />
         <div className="flex w-full items-center justify-between">
           <div className="ml-2">
-            <DataTableToolbar table={table} />
+            <DataTableToolbar table={table} facetedFilters={facetedFilters} />
           </div>
           {table.getFilteredSelectedRowModel().rows.length > 0 && (
             <div className="flex space-x-2">

@@ -16,6 +16,10 @@ const SharesPage = () => {
     isFetchAgents: true,
   });
 
+  const formattedAgents = agents?.map((agent) => ({
+    ...agent,
+    isActive: agent.isActive.toString(),
+  }));
   const deleteselectedMembers = () => {};
 
   return (
@@ -51,11 +55,21 @@ const SharesPage = () => {
           searchPlaceholder="Search by name"
           clickable={true}
           columns={columns}
-          data={agents || []}
+          data={formattedAgents || []}
           onConfirmFunction={deleteselectedMembers}
           onExport={ExportAgentsDataToExcel}
           buttonTitle="Delete Selection"
           ButtonIcon={Trash}
+          facetedFilters={[
+            {
+              columnId: "isActive",
+              title: "Status",
+              options: [
+                { label: "Active", value: "true" },
+                { label: "Inactive", value: "false" },
+              ],
+            },
+          ]}
         />
       </Card>
     </>

@@ -21,7 +21,7 @@ export interface Agent extends Timestamps {
   commissionRate: number;
   phoneNumber: string;
   address: Address;
-  isActive: boolean;
+  isActive: boolean | string;
   bankAccountNumber: string;
   taxIdentificationNumber: string;
   profilePictureUrl?: string;

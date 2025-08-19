@@ -63,7 +63,7 @@ const AgentForm: React.FC<AgentFormProps> = ({
         onSubmit={form.handleSubmit(handleSubmit)}
         className="space-y-8 w-full"
       >
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-3 gap-4">
           <FormField
             name="username"
             control={form.control}
@@ -304,7 +304,7 @@ const AgentForm: React.FC<AgentFormProps> = ({
           <FormField
             name="profilePictureUrl"
             control={form.control}
-            render={({ field }) => (
+            render={() => (
               <FormItem>
                 <FormLabel>Profile Picture:</FormLabel>
                 <FormControl>

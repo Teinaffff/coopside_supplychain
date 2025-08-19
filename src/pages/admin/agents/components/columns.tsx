@@ -26,7 +26,9 @@ export const columns: ColumnDef<Agent>[] = [
           to={`/admin/agents/${row.original.id}`}
           className="hover:text-underline"
         >
-          <Button variant={'link'} className="text-slate-600">{row.original.fullName}</Button>
+          <Button variant={"link"} className="text-slate-600">
+            {row.original.fullName}
+          </Button>
         </Link>
       );
     },
@@ -107,22 +109,16 @@ export const columns: ColumnDef<Agent>[] = [
       return (
         <Badge
           className={`text-white ${
-            row.original.isActive
-              ? "bg-green-500"
-              : "bg-red-500"
+            row.original.isActive === "true" ? "bg-green-500" : "bg-red-500"
           }`}
         >
-          {row.original.isActive ? "Active" : "Inactive"}
+          {row.original.isActive === "true" ? "Active" : "Inactive"}
         </Badge>
       );
     },
-    filterFn: (row, value) => {
-      if (value === "active") {
-        return row.original.isActive === true;
-      } else if (value === "inactive") {
-        return row.original.isActive === false;
-      }
-      return true;
+    filterFn: (row, id, value) => {
+      if (!value || value.length === 0) return true;
+      return value.includes((row.getValue(id) as boolean).toString());
     },
   },
   {
