@@ -4,6 +4,7 @@ import Consumers from "../../pages/admin/consumers/page";
 import Dashboard from "../../pages/admin/home/Dashboard";
 import Institutions from "../../pages/admin/institutions/page";
 import Logs from "../../pages/admin/logs/page";
+import FactoryDetails from "../../pages/admin/manufacturies/components/FactoryDetails";
 import Manufacturies from "../../pages/admin/manufacturies/page";
 import Reports from "../../pages/admin/reports/page";
 import Seller from "../../pages/admin/seller/page";
@@ -43,6 +44,11 @@ export const ROUTES = [
     path: "factories",
     title: "Factories",
     element: <Manufacturies />,
+  },
+  {
+    path: "factories/:id",
+    title: "Factory Details",
+    element: <FactoryDetails />,
   },
   {
     path: "reports",

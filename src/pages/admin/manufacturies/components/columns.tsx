@@ -1,11 +1,10 @@
-  
-
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "../../../../common/ui/button";
 import { Checkbox } from "../../../../common/ui/checkbox";
 import { Manufacturer } from "../../../../constants/interface/admin/manufacturer";
 import { CellAction } from "./cell-actions";
+import { Link } from "react-router-dom";
 
 export const columns: ColumnDef<Manufacturer>[] = [
   {
@@ -38,6 +37,18 @@ export const columns: ColumnDef<Manufacturer>[] = [
           Factory Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
+      );
+    },
+    cell: ({ row }) => {
+      return (
+        <Link
+          to={`/admin/factories/${row.original.id}`}
+          className="hover:text-underline"
+        >
+          <Button variant={"link"} className="text-slate-600">
+            {row.original.factoryName}
+          </Button>
+        </Link>
       );
     },
   },
