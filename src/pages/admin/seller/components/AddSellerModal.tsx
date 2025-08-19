@@ -5,7 +5,7 @@ import { SellerFormValues } from "../../../../schema/admin/seller";
 import SellerForm from "./SellerForm";
 
 export const AddSellerModal = () => {
-  const { isOpen, onClose, defaultValues } = useAddSellerModal();
+  const { isOpen, onClose } = useAddSellerModal();
   const { handleAddSeller, isAddSellerLoading } = useSellers();
 
   const handleSubmit = async (data: SellerFormValues) => {
@@ -27,8 +27,7 @@ export const AddSellerModal = () => {
         className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"
       >
         <SellerForm
-          defaultValues={
-            defaultValues || {
+          defaultValues={ {
               name: "",
               email: "",
               phone: "",

@@ -28,9 +28,9 @@ export const menuItems = [
     icon: <Users2 width={18} height={18} />,
   },
   {
-    label: "Manufacturies",
-    to: "/admin/manufacturies",
-    pathname: "/admin/manufacturies",
+    label: "Factories",
+    to: "/admin/factories",
+    pathname: "/admin/factories",
     icon: <Factory width={18} height={18} />,
   },
   {

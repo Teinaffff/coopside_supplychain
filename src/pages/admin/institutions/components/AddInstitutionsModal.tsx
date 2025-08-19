@@ -5,7 +5,7 @@ import { useInstitutions } from "../../hooks/use-institutions";
 import InstitutionForm from "./InstitutionForm";
 
 export const AddInstitutionsModal = () => {
-  const { isOpen, onClose, defaultValues } = useAddInstitutionModal();
+  const { isOpen, onClose } = useAddInstitutionModal();
   const { handleAddInstitution, isAddInstitutionLoading } = useInstitutions();
 
   const handleSubmit = (data: Institution) => {
@@ -23,8 +23,7 @@ export const AddInstitutionsModal = () => {
         className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"
       >
         <InstitutionForm
-          defaultValues={
-            defaultValues || {
+          defaultValues={{
               name: "",
               email: "",
               phone: "",

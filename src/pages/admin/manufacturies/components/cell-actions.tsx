@@ -23,7 +23,7 @@ export const CellAction: React.FC<{ data: Manufacturer }> = ({ data }) => {
 
   const onDelete = async () => {
     try {
-      await deleteManufacturer.mutateAsync(data.manufacturerId!);
+      await deleteManufacturer.mutateAsync(data.id!);
       setOpenDelete(false);
     } catch (error) {
       // Error handling is done in the mutation

@@ -40,8 +40,8 @@ export const ROUTES = [
     element: <Consumers />,
   },
   {
-    path: "Manufacturies",
-    title: "manufacturies",
+    path: "factories",
+    title: "Factories",
     element: <Manufacturies />,
   },
   {

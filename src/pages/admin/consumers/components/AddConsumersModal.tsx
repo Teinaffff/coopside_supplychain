@@ -5,7 +5,7 @@ import { useConsumers } from "../../hooks/use-consumers";
 import ConsumerForm from "./ConsumerForm";
 
 export const AddConsumerModal = () => {
-  const { isOpen, onClose, defaultValues } = useAddConsumerModal();
+  const { isOpen, onClose } = useAddConsumerModal();
   const { handleAddConsumer, isAddConsumerLoading } = useConsumers();
 
   const handleSubmit = (data: Consumer) => {
@@ -23,8 +23,7 @@ export const AddConsumerModal = () => {
         className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"
       >
         <ConsumerForm
-          defaultValues={
-            defaultValues || {
+          defaultValues={{
               name: "",
               email: "",
               phone: "",

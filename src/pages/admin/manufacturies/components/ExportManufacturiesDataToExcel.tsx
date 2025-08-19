@@ -1,18 +1,25 @@
 import * as XLSX from "xlsx";
-import { Manufacturer } from "../../../../constants/interface/admin/manufacturer";
 
 const EXCEL_HEADERS: (string | number)[] = [
-  "Manufacturer ID",
-  "Name",
+  "ID",
+  "Factory Name",
+  "Factory Code",
+  "Factory Type",
   "Email",
-  "Phone",
+  "Phone Number",
   "Contact Person",
-  "Business Type",
+  "Number of Employees",
+  "TIN Number",
+  "Street",
   "City",
-  "Subcity",
-  "Woreda",
+  "State",
+  "Postal Code",
+  "Country",
+  "Bank Name",
+  "Account Number",
+  "Account Holder Name",
+  "Swift Code",
   "Established Date",
-  "Manufacturer Status",
   "Created At",
   "Updated At",
 ];
@@ -20,23 +27,34 @@ const EXCEL_HEADERS: (string | number)[] = [
 const formatRowData = (row: any, filtered: boolean): (string | number)[] => {
   const data = filtered ? row.original : row;
   return [
-    data.manufacturerId || "",
-    data.name,
-    data.email,
-    data.phone,
-    data.contactPerson,
-    data.businessType,
-    data.city,
-    data.subcity,
-    data.woreda,
-    data.establishedDate,
-    data.manufacturerStatus,
+    data.id || "",
+    data.factoryName || "",
+    data.factoryCode || "",
+    data.factoryType || "",
+    data.email || "",
+    data.phoneNumber || "",
+    data.contactPerson || "",
+    data.numberOfEmployees || 0,
+    data.tinNumber || "",
+    data.address?.street || "",
+    data.address?.city || "",
+    data.address?.state || "",
+    data.address?.postalCode || "",
+    data.address?.country || "",
+    data.bankAccountInfo?.bankName || "",
+    data.bankAccountInfo?.accountNumber || "",
+    data.bankAccountInfo?.accountHolderName || "",
+    data.bankAccountInfo?.swiftCode || "",
+    data.establishedDate || "",
     data.createdAt || "",
     data.updatedAt || "",
   ];
 };
 
-const ExportManufacturersDataToExcel = (filtered: string, data: any[]): void => {
+const ExportManufacturersDataToExcel = (
+  filtered: string,
+  data: any[]
+): void => {
   const dynamicData = [
     EXCEL_HEADERS,
     ...data.map((row) => formatRowData(row, filtered === "filtered")),

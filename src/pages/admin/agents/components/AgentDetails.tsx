@@ -292,7 +292,7 @@ const AgentDetails: React.FC = () => {
               title={agent.fullName}
               subtitle={`@${agent.username}`}
               badgeText={agent.agentType}
-              isActive={agent.isActive}
+              isActive={Boolean(agent.isActive)}
             />
           </CardContent>
         </Card>

@@ -4,15 +4,15 @@ import { Card } from "../../../common/ui/card";
 import { DataTable } from "../../../common/ui/data-table";
 import { Heading } from "../../../common/ui/heading";
 import { useAddManufacturerModal } from "../hooks/use-add-manufacturer-modal";
+import { useManufacturers } from "../hooks/use-manufacturers";
 import { AddManufacturerModal } from "./components/AddManufacturerModal";
 import { EditManufacturerModal } from "./components/EditManufacturerModal";
 import ExportManufacturiesDataToExcel from "./components/ExportManufacturiesDataToExcel";
 import { columns } from "./components/columns";
-import { useManufacturers } from "../hooks/use-manufacturers";
 
 const ManufacturersPage = () => {
   const { onOpen } = useAddManufacturerModal();
-  const { manufacturers, isLoading } = useManufacturers();
+  const { manufacturers } = useManufacturers();
 
   const deleteSelectedManufacturers = () => {
     // Implementation for bulk delete
@@ -25,15 +25,12 @@ const ManufacturersPage = () => {
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
-            title={`Manufacturers (${manufacturers.length})`}
-            description="Manage Manufacturers"
+            title={`Factories (${manufacturers.length})`}
+            description="Manage Factories"
           />
           <div></div>
           <div className="flex space-x-2">
-            <Button
-             variant={"outline"} 
-              onClick={() => onOpen()}
-            >
+            <Button variant={"outline"} onClick={() => onOpen()}>
               <Plus className="mr-2 h-4 w-4" />
               Add New
             </Button>
@@ -49,7 +46,7 @@ const ManufacturersPage = () => {
           </div>
         </div>
         <DataTable
-          searchKey="name"
+          searchKey="factoryName"
           clickable={true}
           columns={columns}
           data={manufacturers}

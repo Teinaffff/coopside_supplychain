@@ -17,8 +17,8 @@ export const EditManufacturerModal = () => {
   return (
     <div>
       <Modal
-        title="Update Manufacturer"
-        description="Manage Manufacturer Information"
+        title="Update Factory"
+        description="Manage Factory Information"
         isOpen={isOpen}
         onClose={onClose}
         className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"
@@ -26,17 +26,65 @@ export const EditManufacturerModal = () => {
         <ManufacturerForm
           defaultValues={
             defaultValues || {
-              name: "",
-              email: "",
-              phone: "",
+              factoryName: "",
+              factoryCode: "",
+              factoryType: "",
+              tinNumber: "",
+              registrationNumber: "",
+              licenseNumber: "",
+              licenseExpiryDate: "",
+              headOfficeAddress: {
+                street: "",
+                city: "",
+                state: "",
+                postalCode: "",
+                country: "",
+              },
+              factoryAddresses: [{
+                street: "",
+                city: "",
+                state: "",
+                postalCode: "",
+                country: "",
+              }],
+              gpsCoordinates: "",
+              website: "",
+              phoneNumber: "",
+              faxNumber: "",
               contactPerson: "",
-              businessType: "",
-              city: "",
-              subcity: "",
-              woreda: "",
-              establishedDate: "",
-              manufacturerStatus: "",
-              logo: undefined,
+              alternateContactPerson: "",
+              operatingLicenses: [],
+              certifications: [],
+              mainProducts: [],
+              productionCapacity: "",
+              productionLines: [],
+              machineryList: [],
+              rawMaterialSources: [],
+              warehouseCapacity: "",
+              numberOfEmployees: 0,
+              hrContact: "",
+              suppliers: [],
+              distributors: [],
+              exportImportLicenses: [],
+              bankAccountInfo: {
+                accountNumber: "",
+                accountName: "",
+                bankName: "",
+                branchName: "",
+                swiftCode: "",
+                iban: "",
+              },
+              preferredCurrency: "",
+              billingAddress: {
+                street: "",
+                city: "",
+                state: "",
+                postalCode: "",
+                country: "",
+              },
+              paymentTerms: "",
+              erpSystem: "",
+              apiIntegrationId: "",
             }
           }
           onSubmit={handleSubmit}

@@ -1,9 +1,8 @@
-  
-
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Manufacturer } from "../../../constants/interface/admin/manufacturer";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { manufacturerMockData } from "../../../common/data/data";
+import { manufacturersMockData } from "../../../common/data/data";
+import { Manufacturer } from "../../../constants/interface/admin/manufacturer";
+import { ManufacturerFormValues } from "../../../schema/admin/manufacturer";
 
 const fetchManufacturers = async () => {
   // const res = await fetch('/api/manufacturers');
@@ -13,10 +12,10 @@ const fetchManufacturers = async () => {
   //   throw new Error(errorData.message ?? 'Failed to fetch manufacturers');
   // }
   // const data = await res.json();
-  return manufacturerMockData.slice(0, 10); // Limit to 10 entries
+  return manufacturersMockData.slice(0, 10); // Limit to 10 entries
 };
 
-const addManufacturer = async (manufacturer: Manufacturer) => {
+const addManufacturer = async (manufacturer: ManufacturerFormValues) => {
   // const res = await fetch('/api/manufacturers', {
   //   method: 'POST',
   //   headers: { 'Content-Type': 'application/json' },
@@ -31,7 +30,7 @@ const addManufacturer = async (manufacturer: Manufacturer) => {
   return manufacturer;
 };
 
-const editManufacturer = async (manufacturer: Manufacturer) => {
+const editManufacturer = async (manufacturer: ManufacturerFormValues) => {
   // const res = await fetch(`/api/manufacturers/${manufacturer.manufacturerId}`, {
   //   method: 'PUT',
   //   headers: { 'Content-Type': 'application/json' },
@@ -46,7 +45,7 @@ const editManufacturer = async (manufacturer: Manufacturer) => {
   return manufacturer;
 };
 
-const deleteManufacturerById = async (manufacturerId: string) => {
+const deleteManufacturerById = async (manufacturerId: number) => {
   // const res = await fetch(`/api/manufacturers/${manufacturerId}`, {
   //   method: 'DELETE',
   // });
@@ -104,11 +103,11 @@ export const useManufacturers = () => {
     },
   });
 
-  const handleAddManufacturer = (manufacturer: Manufacturer) => {
+  const handleAddManufacturer = (manufacturer: ManufacturerFormValues) => {
     addManufacturerMutation.mutate(manufacturer);
   };
 
-  const handleEditManufacturer = (manufacturer: Manufacturer) => {
+  const handleEditManufacturer = (manufacturer: ManufacturerFormValues) => {
     editManufacturerMutation.mutate(manufacturer);
   };
 
