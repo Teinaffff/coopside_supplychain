@@ -28,21 +28,21 @@ export const columns: ColumnDef<Institution>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "name",
+    accessorKey: "fullLegalName",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Name
+          Institution Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
   {
-    accessorKey: "email",
+    accessorKey: "contactEmail",
     header: ({ column }) => {
       return (
         <Button
@@ -70,21 +70,21 @@ export const columns: ColumnDef<Institution>[] = [
     },
   },
   {
-    accessorKey: "contactPerson",
+    accessorKey: "contactPhone",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Contact Person
+          Phone
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
   {
-    accessorKey: "institutionStatus",
+    accessorKey: "onboardingStatus",
     header: ({ column }) => {
       return (
         <Button

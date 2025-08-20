@@ -1,9 +1,7 @@
-  
-
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Institution } from "../../../constants/interface/admin/institution";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { institutionsMockData } from "../../../common/data/data";
+import { InstitutionFormValues } from "../../../schema/admin/institution";
 
 const fetchInstitutions = async () => {
   // const res = await fetch('/api/institutions');
@@ -30,8 +28,8 @@ export const useInstitutions = (options?: { isFetchInstitutions: boolean }) => {
   });
 
   const addInstitutionMutation = useMutation({
-    mutationFn: async (data: Institution) => {
-      const { institutionId, ...rest } = data;
+    mutationFn: async (data: InstitutionFormValues) => {
+      const { id, ...rest } = data;
       const res = await fetch("/api/institutions", {
         method: "POST",
         headers: {
@@ -53,10 +51,10 @@ export const useInstitutions = (options?: { isFetchInstitutions: boolean }) => {
   });
 
   const editInstitutionMutation = useMutation({
-    mutationFn: async (data: Institution) => {
-      const { institutionId, ...rest } = data;
+    mutationFn: async (data: InstitutionFormValues) => {
+      const { id, ...rest } = data;
 
-      const res = await fetch(`/api/institutions/${institutionId}`, {
+      const res = await fetch(`/api/institutions/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

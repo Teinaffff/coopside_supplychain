@@ -23,7 +23,7 @@ export const CellAction: React.FC<{ data: Institution }> = ({ data }) => {
 
   const onDelete = async () => {
     try {
-      await handleDeleteInstitution(data.institutionId ?? "");
+      await handleDeleteInstitution(data.id.toString());
       setOpenDelete(false);
     } catch (error) {
       // Error handling is done in the mutation

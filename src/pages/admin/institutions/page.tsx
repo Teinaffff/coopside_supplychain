@@ -48,8 +48,8 @@ const InstitutionsPage = () => {
           </div>
         </div>
         <DataTable
-          searchKey="name"
-          searchPlaceholder="Search by name"
+          searchKey="fullLegalName"
+          searchPlaceholder="Search by institution name"
           clickable={true}
           columns={columns}
           data={institutions || []}
