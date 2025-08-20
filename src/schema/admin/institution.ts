@@ -36,4 +36,17 @@ export const institutionFormSchema = z.object({
   }),
 });
 
+// Branch schema for creating branches
+export const branchFormSchema = z.object({
+  id: z.number().optional(),
+  institutionId: z.number({ message: "Institution is required" }),
+  branchName: z.string().min(1, { message: "Branch name is required" }),
+  address: z.string().min(1, { message: "Address is required" }),
+  phoneNumber: z.string().min(1, { message: "Phone number is required" }),
+  email: z.string().email({ message: "Invalid email format" }),
+  branchManager: z.string().min(1, { message: "Branch manager is required" }),
+  isActive: z.boolean().default(true),
+});
+
 export type InstitutionFormValues = z.infer<typeof institutionFormSchema>;
+export type BranchFormValues = z.infer<typeof branchFormSchema>;
