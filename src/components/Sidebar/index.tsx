@@ -1,9 +1,9 @@
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import Logo from "../../common/Logo";
-import { NavigationItem } from "../../constants/interface/navigationItem";
+import { NavigationItem } from "../../constants/interface/NavigationItem";
 import { isActivePath } from "../../lib/utils";
-import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -12,7 +12,12 @@ interface SidebarProps {
   rootPath: string;
 }
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen, menuItems, rootPath }: SidebarProps) => {
+const Sidebar = ({
+  sidebarOpen,
+  setSidebarOpen,
+  menuItems,
+  rootPath,
+}: SidebarProps) => {
   const location = useLocation();
   const { pathname } = location;
 
@@ -70,7 +75,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, menuItems, rootPath }: SidebarPr
   return (
     <aside
       ref={sidebar}
-      className={`absolute left-0 top-0  z-[50] flex h-screen w-72 flex-col overflow-y-hidden bg-cyan-500 duration-300 ease-linear dark:bg-cyan-500 lg:static lg:translate-x-0 ${
+      className={`absolute left-0 top-0 z-[50] flex h-screen w-72 flex-col overflow-y-hidden bg-cyan-500 dark:bg-slate-800 duration-300 ease-linear lg:static lg:translate-x-0 ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
@@ -83,7 +88,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, menuItems, rootPath }: SidebarPr
           onClick={() => setSidebarOpen(!sidebarOpen)}
           aria-controls="sidebar"
           aria-expanded={sidebarOpen}
-          className="block lg:hidden"
+          className="block lg:hidden text-white dark:text-slate-200 hover:text-slate-200 dark:hover:text-white"
         >
           <svg
             className="fill-current"
@@ -107,7 +112,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, menuItems, rootPath }: SidebarPr
         <nav className="mt-5 py-4 px-4 lg:mt-9 lg:px-6">
           {/* <!-- Menu Group --> */}
           <div>
-            <h3 className="mb-4 ml-4 text-sm font-semibold text-gray-200">
+            <h3 className="mb-4 ml-4 text-sm font-semibold text-gray-200 dark:text-slate-300">
               MENU
             </h3>
 
@@ -159,8 +164,10 @@ const SidebarItem = ({
   <div>
     <NavLink
       to={to}
-      className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium duration-300 ease-in-out hover:text-cyan-500 hover:bg-white dark:hover:bg-meta-4 ${
-        isActive ? "bg-white dark:bg-meta-4  text-cyan-500" : "text-white"
+      className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium duration-300 ease-in-out hover:text-cyan-500 hover:bg-white dark:hover:bg-slate-700 dark:hover:text-slate-200 ${
+        isActive
+          ? "bg-white dark:bg-slate-700 text-cyan-500 dark:text-slate-200"
+          : "text-white dark:text-slate-300"
       }`}
       onClick={subMenu ? toggleSubMenu : undefined}
     >
@@ -178,7 +185,7 @@ const SidebarItem = ({
           <li key={subItem.to}>
             <NavLink
               to={subItem.to}
-              className={`flex items-center gap-2 rounded-sm py-2 px-4 font-medium duration-300 ease-in-out text-white hover:text-cyan-500 hover:bg-white dark:hover:bg-meta-4`}
+              className={`flex items-center gap-2 rounded-sm py-2 px-4 font-medium duration-300 ease-in-out text-white dark:text-slate-300 hover:text-cyan-500 hover:bg-white dark:hover:bg-slate-700 dark:hover:text-slate-200`}
             >
               {subItem.icon}
               {subItem.label}
