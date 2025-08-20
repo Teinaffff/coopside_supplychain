@@ -1,10 +1,10 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "../../../../common/ui/button";
 import { Checkbox } from "../../../../common/ui/checkbox";
 import { Manufacturer } from "../../../../constants/interface/admin/manufacturer";
 import { CellAction } from "./cell-actions";
-import { Link } from "react-router-dom";
 
 export const columns: ColumnDef<Manufacturer>[] = [
   {

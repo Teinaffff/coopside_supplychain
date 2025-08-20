@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
     AlertTriangle,
     ArrowLeft,
@@ -45,27 +45,6 @@ const fetchManufacturerById = async (
   if (!manufacturer) {
     throw new Error(`Factory with ID ${manufacturerId} not found`);
   }
-  return manufacturer;
-};
-
-// Function to update manufacturer status (if needed)
-const updateManufacturerStatus = async ({
-  manufacturerId,
-  status,
-}: {
-  manufacturerId: string;
-  status: boolean;
-}): Promise<Manufacturer> => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
-
-  const manufacturer = manufacturersMockData.find(
-    (manufacturer) => manufacturer.id.toString() === manufacturerId
-  );
-  if (!manufacturer) {
-    throw new Error(`Factory with ID ${manufacturerId} not found`);
-  }
-
   return manufacturer;
 };
 
@@ -186,15 +165,9 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ action, timestamp }) => (
   </div>
 );
 
-// Factory Profile Card Component
-interface FactoryProfileCardProps {
-  manufacturer: Manufacturer;
-}
-
 const FactoryDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   // Fetch manufacturer data
   const {

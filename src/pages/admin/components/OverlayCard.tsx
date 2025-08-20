@@ -30,10 +30,10 @@ const OverlayCard: React.FC<OverlayCardProps> = ({
         <img
           src={imageUrl}
           alt={altText}
-          className="h-full w-full scale-105 group-hover:scale-100 grayscale group-hover:grayscale-0 object-cover transition-all duration-300"
+          className="h-full w-full scale-105 group-hover:scale-100 object-cover transition-all duration-300"
         />
       ) : (
-        <div className="h-full w-full scale-105 group-hover:scale-100 grayscale group-hover:grayscale-0 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center transition-all duration-300">
+        <div className="h-full w-full scale-105 group-hover:scale-100 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center transition-all duration-300">
           <User className="w-20 h-20 text-gray-400" />
         </div>
       )}
