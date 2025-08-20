@@ -40,6 +40,19 @@ export const columns: ColumnDef<Consumer>[] = [
         </Button>
       );
     },
+    // cell: ({ row }) => {
+    //   return (
+    //     <Link
+    //       to={`/admin/consumers/${row.original.id}`}
+    //       className="hover:text-underline"
+    //     >
+    //       <Button variant={"link"} className="text-slate-600  hover:text-cyan-500">
+    //         {row.original.name}
+    //       </Button>
+    //     </Link>
+    //   );
+    // },
+
   },
   {
     accessorKey: "email",

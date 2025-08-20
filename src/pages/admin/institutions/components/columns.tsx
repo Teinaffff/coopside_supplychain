@@ -1,7 +1,6 @@
-  
-
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "../../../../common/ui/button";
 import { Checkbox } from "../../../../common/ui/checkbox";
 import { Institution } from "../../../../constants/interface/admin/institution";
@@ -38,6 +37,21 @@ export const columns: ColumnDef<Institution>[] = [
           Institution Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
+      );
+    },
+    cell: ({ row }) => {
+      return (
+        <Link
+          to={`/admin/institutions/${row.original.id}`}
+          className="hover:text-underline"
+        >
+          <Button
+            variant={"link"}
+            className="text-slate-600 hover:text-cyan-500"
+          >
+            {row.original.fullLegalName}
+          </Button>
+        </Link>
       );
     },
   },
