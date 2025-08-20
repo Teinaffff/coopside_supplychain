@@ -26,7 +26,7 @@ export const columns: ColumnDef<Agent>[] = [
           to={`/admin/agents/${row.original.id}`}
           className="hover:text-underline"
         >
-          <Button variant={"link"} className="text-slate-600  hover:text-cyan-500">
+          <Button variant={"link"} className="text-slate-600  hover:text-cyan-500 dark:text-slate-50">
             {row.original.fullName}
           </Button>
         </Link>

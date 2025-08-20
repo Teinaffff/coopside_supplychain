@@ -1,22 +1,38 @@
-  
-
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, FileText, Calendar, User, BarChart3 } from "lucide-react";
+import { ArrowUpDown, BarChart3, Calendar, FileText, User } from "lucide-react";
+import { Badge } from "../../../../common/ui/badge";
 import { Button } from "../../../../common/ui/button";
 import { Checkbox } from "../../../../common/ui/checkbox";
-import { Badge } from "../../../../common/ui/badge";
-import { CellAction } from "./cell-actions";
 import { ReportData } from "../../../../constants/interface/admin/report";
+import { CellAction } from "./cell-actions";
 
 const getStatusBadge = (status: string) => {
   const statusConfig = {
-    completed: { variant: "default" as const, className: "bg-green-100 text-green-800 hover:bg-green-200" },
-    pending: { variant: "secondary" as const, className: "bg-yellow-100 text-yellow-800 hover:bg-yellow-200" },
-    failed: { variant: "destructive" as const, className: "bg-red-100 text-red-800 hover:bg-red-200" },
-    processing: { variant: "outline" as const, className: "bg-blue-100 text-blue-800 hover:bg-blue-200" },
+    completed: {
+      variant: "default" as const,
+      className:
+        "bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800",
+    },
+    pending: {
+      variant: "secondary" as const,
+      className:
+        "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-900 dark:text-yellow-200 dark:hover:bg-yellow-800",
+    },
+    failed: {
+      variant: "destructive" as const,
+      className:
+        "bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800",
+    },
+    processing: {
+      variant: "outline" as const,
+      className:
+        "bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800",
+    },
   };
-  
-  const config = statusConfig[status.toLowerCase() as keyof typeof statusConfig] || statusConfig.pending;
+
+  const config =
+    statusConfig[status.toLowerCase() as keyof typeof statusConfig] ||
+    statusConfig.pending;
   return (
     <Badge variant={config.variant} className={config.className}>
       {status}
@@ -26,12 +42,20 @@ const getStatusBadge = (status: string) => {
 
 const getCategoryIcon = (category: string) => {
   const icons = {
-    sales: <BarChart3 className="h-4 w-4 text-green-600" />,
-    users: <User className="h-4 w-4 text-blue-600" />,
-    system: <FileText className="h-4 w-4 text-purple-600" />,
-    analytics: <BarChart3 className="h-4 w-4 text-orange-600" />,
+    sales: <BarChart3 className="h-4 w-4 text-green-600 dark:text-green-400" />,
+    users: <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />,
+    system: (
+      <FileText className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+    ),
+    analytics: (
+      <BarChart3 className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+    ),
   };
-  return icons[category.toLowerCase() as keyof typeof icons] || <FileText className="h-4 w-4 text-gray-600" />;
+  return (
+    icons[category.toLowerCase() as keyof typeof icons] || (
+      <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+    )
+  );
 };
 
 export const columns: ColumnDef<ReportData>[] = [
@@ -42,7 +66,7 @@ export const columns: ColumnDef<ReportData>[] = [
         checked={table.getIsAllPageRowsSelected()}
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
-        className="border-2 border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+        className="border-2 border-gray-300 dark:border-slate-600 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 dark:data-[state=checked]:bg-blue-500 dark:data-[state=checked]:border-blue-500"
       />
     ),
     cell: ({ row }) => (
@@ -50,7 +74,7 @@ export const columns: ColumnDef<ReportData>[] = [
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
-        className="border-2 border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+        className="border-2 border-gray-300 dark:border-slate-600 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 dark:data-[state=checked]:bg-blue-500 dark:data-[state=checked]:border-blue-500"
       />
     ),
     enableSorting: false,
@@ -63,7 +87,7 @@ export const columns: ColumnDef<ReportData>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:bg-blue-50 font-semibold"
+          className="hover:bg-blue-50 dark:hover:bg-slate-700 font-semibold dark:text-slate-200"
         >
           <FileText className="mr-2 h-4 w-4" />
           Report Title
@@ -73,8 +97,12 @@ export const columns: ColumnDef<ReportData>[] = [
     },
     cell: ({ row }) => (
       <div className="flex flex-col">
-        <span className="font-medium text-gray-900">{row.getValue("title")}</span>
-        <span className="text-sm text-gray-500">{row.original.reportType}</span>
+        <span className="font-medium text-gray-900 dark:text-slate-100">
+          {row.getValue("title")}
+        </span>
+        <span className="text-sm text-gray-500 dark:text-slate-400">
+          {row.original.reportType}
+        </span>
       </div>
     ),
   },
@@ -85,7 +113,7 @@ export const columns: ColumnDef<ReportData>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:bg-blue-50 font-semibold"
+          className="hover:bg-blue-50 dark:hover:bg-slate-700 font-semibold dark:text-slate-200"
         >
           Category
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -95,7 +123,9 @@ export const columns: ColumnDef<ReportData>[] = [
     cell: ({ row }) => (
       <div className="flex items-center space-x-2">
         {getCategoryIcon(row.getValue("category"))}
-        <span className="capitalize font-medium">{row.getValue("category")}</span>
+        <span className="capitalize font-medium dark:text-slate-200">
+          {row.getValue("category")}
+        </span>
       </div>
     ),
   },
@@ -106,7 +136,7 @@ export const columns: ColumnDef<ReportData>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:bg-blue-50 font-semibold"
+          className="hover:bg-blue-50 dark:hover:bg-slate-700 font-semibold dark:text-slate-200"
         >
           <User className="mr-2 h-4 w-4" />
           Generated By
@@ -116,10 +146,12 @@ export const columns: ColumnDef<ReportData>[] = [
     },
     cell: ({ row }) => (
       <div className="flex items-center space-x-2">
-        <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-medium">
+        <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 dark:from-blue-500 dark:to-purple-600 flex items-center justify-center text-white text-sm font-medium">
           {row.getValue<string>("generatedBy").charAt(0).toUpperCase()}
         </div>
-        <span className="font-medium">{row.getValue("generatedBy")}</span>
+        <span className="font-medium dark:text-slate-200">
+          {row.getValue("generatedBy")}
+        </span>
       </div>
     ),
   },
@@ -130,7 +162,7 @@ export const columns: ColumnDef<ReportData>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:bg-blue-50 font-semibold"
+          className="hover:bg-blue-50 dark:hover:bg-slate-700 font-semibold dark:text-slate-200"
         >
           <Calendar className="mr-2 h-4 w-4" />
           Date
@@ -140,11 +172,14 @@ export const columns: ColumnDef<ReportData>[] = [
     },
     cell: ({ row }) => (
       <div className="text-sm">
-        <div className="font-medium text-gray-900">
+        <div className="font-medium text-gray-900 dark:text-slate-100">
           {new Date(row.getValue("generatedDate")).toLocaleDateString()}
         </div>
-        <div className="text-gray-500">
-          {new Date(row.getValue("generatedDate")).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        <div className="text-gray-500 dark:text-slate-400">
+          {new Date(row.getValue("generatedDate")).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
         </div>
       </div>
     ),
@@ -156,7 +191,7 @@ export const columns: ColumnDef<ReportData>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:bg-blue-50 font-semibold"
+          className="hover:bg-blue-50 dark:hover:bg-slate-700 font-semibold dark:text-slate-200"
         >
           Status
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -172,7 +207,7 @@ export const columns: ColumnDef<ReportData>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:bg-blue-50 font-semibold"
+          className="hover:bg-blue-50 dark:hover:bg-slate-700 font-semibold dark:text-slate-200"
         >
           Records
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -181,7 +216,7 @@ export const columns: ColumnDef<ReportData>[] = [
     },
     cell: ({ row }) => (
       <div className="text-center">
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-slate-700 dark:text-slate-200">
           {row.getValue<number>("totalRecords").toLocaleString()}
         </span>
       </div>
@@ -191,7 +226,9 @@ export const columns: ColumnDef<ReportData>[] = [
     accessorKey: "fileSize",
     header: "Size",
     cell: ({ row }) => (
-      <span className="text-sm text-gray-600 font-mono">{row.getValue("fileSize")}</span>
+      <span className="text-sm text-gray-600 dark:text-slate-400 font-mono">
+        {row.getValue("fileSize")}
+      </span>
     ),
   },
   {

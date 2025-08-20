@@ -10,7 +10,7 @@ import {
   MapPin,
   Package,
   Users,
-  XCircle
+  XCircle,
 } from "lucide-react";
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -51,10 +51,12 @@ const fetchInstitutionById = async (
 
 // Reusable Loading Component
 const LoadingState: React.FC = () => (
-  <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
+  <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-6 flex items-center justify-center">
     <div className="text-center">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-      <p className="text-gray-600">Loading institution details...</p>
+      <p className="text-gray-600 dark:text-slate-300">
+        Loading institution details...
+      </p>
     </div>
   </div>
 );
@@ -66,15 +68,15 @@ interface ErrorStateProps {
 }
 
 const ErrorState: React.FC<ErrorStateProps> = ({ error, onBack }) => (
-  <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
+  <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-6 flex items-center justify-center">
     <div className="text-center">
       <div className="text-red-500 mb-4">
         <AlertTriangle className="w-12 h-12 mx-auto" />
       </div>
-      <h2 className="text-xl font-semibold text-gray-900 mb-2">
+      <h2 className="text-xl font-semibold text-gray-900 dark:text-slate-100 mb-2">
         Institution Not Found
       </h2>
-      <p className="text-gray-600 mb-4">
+      <p className="text-gray-600 dark:text-slate-300 mb-4">
         {error instanceof Error
           ? error.message
           : "The requested institution could not be found."}
@@ -100,10 +102,12 @@ const InfoField: React.FC<InfoFieldProps> = ({
   className = "",
 }) => (
   <div
-    className={`flex justify-between items-center p-3 bg-gray-50 rounded-lg ${className}`}
+    className={`flex justify-between items-center p-3 bg-gray-50 dark:bg-slate-800 rounded-lg ${className}`}
   >
-    <span className="text-sm font-medium text-gray-600">{label}</span>
-    <span className="text-sm text-gray-900">{value}</span>
+    <span className="text-sm font-medium text-gray-600 dark:text-slate-300">
+      {label}
+    </span>
+    <span className="text-sm text-gray-900 dark:text-slate-100">{value}</span>
   </div>
 );
 
@@ -120,10 +124,14 @@ const InfoFieldStart: React.FC<InfoFieldStartProps> = ({
   className = "",
 }) => (
   <div
-    className={`flex justify-between items-start p-3 bg-gray-50 rounded-lg ${className}`}
+    className={`flex justify-between items-start p-3 bg-gray-50 dark:bg-slate-800 rounded-lg ${className}`}
   >
-    <span className="text-sm font-medium text-gray-600">{label}</span>
-    <div className="text-sm text-gray-900 text-right">{value}</div>
+    <span className="text-sm font-medium text-gray-600 dark:text-slate-300">
+      {label}
+    </span>
+    <div className="text-sm text-gray-900 dark:text-slate-100 text-right">
+      {value}
+    </div>
   </div>
 );
 
@@ -157,11 +165,13 @@ interface ActivityItemProps {
 }
 
 const ActivityItem: React.FC<ActivityItemProps> = ({ action, timestamp }) => (
-  <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+  <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
     <div className="flex-1">
-      <div className="text-sm font-medium">{action}</div>
-      <div className="text-xs text-gray-500">{timestamp}</div>
+      <div className="text-sm font-medium dark:text-slate-100">{action}</div>
+      <div className="text-xs text-gray-500 dark:text-slate-400">
+        {timestamp}
+      </div>
     </div>
   </div>
 );
@@ -173,8 +183,10 @@ interface AgreementStatusProps {
 }
 
 const AgreementStatus: React.FC<AgreementStatusProps> = ({ label, status }) => (
-  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-    <span className="text-sm font-medium text-gray-600">{label}</span>
+  <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
+    <span className="text-sm font-medium text-gray-600 dark:text-slate-300">
+      {label}
+    </span>
     <div className="flex items-center space-x-2">
       {status ? (
         <CheckCircle className="w-4 h-4 text-green-500" />
@@ -239,12 +251,12 @@ const InstitutionDetails: React.FC = () => {
   };
 
   return (
-    <Card className="px-5 pt-5 pb-10">
+    <Card className="px-5 pt-5 pb-10 dark:bg-slate-800 dark:border-slate-700">
       {/* Back Button */}
       <Button
         variant="ghost"
         onClick={handleBack}
-        className="mb-6 text-gray-600 hover:text-gray-900"
+        className="mb-6 text-gray-600 hover:text-gray-900 dark:text-slate-300 dark:hover:text-slate-100"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Institutions
@@ -253,7 +265,7 @@ const InstitutionDetails: React.FC = () => {
       {/* Header Section - Enhanced with OverlayCard */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Enhanced Profile Image Card using OverlayCard */}
-        <Card className="lg:col-span-1 overflow-hidden">
+        <Card className="lg:col-span-1 overflow-hidden dark:bg-slate-800 dark:border-slate-700">
           <CardContent className="p-6">
             <OverlayCard
               imageUrl={institution.logoUrl || coopImage}
@@ -266,7 +278,7 @@ const InstitutionDetails: React.FC = () => {
               className="w-full"
             />
             <div className="mt-4 text-center">
-              <div className="flex items-center justify-center text-sm text-gray-500">
+              <div className="flex items-center justify-center text-sm text-gray-500 dark:text-slate-400">
                 <MapPin className="w-4 h-4 mr-1" />
                 {institution.mainOfficeAddress}
               </div>
@@ -275,9 +287,9 @@ const InstitutionDetails: React.FC = () => {
         </Card>
 
         {/* Institution Information Card */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 dark:bg-slate-800 dark:border-slate-700">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between dark:text-slate-100">
               <span>Institution Information</span>
               <Badge
                 variant={
@@ -340,21 +352,46 @@ const InstitutionDetails: React.FC = () => {
 
       {/* Tabbed Sections */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="financial">Financial</TabsTrigger>
-          <TabsTrigger value="employees">Employees</TabsTrigger>
-          <TabsTrigger value="agreements">Agreements</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5 dark:bg-slate-800">
+          <TabsTrigger
+            value="overview"
+            className="dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100"
+          >
+            Overview
+          </TabsTrigger>
+          <TabsTrigger
+            value="financial"
+            className="dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100"
+          >
+            Financial
+          </TabsTrigger>
+          <TabsTrigger
+            value="employees"
+            className="dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100"
+          >
+            Employees
+          </TabsTrigger>
+          <TabsTrigger
+            value="agreements"
+            className="dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100"
+          >
+            Agreements
+          </TabsTrigger>
+          <TabsTrigger
+            value="activity"
+            className="dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100"
+          >
+            Activity
+          </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Institution Profile Information */}
-            <Card>
+            <Card className="dark:bg-slate-800 dark:border-slate-700">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+                <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
                   <Building2 className="w-5 h-5" />
                   <span>Institution Profile</span>
                 </CardTitle>
@@ -420,9 +457,9 @@ const InstitutionDetails: React.FC = () => {
 
         {/* Financial Tab */}
         <TabsContent value="financial">
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
                 <CreditCard className="w-5 h-5" />
                 <span>Financial Information</span>
               </CardTitle>
@@ -461,9 +498,9 @@ const InstitutionDetails: React.FC = () => {
 
         {/* Employees Tab */}
         <TabsContent value="employees">
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
                 <Users className="w-5 h-5" />
                 <span>Employee Information</span>
               </CardTitle>
@@ -514,9 +551,9 @@ const InstitutionDetails: React.FC = () => {
 
         {/* Agreements Tab */}
         <TabsContent value="agreements">
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
                 <FileText className="w-5 h-5" />
                 <span>Agreement Status</span>
               </CardTitle>
@@ -554,9 +591,9 @@ const InstitutionDetails: React.FC = () => {
 
         {/* Activity Tab */}
         <TabsContent value="activity">
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
                 <Clock className="w-5 h-5" />
                 <span>Recent Activity</span>
               </CardTitle>

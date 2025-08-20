@@ -47,7 +47,7 @@ export const columns: ColumnDef<Consumer>[] = [
         >
           <Button
             variant={"link"}
-            className="text-slate-600  hover:text-cyan-500"
+            className="text-slate-600  hover:text-cyan-500 dark:text-slate-50"
           >
             {row.original.fullLegalName}
           </Button>
