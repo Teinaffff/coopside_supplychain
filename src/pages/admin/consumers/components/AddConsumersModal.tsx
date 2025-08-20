@@ -1,5 +1,5 @@
 import { Modal } from "../../../../common/ui/modal";
-import { Consumer } from "../../../../constants/interface/admin/consumer";
+import { ConsumerFormValues } from "../../../../schema/admin/consumer";
 import { useAddConsumerModal } from "../../hooks/use-add-consumer-modal";
 import { useConsumers } from "../../hooks/use-consumers";
 import ConsumerForm from "./ConsumerForm";
@@ -8,7 +8,7 @@ export const AddConsumerModal = () => {
   const { isOpen, onClose } = useAddConsumerModal();
   const { handleAddConsumer, isAddConsumerLoading } = useConsumers();
 
-  const handleSubmit = (data: Consumer) => {
+  const handleSubmit = (data: ConsumerFormValues) => {
     handleAddConsumer(data);
     onClose();
   };
@@ -16,27 +16,47 @@ export const AddConsumerModal = () => {
   return (
     <div>
       <Modal
-        title="Create Consumer"
-        description="Manage Consumer Information"
+        title="Create Employee"
+        description="Manage Employee Information"
         isOpen={isOpen}
         onClose={onClose}
-        className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"
+        className="z-[101] w-full sm:w-[80%] lg:w-[80%] h-[90%] sm:h-[750px] mt-5 overflow-y-scroll"
       >
         <ConsumerForm
           defaultValues={{
-              name: "",
-              email: "",
-              phone: "",
-              age: 0,
-              gender: "",
-              city: "",
-              subcity: "",
-              woreda: "",
-              registrationDate: "",
-              consumerStatus: "",
-              photo: undefined,
-            }
-          }
+            id: 0,
+            employeeId: "",
+            nationalIdNumber: "",
+            tin: "",
+            bankAccountNumber: "",
+            mobileNumber: "",
+            fullLegalName: "",
+            jobTitle: "",
+            department: "",
+            employmentType: "PERMANENT",
+            employmentStartDate: "",
+            employmentStatus: "ACTIVE",
+            institutionId: -1,
+            supervisorName: "",
+            workEmail: "",
+            grossSalary: 0,
+            netSalary: 0,
+            pensionDeduction: 0,
+            incomeTaxDeduction: 0,
+            otherDeductions: 0,
+            salaryFrequency: "MONTHLY",
+            payCycleTiming: "",
+            salaryDeductionConsent: false,
+            terminationRepaymentConsent: false,
+            maritalStatus: "SINGLE",
+            numberOfDependents: 0,
+            emergencyContactName: "",
+            emergencyContactRelationship: "",
+            emergencyContactPhone: "",
+            emergencyContactAddress: "",
+            createdBy: 0,
+            onboardingStatus: "PENDING",
+          }}
           onSubmit={handleSubmit}
           loading={isAddConsumerLoading}
           onClose={onClose}

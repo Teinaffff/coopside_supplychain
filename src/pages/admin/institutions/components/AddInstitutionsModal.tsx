@@ -20,7 +20,7 @@ export const AddInstitutionsModal = () => {
         description="Manage Institution Information"
         isOpen={isOpen}
         onClose={onClose}
-        className="z-[101] w-full sm:w-[80%] lg:w-[90%] h-[90%] sm:h-[750px] mt-5 overflow-y-scroll"
+        className="z-[101] w-full sm:w-[80%] lg:w-[80%] h-[90%] sm:h-[750px] mt-5 overflow-y-scroll"
       >
         <InstitutionForm
           defaultValues={{

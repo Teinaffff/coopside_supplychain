@@ -1,9 +1,7 @@
-  
-
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Consumer } from "../../../constants/interface/admin/consumer";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { consumersMockData } from "../../../common/data/data";
+import { ConsumerFormValues } from "../../../schema/admin/consumer";
 
 const fetchConsumers = async () => {
   // const res = await fetch('/api/consumers');
@@ -30,8 +28,8 @@ export const useConsumers = (options?: { isFetchConsumers: boolean }) => {
   });
 
   const addConsumerMutation = useMutation({
-    mutationFn: async (data: Consumer) => {
-      const { consumerId, ...rest } = data;
+    mutationFn: async (data: ConsumerFormValues) => {
+      const { id, ...rest } = data;
       const res = await fetch("/api/consumers", {
         method: "POST",
         headers: {
@@ -53,10 +51,10 @@ export const useConsumers = (options?: { isFetchConsumers: boolean }) => {
   });
 
   const editConsumerMutation = useMutation({
-    mutationFn: async (data: Consumer) => {
-      const { consumerId, ...rest } = data;
+    mutationFn: async (data: ConsumerFormValues) => {
+      const { id, ...rest } = data;
 
-      const res = await fetch(`/api/consumers/${consumerId}`, {
+      const res = await fetch(`/api/consumers/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

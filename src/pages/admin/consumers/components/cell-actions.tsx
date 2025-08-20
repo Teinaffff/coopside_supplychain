@@ -24,9 +24,9 @@ export const CellAction: React.FC<{ data: Consumer }> = ({ data }) => {
   const onDelete = async () => {
     try {
       setLoading(true);
-      // Delete consumer logic here
-      console.log("Deleting consumer:", data.consumerId);
-      toast.success("Consumer deleted successfully!");
+      // Delete employee logic here
+      console.log("Deleting employee:", data.id);
+      toast.success("Employee deleted successfully!");
     } catch (error) {
       toast.error("Something went wrong!");
     } finally {
