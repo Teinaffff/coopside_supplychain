@@ -93,7 +93,7 @@ const EntityStatsChart: React.FC = () => {
                 type="monotone"
                 dataKey="agents"
                 name="Agents"
-                stroke="#06b6d4"
+                stroke="#00aeef"
                 strokeWidth={2}
               />
               <Line

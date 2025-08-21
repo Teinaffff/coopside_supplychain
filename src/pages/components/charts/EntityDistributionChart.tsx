@@ -1,12 +1,5 @@
-import React, { useState } from "react";
-import {
-  PieChart,
-  Pie,
-  ResponsiveContainer,
-  Legend,
-  Tooltip,
-  Cell,
-} from "recharts";
+import { useState } from "react";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 import {
   Card,
   CardContent,
@@ -26,13 +19,13 @@ const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
 const entityData = [
-  { name: "Agents", value: 45 },
   { name: "Institutions", value: 25 },
+  { name: "Agents", value: 45 },
   { name: "Consumers", value: 20 },
   { name: "Sellers", value: 10 },
 ];
 
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
+const COLORS = ["#00aeef", "#00C49F", "#FFBB28", "#FF8042"];
 
 const EntityDistributionChart = () => {
   const [selectedYear, setSelectedYear] = useState(currentYear);
@@ -75,7 +68,7 @@ const EntityDistributionChart = () => {
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-0">
         {loading ? (
           <div>Loading...</div>
         ) : entityData.length === 0 ? (

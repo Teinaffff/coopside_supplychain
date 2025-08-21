@@ -1,9 +1,4 @@
-import {
-  ActivityIcon,
-  CheckCircle,
-  Clock,
-  FileText
-} from "lucide-react";
+import { ActivityIcon, FileText } from "lucide-react";
 import { Button } from "../../../common/ui/button";
 import {
   Card,
@@ -30,16 +25,6 @@ const AdminPriorityCard = () => {
       action: "Agent verification completed",
       time: "1 hour ago",
     },
-  ];
-
-  const quickStats = [
-    {
-      label: "Total orders",
-      value: "23",
-      icon: CheckCircle,
-      trend: "+18%",
-    },
-    { label: "Pending Requests", value: "31", icon: Clock, trend: "+5%" },
   ];
 
   return (

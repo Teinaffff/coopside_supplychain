@@ -10,7 +10,7 @@ import {
   MapPin,
   Package,
   Users,
-  XCircle,
+  XCircle
 } from "lucide-react";
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -32,6 +32,7 @@ import {
 } from "../../../../common/ui/tabs";
 import { Institution } from "../../../../constants/interface/admin/institution";
 import OverlayCard from "../../components/OverlayCard";
+import BranchesSection from "./BranchesSection";
 
 // Function to fetch a single institution by ID
 const fetchInstitutionById = async (
@@ -352,7 +353,7 @@ const InstitutionDetails: React.FC = () => {
 
       {/* Tabbed Sections */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 dark:bg-slate-800">
+        <TabsList className="grid w-full grid-cols-6 dark:bg-slate-800">
           <TabsTrigger
             value="overview"
             className="dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100"
@@ -370,6 +371,12 @@ const InstitutionDetails: React.FC = () => {
             className="dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100"
           >
             Employees
+          </TabsTrigger>
+          <TabsTrigger
+            value="branches"
+            className="dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100"
+          >
+            Branches
           </TabsTrigger>
           <TabsTrigger
             value="agreements"
@@ -626,6 +633,13 @@ const InstitutionDetails: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+        {/* New Branches Tab */}
+        <TabsContent value="branches">
+          <BranchesSection
+            institutionId={id!}
+            institutionName={institution.fullLegalName}
+          />
         </TabsContent>
       </Tabs>
     </Card>
