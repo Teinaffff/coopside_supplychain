@@ -54,7 +54,7 @@ const fetchInstitutionById = async (
 const LoadingState: React.FC = () => (
   <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-6 flex items-center justify-center">
     <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
       <p className="text-gray-600 dark:text-slate-300">
         Loading institution details...
       </p>
@@ -167,7 +167,7 @@ interface ActivityItemProps {
 
 const ActivityItem: React.FC<ActivityItemProps> = ({ action, timestamp }) => (
   <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
-    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+    <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
     <div className="flex-1">
       <div className="text-sm font-medium dark:text-slate-100">{action}</div>
       <div className="text-xs text-gray-500 dark:text-slate-400">
@@ -190,13 +190,13 @@ const AgreementStatus: React.FC<AgreementStatusProps> = ({ label, status }) => (
     </span>
     <div className="flex items-center space-x-2">
       {status ? (
-        <CheckCircle className="w-4 h-4 text-green-500" />
+        <CheckCircle className="w-4 h-4 text-cyan-500" />
       ) : (
         <XCircle className="w-4 h-4 text-red-500" />
       )}
       <span
         className={`text-sm font-medium ${
-          status ? "text-green-600" : "text-red-600"
+          status ? "text-cyan-500" : "text-red-600"
         }`}
       >
         {status ? "Agreed" : "Not Agreed"}
@@ -300,7 +300,7 @@ const InstitutionDetails: React.FC = () => {
                 }
                 className={
                   institution.onboardingStatus === "approved"
-                    ? "bg-green-500"
+                    ? "bg-cyan-500"
                     : ""
                 }
               >
@@ -438,7 +438,7 @@ const InstitutionDetails: React.FC = () => {
                   institution.contractualEmployees
                 ).toString()}
                 label="Total Employees"
-                colorClass="text-blue-600"
+                colorClass="text-cyan-500"
               />
               <SummaryCard
                 icon={<Building2 className="w-8 h-8 mx-auto" />}

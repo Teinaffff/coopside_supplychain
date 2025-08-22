@@ -1,12 +1,13 @@
 import { Edit, MapPin, Plus, Trash } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
+import { AlertModal } from "../../../../common/modals/alert-modal";
 import { Badge } from "../../../../common/ui/badge";
 import { Button } from "../../../../common/ui/button";
 import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
 } from "../../../../common/ui/card";
 import { DataTable } from "../../../../common/ui/data-table";
 import { useAddBranchModal } from "../../hooks/use-add-branch-modal";
@@ -18,7 +19,7 @@ import EditBranchModal from "./EditBranchModal";
 const mockBranches = [
   {
     id: 1,
-    institutionId: 1,
+    institutionId: 101,
     branchName: "Main Branch",
     address: "123 Main St, Addis Ababa",
     phoneNumber: "+251-11-123-4567",
@@ -28,7 +29,7 @@ const mockBranches = [
   },
   {
     id: 2,
-    institutionId: 1,
+    institutionId: 101,
     branchName: "Downtown Branch",
     address: "456 Downtown Ave, Addis Ababa",
     phoneNumber: "+251-11-987-6543",
@@ -50,6 +51,11 @@ const BranchesSection: React.FC<BranchesSectionProps> = ({
   const { onOpen: onOpenAddModal } = useAddBranchModal();
   const { onOpen: onOpenEditModal } = useEditBranchModal();
 
+  // State for delete modal
+  const [openDelete, setOpenDelete] = useState(false);
+  const [branchToDelete, setBranchToDelete] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Filter branches for this institution
   const branches = mockBranches.filter(
     (branch) => branch.institutionId.toString() === institutionId
@@ -63,9 +69,29 @@ const BranchesSection: React.FC<BranchesSectionProps> = ({
     onOpenEditModal(branch);
   };
 
-  const handleDeleteBranch = (branchId: number) => {
-    // Implement delete logic
-    console.log("Delete branch:", branchId);
+  const onDelete = async () => {
+    if (!branchToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      // Implement your delete API call here
+      console.log("Deleting branch:", branchToDelete);
+
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Close modal and reset state
+      setOpenDelete(false);
+      setBranchToDelete(null);
+
+      // You might want to refresh the data or remove from local state
+      // For now, just log success
+      console.log("Branch deleted successfully");
+    } catch (error) {
+      console.error("Error deleting branch:", error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const columns = [
@@ -127,7 +153,10 @@ const BranchesSection: React.FC<BranchesSectionProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleDeleteBranch(branch.id)}
+              onClick={() => {
+                setBranchToDelete(branch.id);
+                setOpenDelete(true);
+              }}
               className="text-red-600 hover:text-red-800"
             >
               <Trash className="h-4 w-4" />
@@ -140,6 +169,15 @@ const BranchesSection: React.FC<BranchesSectionProps> = ({
 
   return (
     <>
+      <AlertModal
+        isOpen={openDelete}
+        onClose={() => {
+          setOpenDelete(false);
+          setBranchToDelete(null);
+        }}
+        onConfirm={onDelete}
+        loading={isDeleting}
+      />
       <Card className="dark:bg-slate-800 dark:border-slate-700">
         <CardHeader>
           <div className="flex items-center justify-between">

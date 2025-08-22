@@ -43,7 +43,7 @@ const OverlayCard: React.FC<OverlayCardProps> = ({
     <div className="absolute -bottom-2 -right-2 z-10">
       <div
         className={`w-8 h-8 rounded-full border-4 border-white flex items-center justify-center shadow-lg transition-all duration-300 ${
-          isActive ? "bg-green-500" : "bg-gray-400"
+          isActive ? "bg-cyan-500" : "bg-gray-400"
         }`}
       >
         {isActive ? (
