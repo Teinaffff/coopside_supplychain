@@ -1,18 +1,21 @@
-import { Download, Plus, Trash } from "lucide-react";
+import { Download, Plus, Trash, Upload } from "lucide-react";
 import { Button } from "../../../common/ui/button";
 import { Card } from "../../../common/ui/card";
 import { DataTable } from "../../../common/ui/data-table";
 import { Heading } from "../../../common/ui/heading";
 import { useAddSellerModal } from "../hooks/use-add-seller-modal";
+import { useImportSellersModal } from "../hooks/use-import-sellers-modal";
 import { useSellers } from "../hooks/use-sellers";
 import { AddSellerModal } from "./components/AddSellerModal";
 import { EditSellerModal } from "./components/EditSellerModal";
+import { ImportSellersModal } from "./components/ImportSellersModal";
 import ExportSellerDataToExcel from "./components/ExportSellerDataToExcel";
 import { columns } from "./components/columns";
 
 const SellersPage = () => {
   const { onOpen } = useAddSellerModal();
-  const { sellers, isLoading } = useSellers({
+  const { onOpen: onOpenImport } = useImportSellersModal();
+  const { sellers } = useSellers({
     isFetchSellers: true,
   });
 
@@ -22,6 +25,7 @@ const SellersPage = () => {
     <>
       <AddSellerModal />
       <EditSellerModal />
+      <ImportSellersModal />
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
@@ -36,6 +40,14 @@ const SellersPage = () => {
             >
               <Plus className="mr-2 h-4 w-4" />
               Add New
+            </Button>
+            <Button
+              variant={"outline"}
+              onClick={() => onOpenImport()}
+              className="border-cyan-600 text-cyan-600 hover:bg-blue-50"
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              Import
             </Button>
             <Button
               className={`bg-cyan-600 hover:bg-cyan-600`}
