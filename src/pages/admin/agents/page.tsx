@@ -1,17 +1,20 @@
-import { Download, Plus, Trash } from "lucide-react";
+import { Download, Plus, Trash, Upload } from "lucide-react";
 import { Button } from "../../../common/ui/button";
 import { Card } from "../../../common/ui/card";
 import { DataTable } from "../../../common/ui/data-table";
 import { Heading } from "../../../common/ui/heading";
 import { useAddAgentModal } from "../hooks/use-add-agent-modal";
+import { useImportAgentsModal } from "../hooks/use-import-agents-modal";
 import { useAgents } from "../hooks/use-agents";
 import { AddAgentModal } from "./components/AddAgentModal";
 import { EditAgentModal } from "./components/EditAgentModal";
+import { ImportAgentsModal } from "./components/ImportAgentsModal";
 import ExportAgentsDataToExcel from "./components/ExportAgentsDataToExcel";
 import { columns } from "./components/columns";
 
-const SharesPage = () => {
+const AgentPage = () => {
   const { onOpen } = useAddAgentModal();
+  const { onOpen: onOpenImport } = useImportAgentsModal();
   const { agents } = useAgents({
     isFetchAgents: true,
   });
@@ -26,6 +29,7 @@ const SharesPage = () => {
     <>
       <AddAgentModal />
       <EditAgentModal />
+      <ImportAgentsModal />
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
@@ -37,6 +41,14 @@ const SharesPage = () => {
             <Button variant={"outline"} onClick={() => onOpen()}>
               <Plus className="mr-2 h-4 w-4" />
               Add New
+            </Button>
+            <Button
+              variant={"outline"}
+              onClick={() => onOpenImport()}
+              className="border-cyan-600 text-cyan-600 hover:bg-blue-50"
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              Import
             </Button>
             <Button
               className={`bg-cyan-600 hover:bg-cyan-600`}
@@ -76,4 +88,4 @@ const SharesPage = () => {
   );
 };
 
-export default SharesPage;
+export default AgentPage;
