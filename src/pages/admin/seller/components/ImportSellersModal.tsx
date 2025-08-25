@@ -1,19 +1,19 @@
 import { ExpectedColumn } from "../../../../constants/general";
 import {
-    transformBoolean,
-    validateBoolean,
-    validateEmail
+    transformNumeric,
+    validateEmail,
+    validateNumeric
 } from "../../../../lib/validation-utils";
 import { GenericImportModal } from "../../components/GenericImportModal";
 import { useImportSellersModal } from "../../hooks/use-import-sellers-modal";
 import { useSellers } from "../../hooks/use-sellers";
 
-// Define seller columns based on your seller schema
+// Define seller columns based on seller schema
 const SELLER_COLUMNS: ExpectedColumn[] = [
   {
     field: "name",
     required: true,
-    description: "Name of the primary cooperative",
+    description: "Name of the cooperative",
   },
   {
     field: "email",
@@ -22,26 +22,46 @@ const SELLER_COLUMNS: ExpectedColumn[] = [
     validator: validateEmail,
   },
   {
-    field: "phoneNumber",
-    required: false,
+    field: "phone",
+    required: true,
     description: "Contact phone number",
   },
   {
-    field: "address",
-    required: false,
-    description: "Physical address",
+    field: "chairperson",
+    required: true,
+    description: "Name of the chairperson",
   },
   {
-    field: "registrationNumber",
-    required: false,
-    description: "Registration number",
+    field: "memberCount",
+    required: true,
+    description: "Number of members",
+    validator: validateNumeric,
+    transformer: transformNumeric,
   },
   {
-    field: "isActive",
-    required: false,
-    description: "Active status (true/false)",
-    validator: validateBoolean,
-    transformer: transformBoolean,
+    field: "city",
+    required: true,
+    description: "City location",
+  },
+  {
+    field: "subcity",
+    required: true,
+    description: "Subcity location",
+  },
+  {
+    field: "woreda",
+    required: true,
+    description: "Woreda location",
+  },
+  {
+    field: "establishedDate",
+    required: true,
+    description: "Date of establishment (YYYY-MM-DD)",
+  },
+  {
+    field: "sellerStatus",
+    required: true,
+    description: "Current status of the seller",
   },
 ];
 
@@ -50,17 +70,25 @@ const TEMPLATE_DATA = [
     "Cooperative ABC",
     "coop.abc@example.com",
     "+1234567890",
-    "123 Main St, City, State",
-    "REG123456",
-    "true",
+    "John Doe",
+    "150",
+    "Addis Ababa",
+    "Bole",
+    "03",
+    "2020-01-15",
+    "ACTIVE",
   ],
   [
     "Cooperative XYZ",
     "coop.xyz@example.com",
     "+1987654321",
-    "456 Oak Ave, City, State",
-    "REG789012",
-    "true",
+    "Jane Smith",
+    "200",
+    "Dire Dawa",
+    "Sabian",
+    "02",
+    "2019-05-20",
+    "ACTIVE",
   ],
 ];
 
@@ -73,26 +101,23 @@ const convertRowToSeller = (
     return mappedColumn ? row[mappedColumn] : undefined;
   };
 
-  const isActiveValue = getFieldValue("isActive");
-  let isActive = true;
-  if (isActiveValue !== undefined) {
-    const val = isActiveValue.toString().toLowerCase();
-    isActive = ["true", "1", "yes"].includes(val);
-  }
-
   return {
     name: getFieldValue("name")?.toString() || "",
     email: getFieldValue("email")?.toString() || "",
-    phoneNumber: getFieldValue("phoneNumber")?.toString() || "",
-    address: getFieldValue("address")?.toString() || "",
-    registrationNumber: getFieldValue("registrationNumber")?.toString() || "",
-    isActive,
+    phone: getFieldValue("phone")?.toString() || "",
+    chairperson: getFieldValue("chairperson")?.toString() || "",
+    memberCount: Number(getFieldValue("memberCount")) || 0,
+    city: getFieldValue("city")?.toString() || "",
+    subcity: getFieldValue("subcity")?.toString() || "",
+    woreda: getFieldValue("woreda")?.toString() || "",
+    establishedDate: getFieldValue("establishedDate")?.toString() || "",
+    sellerStatus: getFieldValue("sellerStatus")?.toString() || "",
   };
 };
 
 export const ImportSellersModal = () => {
   const { isOpen, onClose } = useImportSellersModal();
-  const { handleAddSeller } = useSellers(); // Assuming this method exists
+  const { handleAddSeller } = useSellers();
 
   const handleBulkSubmit = async (sellers: any[]) => {
     for (const seller of sellers) {
