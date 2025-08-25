@@ -1,8 +1,7 @@
 import { ExpectedColumn } from "../../../../constants/general";
 import {
-    transformNumeric,
-    validateEmail,
-    validateNumeric
+  transformNumeric,
+  validateNumeric
 } from "../../../../lib/validation-utils";
 import { GenericImportModal } from "../../components/GenericImportModal";
 import { useImportManufacturersModal } from "../../hooks/use-import-manufacturers-modal";
@@ -139,15 +138,17 @@ const convertRowToManufacturer = (
       city: "",
       state: "",
       postalCode: "",
-      country: ""
+      country: "",
     },
-    factoryAddresses: [{
-      street: "",
-      city: "",
-      state: "",
-      postalCode: "",
-      country: ""
-    }],
+    factoryAddresses: [
+      {
+        street: "",
+        city: "",
+        state: "",
+        postalCode: "",
+        country: "",
+      },
+    ],
     gpsCoordinates: "",
     website: "",
     faxNumber: "",
@@ -167,17 +168,17 @@ const convertRowToManufacturer = (
       bankName: "",
       branchName: "",
       swiftCode: "",
-      iban: ""
+      iban: "",
     },
     billingAddress: {
       street: "",
       city: "",
       state: "",
       postalCode: "",
-      country: ""
+      country: "",
     },
     erpSystem: "",
-    apiIntegrationId: ""
+    apiIntegrationId: "",
   };
 };
 
