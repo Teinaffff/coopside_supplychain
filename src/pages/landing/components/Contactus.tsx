@@ -1,5 +1,6 @@
 import { Mail, MapPin, Phone } from "lucide-react";
 import { ContactForm } from "./ContactForm";
+import { motion } from "framer-motion";
 
 const ContactUs = () => {
   return (
@@ -18,9 +19,12 @@ export default ContactUs;
 const ContactInfo = () => {
   return (
     <div className="w-full lg:w-1/2 mb-8 lg:mb-0">
-      <button className="bg-cyan-600 text-white px-4 py-2 rounded-full text-sm font-medium inline-block">
+      <motion.span
+        className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-6 py-3 rounded-full text-sm font-medium inline-block shadow-lg"
+        whileHover={{ scale: 1.05 }}
+      >
         Contact Us
-      </button>
+      </motion.span>
       <h2 className="text-3xl font-bold text-gray-900 mt-4">Get in Touch</h2>
       <p className="text-gray-600 mt-2 text-lg">
         Have questions? We're here to help and would love to hear from you.
