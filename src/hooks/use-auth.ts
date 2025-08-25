@@ -13,7 +13,7 @@ export const useAuth = () => {
   const loginMutation = useMutation({
     mutationFn: (data: LoginFormValues) => dispatch(authenticate(data)),
     onSuccess: () => {
-      navigate("/dashboard");
+      navigate("/admin");
     },
     onError: (error: AxiosError) => {
       if (error.message === "Please check your username and password.") {

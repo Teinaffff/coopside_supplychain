@@ -1,8 +1,8 @@
-import React from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
-import { Button } from "../../../common/ui/button";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "../../../common/ui/button";
 
 type NavLinkProps = {
   href: string;
@@ -64,7 +64,7 @@ const LandingHeader = () => {
         <div>
           <Button
             variant={"ghost"}
-            className="h-10 bg-cyan-500 hover:bg-cyan-500/90 text-white rounded-full px-6 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg"
+            className="h-10 bg-cyan-500 hover:bg-cyan-500/90 text-white  hover:text-white rounded-full px-6 transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg"
             onClick={() => navigate("/login")}
           >
             Signin

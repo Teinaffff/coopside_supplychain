@@ -1,21 +1,18 @@
 import { IMAGES } from "../../assets";
-import { cooperativeQuotes } from "../../common/data/data";
-import Loader1 from "../../common/Loader";
-import QuoteSlider from "../../components/slider";
+import Quotes from "../../components/quotes";
 import { useAuth } from "../../hooks/use-auth";
 import { LoginForm } from "./LoginForm";
 
 const LoginPage = () => {
   const { loading, handleLogin } = useAuth();
+  const quote = {
+    quote:
+      "The key to overcoming poverty lies in the power of cooperation and cooperatives",
+    name: "Haile Gebre",
+  };
 
   return (
     <div>
-      {loading && (
-        <div className="fixed right-1/2 top-1/2 z-[100]">
-          <Loader1 />
-        </div>
-      )}
-
       <section className={`dark:bg-gray-900 ${loading && "opacity-50"}`}>
         <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0 shadow">
           <div className="flex w-full items-center justify-center">
@@ -32,10 +29,7 @@ const LoginPage = () => {
                   <span>Cooperative Societies Management System</span>
                 </div>
                 <div className="px-4 py-6">
-                  <QuoteSlider
-                    quotes={cooperativeQuotes}
-                    options={{ loop: true }}
-                  />
+                  <Quotes quote={quote} />
                 </div>
               </div>
               <div className="w-full rounded-r-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
