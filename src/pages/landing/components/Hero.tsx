@@ -140,7 +140,7 @@ const Hero = () => {
         >
           <Button
             variant="ghost"
-            className="flex items-center space-x-2 h-12 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white px-8 py-6 text-lg rounded-full shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
+            className="flex items-center space-x-2 h-12 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 hover:bg-cyan-500/90 hover:text-white text-white px-8 py-6 text-lg rounded-full shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
             onClick={() => navigate("/register")}
           >
             <span>Join Our Network</span>
@@ -152,7 +152,7 @@ const Hero = () => {
 
           <Button
             variant="outline"
-            className="flex items-center space-x-2 h-12 border-2 border-cyan-600 text-cyan-600 hover:bg-cyan-50 px-8 py-6 text-lg rounded-full shadow-lg transition-all duration-300 hover:scale-105"
+            className="flex items-center space-x-2 h-12 border-2 border-cyan-600 text-cyan-600  hover:text-cyan-600 hover:bg-cyan-50 px-8 py-6 text-lg rounded-full shadow-lg transition-all duration-300 hover:scale-105"
             onClick={() =>
               document
                 .getElementById("services")
