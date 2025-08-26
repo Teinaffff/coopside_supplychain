@@ -4,7 +4,6 @@ import Layout from "./layout/Layout";
 import Admin from "./pages/admin";
 import Login from "./pages/auth/Login";
 import RequireAuth from "./pages/auth/RequireAuth";
-import SignupPage from "./pages/auth/Signup";
 import Coop from "./pages/coop";
 import Landing from "./pages/landing";
 
@@ -20,7 +19,7 @@ function App() {
         </Route>
 
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<SignupPage />} />
+        {/* <Route path="/register" element={<SignupPage />} /> */}
         <Route path="/not-found" element={<PageNotFound />} />
         <Route path="*" element={<Navigate to="/not-found" replace />} />
       </Route>

@@ -149,7 +149,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading }) => {
             )}
             Sign in
           </Button>
-          <p className="text-sm font-light">
+          {/* <p className="text-sm font-light">
             Want to create Cooperative?
             <Link
               to={"/register"}
@@ -157,7 +157,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading }) => {
             >
               Sign up
             </Link>
-          </p>
+          </p> */}
         </div>
       </form>
     </Form>
