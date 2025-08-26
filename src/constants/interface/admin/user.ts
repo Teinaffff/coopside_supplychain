@@ -72,11 +72,6 @@ export const ADMIN_MODULE_OPTIONS: AdminModuleOption[] = [
     requiresOrganization: true,
   },
   {
-    value: AdminModuleType.FINANCE_ADMIN,
-    label: "Finance Admin",
-    requiresOrganization: false,
-  },
-  {
     value: AdminModuleType.SUPER_ADMIN,
     label: "Super Admin",
     requiresOrganization: false,
