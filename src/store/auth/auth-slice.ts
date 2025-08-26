@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { authInitialState } from "../initialStates";
-import { User } from "../../constants/interface/auth";
+import { CurrentUser, User } from "../../constants/interface/auth";
 
 const SettingSlice = createSlice({
   name: "auth",
@@ -8,6 +8,9 @@ const SettingSlice = createSlice({
   reducers: {
     updateUser(state, { payload }: PayloadAction<User | undefined>) {
       state.user = payload;
+    },
+    updateCurrentUser(state, { payload }: PayloadAction<CurrentUser | undefined>) {
+      state.currentUser = payload;
     },
     updateUserFields(
       state,
@@ -27,6 +30,6 @@ const SettingSlice = createSlice({
   },
 });
 
-export const { updateUser, updateUserFields, updateUserPhotoField } =
+export const { updateUser, updateUserFields, updateUserPhotoField, updateCurrentUser } =
   SettingSlice.actions;
 export default SettingSlice.reducer;

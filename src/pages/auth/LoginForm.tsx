@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { UseMutateFunction } from "react-query";
 import { Link } from "react-router-dom";
 import { Button } from "../../common/ui/button";
-import { Checkbox } from "../../common/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -23,7 +22,7 @@ type LoginFormProps = {
   onSubmit: UseMutateFunction<
     unknown,
     AxiosError,
-    { email: string; password: string },
+    { username: string; password: string },
     unknown
   >;
   loading: boolean;
@@ -35,7 +34,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading }) => {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      username: "",
       password: "",
     },
   });
@@ -46,21 +45,20 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading }) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 w-full">
+      <form
+        onSubmit={form.handleSubmit(handleSubmit)}
+        className="space-y-4 w-full"
+      >
         <div className="space-y-4 md:space-y-4">
           <div className="space-y-2">
             <FormField
               control={form.control}
-              name="email"
+              name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email:</FormLabel>
+                  <FormLabel>Username:</FormLabel>
                   <FormControl>
-                    <Input
-                      type="text"
-                      disabled={loading}
-                      {...field}
-                    />
+                    <Input type="text" disabled={loading} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -99,15 +97,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading }) => {
             />
           </div>
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Checkbox id="terms" />
-              <label
-                htmlFor="terms"
-                className="text-sm font-light leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Remember me
-              </label>
-            </div>
             <Link
               to={"/forgotpassword"}
               className="text-sm font-medium text-cyan-500 hover:underline dark:text-cyan-500"

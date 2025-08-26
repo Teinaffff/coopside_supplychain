@@ -1,10 +1,10 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import toast from "react-hot-toast";
 import { NavigateFunction } from "react-router-dom";
 import API from "../../config/axios-config";
 import { HTTP_RESPONSE, TOKEN, USER } from "../../constants/general";
 import { Login } from "../../constants/interface/auth";
 import {
+  updateCurrentUser,
   updateUser,
   updateUserFields,
   updateUserPhotoField,
@@ -20,15 +20,11 @@ export const createUserData = createAsyncThunk(
         const message = newData.message
           ? newData.message
           : "Adding User Request Failed!";
-        toast.error(message);
         throw new Error(message);
       } else {
-        toast.success("User Added Successfully!");
         return newData;
       }
     } catch (error: any) {
-      const message = error.message ? error.message : "Adding User Failed!";
-      toast.error(message);
       throw error;
     }
   }
@@ -39,22 +35,31 @@ export const changeUserPassword = createAsyncThunk(
   async (userData: any, { dispatch }) => {
     try {
       const { status, data } = await API.patch(
-        `/admin/auth/updateMyPassword`,
+        `/auth/updateMyPassword`,
         userData
       );
-      if (status === HTTP_RESPONSE.SUCCESS && data.token) {
-        dispatch(updateUser(data.user));
-        localStorage.setItem(TOKEN, data.token);
-        localStorage.setItem(USER, JSON.stringify(data.user));
-        toast.success("Password Changed Successfully!");
+      if (status === HTTP_RESPONSE.SUCCESS && data.data?.accessToken) {
+        dispatch(
+          updateCurrentUser({
+            username: data.username,
+            userType: data.userType,
+          })
+        );
+        localStorage.setItem(TOKEN, data.data?.accessToken);
+        localStorage.setItem(
+          USER,
+          JSON.stringify({
+            username: data.username,
+            userType: data.userType,
+          })
+        );
+
         return data;
       } else {
-        toast.error("Reset Password Failed!");
         throw new Error("Reset Password Failed!");
       }
     } catch (error: any) {
       console.log(error);
-      toast.error("Reset Password Failed!");
       throw error;
     }
   }
@@ -64,21 +69,16 @@ export const forgotUserPassword = createAsyncThunk(
   "auth/forgotPassword",
   async (email: string) => {
     try {
-      const { status, data } = await API.post(`/admin/auth/forgotPassword`, {
+      const { status, data } = await API.post(`/auth/forgotPassword`, {
         email,
       });
       if (status === HTTP_RESPONSE.SUCCESS) {
-        toast.success(
-          data.message ?? "Password Reset Email Sent Successfully!"
-        );
         return data;
       } else {
-        toast.error("Reset Password Failed!");
         throw new Error("Reset Password Failed!");
       }
     } catch (error: any) {
       console.log(error);
-      toast.error("Reset Password Failed!");
       throw error;
     }
   }
@@ -96,23 +96,17 @@ export const resetUserPassword = createAsyncThunk(
     navigate: NavigateFunction;
   }) => {
     try {
-      const { status, data } = await API.patch(
-        `/admin/auth/resetPassword/${token}`,
-        {
-          password,
-        }
-      );
+      const { status, data } = await API.patch(`/auth/resetPassword/${token}`, {
+        password,
+      });
       if (status === HTTP_RESPONSE.SUCCESS) {
-        toast.success(data.message ?? "Password Changed Successfully!");
         navigate("/login");
         return data;
       } else {
-        toast.error("Reset Password Failed!");
         throw new Error("Reset Password Failed!");
       }
     } catch (error: any) {
       console.log(error);
-      toast.error("Reset Password Failed!");
       throw error;
     }
   }
@@ -122,20 +116,23 @@ export const authenticate = createAsyncThunk(
   "auth/login",
   async (credentials: Login, { dispatch }) => {
     try {
-      const { status, data } = await API.post(`/admin/auth/login`, credentials);
-      if (status === HTTP_RESPONSE.SUCCESS && data.token) {
+      const { status, data } = await API.post(`/auth/login`, credentials);
+      if (status === HTTP_RESPONSE.SUCCESS && data.data?.accessToken) {
         dispatch(updateUser(data.user));
-        localStorage.setItem(TOKEN, data.token);
-        localStorage.setItem(USER, JSON.stringify(data.user));
-        toast.success("Login success");
+        localStorage.setItem(TOKEN, data.data?.accessToken);
+        localStorage.setItem(
+          USER,
+          JSON.stringify({
+            username: data.username,
+            userType: data.userType,
+          })
+        );
         return data;
       } else {
-        toast.error("Login Request Failed!");
         throw new Error("Login Request Failed!");
       }
     } catch (error: any) {
       console.log(error);
-      toast.error("Login Request Failed!");
       throw error;
     }
   }
@@ -153,7 +150,7 @@ export const UpdateUserProfile = createAsyncThunk(
     { dispatch }
   ) => {
     try {
-      const { status, data } = await API.patch(`/admin/me/edit`, {
+      const { status, data } = await API.patch(`/me/edit`, {
         email: newData.email,
         name: newData.fullName,
         bio: newData.bio,
@@ -180,15 +177,12 @@ export const UpdateUserProfile = createAsyncThunk(
 
         // Save the updated user data back to local storage
         localStorage.setItem(USER, JSON.stringify(updatedUserData));
-        toast.success(data.message ?? "Profile Updated Successfully!");
         return data;
       } else {
-        toast.error("Profile Update Failed!");
         throw new Error("Profile Update Failed!");
       }
     } catch (error: any) {
       console.log(error);
-      toast.error("Profile Update Failed!");
       throw error;
     }
   }
@@ -208,21 +202,18 @@ export const UpdateProfileImage = createAsyncThunk(
       formData.append("photo", newData.photo);
 
       const { status, data } = await API.put(
-        `/admin/me/avatar/${newData.userId}/photo`,
+        `/me/avatar/${newData.userId}/photo`,
         formData
       );
       if (status === HTTP_RESPONSE.SUCCESS) {
         dispatch(updateUserPhotoField({ photo: data.data.adminUser.photo }));
         localStorage.setItem(USER, JSON.stringify(data.data.adminUser));
-        toast.success(data.message ?? "Image Updated Successfully!");
         return data.data.adminUser.photo;
       } else {
-        toast.error("Image Update Failed!");
         throw new Error("Image Update Failed!");
       }
     } catch (error: any) {
       console.log(error);
-      toast.error("Image Update Failed!");
       throw error;
     }
   }

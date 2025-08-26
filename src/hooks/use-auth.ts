@@ -12,14 +12,32 @@ export const useAuth = () => {
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginFormValues) => dispatch(authenticate(data)),
-    onSuccess: () => {
-      navigate("/admin");
-    },
-    onError: (error: AxiosError) => {
-      if (error.message === "Please check your username and password.") {
-        toast.error("Invalid username or password");
+    onSuccess: (response: any) => {
+      if (response?.payload?.success) {
+        toast.success(response.payload.message || "Login successful!");
+        navigate("/admin");
       } else {
-        toast.error("Something went wrong!");
+        toast.error("Login failed. Please try again.");
+      }
+    },
+    onError: (error: AxiosError<any>) => {
+      const errorMessage = error.response?.data?.message;
+
+      if (error.response?.status === 400) {
+        if (
+          errorMessage === "Invalid credentials" ||
+          errorMessage?.includes("credentials")
+        ) {
+          toast.error("Invalid username or password");
+        } else {
+          toast.error(errorMessage || "Invalid login credentials");
+        }
+      } else if (error.response?.status === 401) {
+        toast.error("Unauthorized access. Please check your credentials.");
+      } else if (error.response?.status === 500) {
+        toast.error("Server error. Please try again later.");
+      } else {
+        toast.error(errorMessage || "Something went wrong! Please try again.");
       }
     },
   });
