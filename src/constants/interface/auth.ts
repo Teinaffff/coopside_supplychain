@@ -21,6 +21,9 @@ export interface Login {
 export interface AuthSliceType {
   user?: User;
   currentUser?: CurrentUser;
+  accessToken?: string;
+  refreshToken?: string;
+  isAuthenticated: boolean;
 }
 
 export interface User {

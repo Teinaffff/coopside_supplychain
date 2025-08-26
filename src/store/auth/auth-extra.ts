@@ -1,10 +1,11 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { NavigateFunction } from "react-router-dom";
 import API from "../../config/axios-config";
-import { HTTP_RESPONSE, TOKEN, USER } from "../../constants/general";
+import { HTTP_RESPONSE } from "../../constants/general";
 import { Login } from "../../constants/interface/auth";
 import {
   updateCurrentUser,
+  updateTokens,
   updateUser,
   updateUserFields,
   updateUserPhotoField,
@@ -39,18 +40,11 @@ export const changeUserPassword = createAsyncThunk(
         userData
       );
       if (status === HTTP_RESPONSE.SUCCESS && data.data?.accessToken) {
+        dispatch(updateUser(data.user));
         dispatch(
-          updateCurrentUser({
-            username: data.username,
-            userType: data.userType,
-          })
-        );
-        localStorage.setItem(TOKEN, data.data?.accessToken);
-        localStorage.setItem(
-          USER,
-          JSON.stringify({
-            username: data.username,
-            userType: data.userType,
+          updateTokens({
+            accessToken: data.data.accessToken,
+            refreshToken: data.data.refreshToken,
           })
         );
 
@@ -117,19 +111,28 @@ export const authenticate = createAsyncThunk(
   async (credentials: Login, { dispatch }) => {
     try {
       const { status, data } = await API.post(`/auth/login`, credentials);
-      if (status === HTTP_RESPONSE.SUCCESS && data.data?.accessToken) {
-        dispatch(updateUser(data.user));
-        localStorage.setItem(TOKEN, data.data?.accessToken);
-        localStorage.setItem(
-          USER,
-          JSON.stringify({
-            username: data.username,
-            userType: data.userType,
+
+      if (status === HTTP_RESPONSE.SUCCESS && data.success) {
+        // Update current user
+        dispatch(
+          updateCurrentUser({
+            username: data.data.username,
+            userType: data.data.userType,
           })
         );
+
+        // Update tokens (redux-persist will handle storage)
+        dispatch(
+          updateTokens({
+            accessToken: data.data.accessToken,
+            refreshToken: data.data.refreshToken,
+          })
+        );
+
         return data;
       } else {
-        throw new Error("Login Request Failed!");
+        const errorMessage = data.message || "Login Request Failed!";
+        throw new Error(errorMessage);
       }
     } catch (error: any) {
       console.log(error);
@@ -164,19 +167,7 @@ export const UpdateUserProfile = createAsyncThunk(
           bio: newData.bio,
         };
 
-        // Dispatch the updateUser action with the merged data
         dispatch(updateUserFields(updatedFields));
-        // Get the existing user data from local storage
-        const existingUserData = JSON.parse(localStorage.getItem(USER) || "{}");
-
-        // Merge the existing data with the new fields
-        const updatedUserData = {
-          ...existingUserData,
-          ...updatedFields,
-        };
-
-        // Save the updated user data back to local storage
-        localStorage.setItem(USER, JSON.stringify(updatedUserData));
         return data;
       } else {
         throw new Error("Profile Update Failed!");
@@ -207,7 +198,6 @@ export const UpdateProfileImage = createAsyncThunk(
       );
       if (status === HTTP_RESPONSE.SUCCESS) {
         dispatch(updateUserPhotoField({ photo: data.data.adminUser.photo }));
-        localStorage.setItem(USER, JSON.stringify(data.data.adminUser));
         return data.data.adminUser.photo;
       } else {
         throw new Error("Image Update Failed!");

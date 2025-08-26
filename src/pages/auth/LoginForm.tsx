@@ -1,10 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AxiosError } from "axios";
 import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { UseMutateFunction } from "react-query";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "../../common/ui/button";
 import {
   Form,
@@ -17,6 +17,8 @@ import {
 import { Input } from "../../common/ui/input";
 import { Loader } from "../../common/ui/loader";
 import { LoginFormValues, loginSchema } from "../../schema/auth";
+import { useAppDispatch, useAppSelector } from "../../store";
+import { logout } from "../../store/auth/auth-slice";
 
 type LoginFormProps = {
   onSubmit: UseMutateFunction<
@@ -28,8 +30,36 @@ type LoginFormProps = {
   loading: boolean;
 };
 
+const isTokenExpired = (token: string): boolean => {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const currentTime = Date.now() / 1000;
+    return payload.exp < currentTime;
+  } catch (error) {
+    return true;
+  }
+};
+
 export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const location = useLocation();
+
+  const { isAuthenticated, accessToken, currentUser } = useAppSelector(
+    (state) => state.auth
+  );
+  const redirectPath = location.state?.path ?? "/admin";
+
+  useEffect(() => {
+    if (isAuthenticated && accessToken && currentUser) {
+      if (!isTokenExpired(accessToken)) {
+        navigate(redirectPath, { replace: true });
+      } else {
+        dispatch(logout());
+      }
+    }
+  }, [isAuthenticated, accessToken, currentUser, navigate, redirectPath]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),

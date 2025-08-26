@@ -1,16 +1,27 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { authInitialState } from "../initialStates";
 import { CurrentUser, User } from "../../constants/interface/auth";
+import { authInitialState } from "../initialStates";
 
-const SettingSlice = createSlice({
+const authSlice = createSlice({
   name: "auth",
   initialState: authInitialState,
   reducers: {
     updateUser(state, { payload }: PayloadAction<User | undefined>) {
       state.user = payload;
     },
-    updateCurrentUser(state, { payload }: PayloadAction<CurrentUser | undefined>) {
+    updateCurrentUser(
+      state,
+      { payload }: PayloadAction<CurrentUser | undefined>
+    ) {
       state.currentUser = payload;
+    },
+    updateTokens(
+      state,
+      { payload }: PayloadAction<{ accessToken: string; refreshToken?: string }>
+    ) {
+      state.accessToken = payload.accessToken;
+      state.refreshToken = payload.refreshToken;
+      state.isAuthenticated = true;
     },
     updateUserFields(
       state,
@@ -27,9 +38,22 @@ const SettingSlice = createSlice({
         state.user.photo = payload.photo ?? state.user.photo;
       }
     },
+    logout(state) {
+      state.user = undefined;
+      state.currentUser = undefined;
+      state.accessToken = undefined;
+      state.refreshToken = undefined;
+      state.isAuthenticated = false;
+    },
   },
 });
 
-export const { updateUser, updateUserFields, updateUserPhotoField, updateCurrentUser } =
-  SettingSlice.actions;
-export default SettingSlice.reducer;
+export const {
+  updateUser,
+  updateUserFields,
+  updateUserPhotoField,
+  updateCurrentUser,
+  updateTokens,
+  logout,
+} = authSlice.actions;
+export default authSlice.reducer;

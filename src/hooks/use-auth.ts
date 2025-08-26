@@ -3,21 +3,22 @@ import { AxiosError } from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { LoginFormValues, SignupFormValues } from "../schema/auth";
-import { useAppDispatch } from "../store";
+import { useAppDispatch, useAppSelector } from "../store";
 import { authenticate, createUserData } from "../store/auth/auth-extra";
+import { logout } from "../store/auth/auth-slice";
 
 export const useAuth = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const { isAuthenticated, accessToken, user } = useAppSelector(
+    (state) => state.auth
+  );
 
   const loginMutation = useMutation({
     mutationFn: (data: LoginFormValues) => dispatch(authenticate(data)),
     onSuccess: (response: any) => {
       if (response?.payload?.success) {
-        toast.success(response.payload.message || "Login successful!");
         navigate("/admin");
-      } else {
-        toast.error("Login failed. Please try again.");
       }
     },
     onError: (error: AxiosError<any>) => {
@@ -32,10 +33,6 @@ export const useAuth = () => {
         } else {
           toast.error(errorMessage || "Invalid login credentials");
         }
-      } else if (error.response?.status === 401) {
-        toast.error("Unauthorized access. Please check your credentials.");
-      } else if (error.response?.status === 500) {
-        toast.error("Server error. Please try again later.");
       } else {
         toast.error(errorMessage || "Something went wrong! Please try again.");
       }
@@ -57,9 +54,19 @@ export const useAuth = () => {
     },
   });
 
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+    toast.success("Logged out successfully");
+  };
+
   return {
     loading: loginMutation.isPending || signupMutation.isPending,
+    isAuthenticated,
+    accessToken,
+    user,
     handleLogin: loginMutation.mutate,
     handleSignup: signupMutation.mutate,
+    handleLogout,
   };
 };
