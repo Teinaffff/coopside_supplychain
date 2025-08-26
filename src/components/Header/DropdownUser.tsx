@@ -2,13 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Settings, User } from "lucide-react";
-import { useDispatch } from "react-redux";
 import { IMAGES } from "../../assets";
-
-const backendUrl = (import.meta as any).env.VITE_BACKEND_URL;
+import { useAppDispatch } from "../../store";
+import { logout } from "../../store/auth/auth-slice";
 
 const DropdownUser = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -90,7 +89,13 @@ const DropdownUser = () => {
             </Link>
           </li>
         </ul>
-        <button className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base">
+        <button
+          className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
+          onClick={() => {
+            dispatch(logout());
+            navigate("/login");
+          }}
+        >
           <svg
             className="fill-current"
             width="22"

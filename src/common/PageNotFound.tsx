@@ -1,14 +1,8 @@
-import React from "react";
 import { IMAGES } from "../assets";
 
 function PageNotFound() {
   return (
-    <div
-      className="flex p-[5.5625rem 15.625rem] justify-center items-center font-ubuntu min-h-[780px] h-screen"
-      style={{
-        background: `linear-gradient(to bottom right, #06b6d4 0%, #06b6d4 55%, #d1d5db 40%, #d1d5db 100%)`,
-      }}
-    >
+    <div className="flex p-[5.5625rem_15.625rem] justify-center items-center font-ubuntu min-h-[780px] h-screen bg-gradient-to-br from-cyan-500 from-50% to-gray-300 to-50%">
       <div>
         <div
           className="flex absolute lg:top-[50%] top-28 left-[50%] translate-x-[-50%] lg:translate-y-[-50%] lg:w-[58.75rem] w-[21.4375rem] h-[auto] lg:p-[17.1px] py-[2rem] px-[1.5rem] bg-white flex-shrink-0 shadow-[0_25px_40px_-20px_rgba(0,0,0,0.10)] rounded-[0.9375rem]"
