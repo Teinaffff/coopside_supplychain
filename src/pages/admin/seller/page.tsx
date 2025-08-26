@@ -29,8 +29,8 @@ const SellersPage = () => {
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
-            title={`Primary Cooperatives (${sellers?.length || 0})`}
-            description="Manage Primary Cooperatives"
+            title={`Sellers (${sellers?.length || 0})`}
+            description="Manage Sellers"
           />
           <div></div>
            <div className="flex space-x-2">
