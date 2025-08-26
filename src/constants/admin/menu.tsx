@@ -45,6 +45,12 @@ export const menuItems = [
     pathname: "/admin/consumers",
     icon: <User2 width={18} height={18} />,
   },
+  {
+    label: "Users",
+    to: "/admin/users",
+    pathname: "/admin/users",
+    icon: <FileBarChart width={18} height={18} />,
+  },
   // {
   //   label: "Reports",
   //   to: "/admin/reports",

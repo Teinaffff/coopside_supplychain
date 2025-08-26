@@ -10,6 +10,7 @@ import FactoryDetails from "../../pages/admin/manufacturies/components/FactoryDe
 import Manufacturies from "../../pages/admin/manufacturies/page";
 import SellerDetails from "../../pages/admin/seller/components/SellerDetails";
 import Seller from "../../pages/admin/seller/page";
+import UsersPage from "../../pages/admin/users/page";
 
 export const ROUTES = [
   {
@@ -72,6 +73,11 @@ export const ROUTES = [
   //   title: "Reports",
   //   element: <Reports />,
   // },
+  {
+    path: "users",
+    title: "Users",
+    element: <UsersPage />,
+  },
   {
     path: "logs",
     title: "Logs",
