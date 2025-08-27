@@ -11,7 +11,6 @@ export const EditAgentModal = () => {
   const handleSubmit = async (data: AgentFormValues) => {
     try {
       await handleEditAgent(data);
-      onClose();
     } catch (error) {
       console.error("Error editing agent:", error);
     }

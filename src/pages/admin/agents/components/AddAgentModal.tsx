@@ -11,7 +11,6 @@ export const AddAgentModal = () => {
   const handleSubmit = async (data: AgentFormValues) => {
     try {
       await handleAddAgent(data);
-      onClose();
     } catch (error) {
       console.error("Error adding agent:", error);
     }

@@ -45,6 +45,7 @@ const AgentForm: React.FC<AgentFormProps> = ({
 
   const handleSubmit = async (data: AgentFormValues) => {
     onSubmit(data);
+    onClose();
     form.reset();
   };
 
