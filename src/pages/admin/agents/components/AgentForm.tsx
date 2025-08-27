@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "../../../../common/ui/button";
-import { Checkbox } from "../../../../common/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -52,18 +51,21 @@ const AgentForm: React.FC<AgentFormProps> = ({
   const handleImageChange = (event: any) => {
     const selectedImage = event.target.files[0];
     if (selectedImage) {
-      form.setValue("profilePictureUrl", selectedImage);
+      // form.setValue("profilePictureUrl", selectedImage);
+      form.setValue("profilePictureUrl", "http://localhost:3000/uploads/img1");
       form.clearErrors("profilePictureUrl");
+    } else {
+      form.setValue("profilePictureUrl", null);
     }
   };
-
+  console.log("Url", form.getValues("profilePictureUrl"));
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}
         className="space-y-8 w-full"
       >
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           <FormField
             name="username"
             control={form.control}
@@ -109,10 +111,10 @@ const AgentForm: React.FC<AgentFormProps> = ({
             name="phoneNumber"
             control={form.control}
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="hideIncrementor">
                 <FormLabel>Phone Number:</FormLabel>
                 <FormControl>
-                  <Input type="tel" {...field} disabled={loading} />
+                  <Input type="number" {...field} disabled={loading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -172,7 +174,6 @@ const AgentForm: React.FC<AgentFormProps> = ({
                 <FormControl className="hide-incrementor">
                   <Input
                     type="number"
-                    step="0.01"
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value))}
                     disabled={loading}
@@ -240,27 +241,13 @@ const AgentForm: React.FC<AgentFormProps> = ({
           />
 
           <FormField
-            name="address.country"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Country:</FormLabel>
-                <FormControl>
-                  <Input {...field} disabled={loading} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
             name="bankAccountNumber"
             control={form.control}
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="hideIncrementor">
                 <FormLabel>Bank Account Number:</FormLabel>
                 <FormControl>
-                  <Input {...field} disabled={loading} />
+                  <Input type="number" {...field} disabled={loading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -281,44 +268,26 @@ const AgentForm: React.FC<AgentFormProps> = ({
             )}
           />
 
-          <FormField
-            name="isActive"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={loading}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Active Status</FormLabel>
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            name="profilePictureUrl"
-            control={form.control}
-            render={() => (
-              <FormItem>
-                <FormLabel>Profile Picture:</FormLabel>
-                <FormControl>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    disabled={loading}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="col-span-3 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <FormField
+              name="profilePictureUrl"
+              control={form.control}
+              render={() => (
+                <FormItem>
+                  <FormLabel>Profile Picture:</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      disabled={loading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
         <div className="pt-6 space-x-2 flex items-center justify-center w-full">
           <Button

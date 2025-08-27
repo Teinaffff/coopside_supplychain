@@ -39,12 +39,12 @@ export const EditAgentModal = () => {
           city: "",
           state: "",
           postalCode: "",
-          country: "",
+          country: "Ethiopia",
         },
         isActive: true,
         bankAccountNumber: "",
         taxIdentificationNumber: "",
-        profilePictureUrl: undefined,
+        profilePictureUrl: null,
       };
 
   return (

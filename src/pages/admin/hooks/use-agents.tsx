@@ -1,23 +1,33 @@
-  
-
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Agent } from "../../../constants/interface/admin/agent";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { agentsMockData } from "../../../common/data/data";
+// import { agentsMockData } from "../../../common/data/data";
+import { useSelector } from "react-redux";
+import { AgentFormValues } from "../../../schema/admin/agent";
+import { RootState } from "../../../store";
 
-const fetchAgents = async () => {
-  // const res = await fetch('/api/agents');
-  // if (!res.ok) {
-  //   const errorData = await res.json();
-  //   toast.error(errorData.message ?? 'Failed to fetch agents');
-  //   throw new Error(errorData.message ?? 'Failed to fetch agents');
-  // }
-  // const data = await res.json();
-  return agentsMockData;
+const baseUrl =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:8081/api"
+    : "https://supply-chain-api.onrender.com";
+
+const fetchAgents = async (accessToken: string) => {
+  const res = await fetch(`${baseUrl}/agents`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    toast.error(errorData.message ?? "Failed to fetch agents");
+    throw new Error(errorData.message ?? "Failed to fetch agents");
+  }
+  const data = await res.json();
+  return data.data ?? [];
 };
 
 export const useAgents = (options?: { isFetchAgents: boolean }) => {
   const queryClient = useQueryClient();
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
 
   const {
     data: agents,
@@ -25,17 +35,22 @@ export const useAgents = (options?: { isFetchAgents: boolean }) => {
     error,
   } = useQuery({
     queryKey: ["agents"],
-    queryFn: fetchAgents,
+    queryFn: () => fetchAgents(accessToken ?? ""),
     enabled: options?.isFetchAgents,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 
   const addAgentMutation = useMutation({
-    mutationFn: async (data: Agent) => {
+    mutationFn: async (data: AgentFormValues) => {
       const { id, ...rest } = data;
-      const res = await fetch("/api/agents", {
+      const res = await fetch(`${baseUrl}/agents/onboard`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(rest),
       });
@@ -53,7 +68,7 @@ export const useAgents = (options?: { isFetchAgents: boolean }) => {
   });
 
   const editAgentMutation = useMutation({
-    mutationFn: async (data: Agent) => {
+    mutationFn: async (data: AgentFormValues) => {
       const { id, ...rest } = data;
 
       const res = await fetch(`/api/agents/${id}`, {
