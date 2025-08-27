@@ -97,7 +97,7 @@ const TEMPLATE_DATA = [
     "LIC789012",
     "2025-12-31",
     "+1234567890",
-    "John Manager",
+    "Melaku Tesfaye Manager",
     "1000 units/day",
     "5000 sqm",
     "150",

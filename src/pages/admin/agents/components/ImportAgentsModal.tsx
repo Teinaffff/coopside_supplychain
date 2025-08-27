@@ -96,9 +96,9 @@ const AGENT_COLUMNS: ExpectedColumn[] = [
 
 const TEMPLATE_DATA = [
   [
-    "john_doe",
-    "John Doe",
-    "john.doe@example.com",
+    "Abebe Kebede",
+    "Melaku Tesfaye",
+    "Melaku Tesfaye@example.com",
     "+1234567890",
     "Sales Agent",
     "ID123456",

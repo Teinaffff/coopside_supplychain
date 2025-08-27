@@ -16,6 +16,9 @@ const StatCard: React.FC<StatCardProps> = ({
   change,
   trend,
   index,
+  primaryLabel,
+  secondaryValue,
+  secondaryLabel,
 }) => {
   const TrendIcon = trend === "up" ? ArrowUp : ArrowDown;
 
@@ -58,18 +61,34 @@ const StatCard: React.FC<StatCardProps> = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div className={`text-2xl font-bold ${textClass} dark:text-slate-200`}>
-          {value}
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            {primaryLabel ? (
+              <div className="text-xs text-muted-foreground">{primaryLabel}</div>
+            ) : null}
+            <div className={`text-2xl font-bold ${textClass} dark:text-slate-200`}>
+              {value}
+            </div>
+            <p className="text-xs text-muted-foreground flex items-center space-x-2">
+              <span
+                className={`${textClass} text-lg flex items-center dark:text-slate-200`}
+              >
+                <TrendIcon className="w-5 h-5" />
+                {change}%
+              </span>{" "}
+              <span>from last month</span>
+            </p>
+          </div>
+          {secondaryValue !== undefined ? (
+            <div className={`rounded-xl ${bgClass} px-4 py-3 text-right shadow-sm ring-1 ring-black/5`}
+            >
+              {secondaryLabel ? (
+                <div className="text-[11px] uppercase tracking-wide opacity-80">{secondaryLabel}</div>
+              ) : null}
+              <div className={`text-2xl font-extrabold ${textClass}`}>{secondaryValue}</div>
+            </div>
+          ) : null}
         </div>
-        <p className="text-xs text-muted-foreground flex items-center space-x-2">
-          <span
-            className={`${textClass} text-lg flex items-center dark:text-slate-200`}
-          >
-            <TrendIcon className="w-5 h-5" />
-            {change}%
-          </span>{" "}
-          <span>from last month</span>
-        </p>
       </CardContent>
     </Card>
   );

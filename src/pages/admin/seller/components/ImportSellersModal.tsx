@@ -70,7 +70,7 @@ const TEMPLATE_DATA = [
     "Cooperative ABC",
     "coop.abc@example.com",
     "+1234567890",
-    "John Doe",
+    "Melaku Tesfaye",
     "150",
     "Addis Ababa",
     "Bole",

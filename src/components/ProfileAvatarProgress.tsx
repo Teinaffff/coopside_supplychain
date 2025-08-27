@@ -31,7 +31,7 @@ export default function ProfileAvatarProgress() {
         </CircularProgressbarWithChildren>
       </div>
       <span className="text-2xl font-bold">
-        {profileMockData?.fullName || "John Doe"}
+        {profileMockData?.fullName || "Melaku Tesfaye"}
       </span>
       <span>{profileCompletion}% completed</span>
       {/* {progressValue < 100 && <span className='underline underline-offset-4 text-cyan-700 font-semibold text-base cursor-pointer'> Complete Your Profile</span>} */}

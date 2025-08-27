@@ -1,4 +1,4 @@
-import { Coins, DollarSign, TrendingUp, Users } from "lucide-react";
+import { Coins, DollarSign, TrendingUp, Users, HandCoins } from "lucide-react";
 import { IMAGES } from "../../assets";
 import { Notification } from "../../constants/interface/notification";
 
@@ -135,7 +135,7 @@ export const locationMockData = [
 ];
 
 export const profileMockData = {
-  fullName: "Bahar Mm",
+  fullName: "Abebe",
   phone: "0912078640",
   email: "",
   gender: "",
@@ -418,7 +418,18 @@ export const sellerStatsData = [
 
 export const memberStatsData = [
   {
-    title: "Loans",
+    title: "Total Credit Issued",
+    value: "$8.5M",
+    change: 5,
+    trend: "down",
+    icon: HandCoins,
+    color: "cyan",
+    primaryLabel: "Total Loans",
+    secondaryValue: 128,
+    secondaryLabel: "Cards Issued",
+  },
+  {
+    title: "Active Loans",
     value: 50,
     change: 20,
     trend: "up",
@@ -426,7 +437,7 @@ export const memberStatsData = [
     color: "emerald",
   },
   {
-    title: "Savings",
+    title: "Pending Credit approvals",
     value: 20,
     change: 10,
     trend: "up",
@@ -434,21 +445,15 @@ export const memberStatsData = [
     color: "orange",
   },
   {
-    title: "Shares",
+    title: "Loan repayment status",
     value: 10,
     change: 5,
     trend: "up",
     icon: Coins,
     color: "purple",
   },
-  {
-    title: "Profits",
-    value: 10,
-    change: 5,
-    trend: "down",
-    icon: TrendingUp,
-    color: "cyan",
-  },
+  
+ 
 ];
 
 export const agentsMockData = [
@@ -1545,7 +1550,7 @@ export const reportsMockData = [
     id: "1",
     reportType: "Financial",
     title: "Monthly Financial Summary",
-    generatedBy: "John Doe",
+    generatedBy: "Abebe Kebede",
     generatedDate: "2025-01-15T10:30:00Z",
     status: "completed",
     category: "Finance",
@@ -1560,7 +1565,7 @@ export const reportsMockData = [
     id: "2",
     reportType: "Member Activity",
     title: "Member Engagement Report",
-    generatedBy: "Sarah Johnson",
+    generatedBy: "Caalaa Gutema",
     generatedDate: "2025-01-14T14:20:00Z",
     status: "pending",
     category: "Members",
@@ -1664,7 +1669,7 @@ export const reportsMockData = [
     id: "9",
     reportType: "Training Progress",
     title: "Staff Training Report",
-    generatedBy: "Mark Johnson",
+    generatedBy: "Mark Melaku Tesfayeson",
     generatedDate: "2025-01-07T12:00:00Z",
     status: "pending",
     category: "HR",
@@ -1722,7 +1727,7 @@ export const requestsMockData = [
     title: "Agricultural Equipment Loan Request",
     description:
       "Request for loan to purchase new agricultural equipment for the cooperative",
-    requestedBy: "John Doe",
+    requestedBy: "Melaku Tesfaye",
     requestedDate: "2025-01-15T10:30:00Z",
     status: "pending",
     priority: "high",
@@ -1739,7 +1744,7 @@ export const requestsMockData = [
     requestType: "Membership Application",
     title: "New Member Registration Request",
     description: "Application for new cooperative membership",
-    requestedBy: "Sarah Johnson",
+    requestedBy: "Sara Melaku ",
     requestedDate: "2025-01-14T14:20:00Z",
     status: "approved",
     priority: "medium",
@@ -1758,7 +1763,7 @@ export const requestsMockData = [
     requestType: "Training Request",
     title: "Digital Literacy Training Program",
     description: "Request for organizing digital literacy training for members",
-    requestedBy: "Michael Brown",
+    requestedBy: "Tesfaye Chala",
     requestedDate: "2025-01-13T16:45:00Z",
     status: "in_progress",
     priority: "medium",
@@ -1940,7 +1945,7 @@ export const logsMockData = [
     id: "1",
     activityType: "User Management",
     action: "User Login",
-    performedBy: "john.doe@example.com",
+    performedBy: "Melaku Tesfaye@example.com",
     targetEntity: "User",
     targetId: "user_123",
     timestamp: "2025-01-20T10:30:00Z",
