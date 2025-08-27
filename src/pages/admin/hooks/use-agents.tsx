@@ -71,10 +71,11 @@ export const useAgents = (options?: { isFetchAgents: boolean }) => {
     mutationFn: async (data: AgentFormValues) => {
       const { id, ...rest } = data;
 
-      const res = await fetch(`/api/agents/${id}`, {
+      const res = await fetch(`${baseUrl}/agents/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(rest),
       });
@@ -93,8 +94,11 @@ export const useAgents = (options?: { isFetchAgents: boolean }) => {
 
   const handleDeleteAgent = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/agents/${id}`, {
+      const res = await fetch(`${baseUrl}/agents/${id}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
       if (!res.ok) {
         const errorData = await res.json();
