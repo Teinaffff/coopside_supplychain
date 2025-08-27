@@ -53,9 +53,9 @@ const USER_COLUMNS: ExpectedColumn[] = [
 
 const TEMPLATE_DATA = [
   [
-    "john_admin",
-    "John Admin",
-    "john.admin@example.com",
+    "Melaku Tesfaye_admin",
+    "Melaku Tesfaye Admin",
+    "Melaku Tesfaye.admin@example.com",
     "+1234567890",
     "WEB_ADMIN",
     "",

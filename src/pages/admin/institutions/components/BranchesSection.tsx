@@ -24,7 +24,7 @@ const mockBranches = [
     address: "123 Main St, Addis Ababa",
     phoneNumber: "+251-11-123-4567",
     email: "main@institution.com",
-    branchManager: "John Doe",
+    branchManager: "Melaku Tesfaye",
     isActive: true,
   },
   {
