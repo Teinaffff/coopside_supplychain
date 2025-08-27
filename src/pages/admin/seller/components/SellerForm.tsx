@@ -48,6 +48,7 @@ const SellerForm: React.FC<SellerFormProps> = ({
       logoUrl: selectedImage ? URL.createObjectURL(selectedImage) : data.logoUrl,
     };
     onSubmit(sellerData);
+    onClose();
     form.reset();
   };
 

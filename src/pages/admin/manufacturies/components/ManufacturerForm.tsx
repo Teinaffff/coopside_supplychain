@@ -39,6 +39,7 @@ const ManufacturerForm: React.FC<ManufacturerFormProps> = ({
 
   const handleSubmit = async (data: ManufacturerFormValues) => {
     onSubmit(data);
+    onClose();
     form.reset();
   };
 

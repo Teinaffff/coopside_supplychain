@@ -10,7 +10,6 @@ export const EditConsumerModal = () => {
 
   const handleSubmit = (data: ConsumerFormValues) => {
     handleEditConsumer(data);
-    onClose();
   };
 
   return (

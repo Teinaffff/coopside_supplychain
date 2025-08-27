@@ -48,6 +48,7 @@ const UserForm: React.FC<UserFormProps> = ({
 
   const handleSubmit = async (data: UserFormValues) => {
     onSubmit(data);
+    onClose();
     form.reset();
   };
 

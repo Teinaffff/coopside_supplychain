@@ -11,7 +11,6 @@ export const EditUserModal = () => {
   const handleSubmit = async (data: UserFormValues) => {
     if (user?.id) {
       await handleUpdateUser({ ...data, id: user.id });
-      onClose();
     }
   };
 

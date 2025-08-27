@@ -11,7 +11,6 @@ export const AddUserModal = () => {
 
   const handleSubmit = async (data: UserFormValues) => {
     await handleAddUser(data);
-    onClose();
   };
 
   const defaultValues: Partial<UserFormValues> = {

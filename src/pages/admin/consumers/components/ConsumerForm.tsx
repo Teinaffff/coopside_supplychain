@@ -43,6 +43,7 @@ const ConsumerForm: React.FC<ConsumerFormProps> = ({
 
   const handleSubmit = async (data: ConsumerFormValues) => {
     onSubmit(data);
+    onClose();
     form.reset();
   };
 

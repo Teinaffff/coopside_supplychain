@@ -11,7 +11,6 @@ export const EditSellerModal = () => {
   const handleSubmit = async (data: SellerFormValues) => {
       try {
         await handleEditSeller(data);
-        onClose();
       } catch (error) {
         // Error is handled in the hook
       }

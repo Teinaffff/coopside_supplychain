@@ -11,7 +11,6 @@ export const AddManufacturerModal = () => {
 
   const handleSubmit = (data: ManufacturerFormValues) => {
     handleAddManufacturer(data);
-    onClose();
   };
 
   return (
