@@ -59,7 +59,7 @@ const AgentForm: React.FC<AgentFormProps> = ({
       form.setValue("profilePictureUrl", null);
     }
   };
-  console.log("Url", form.getValues("profilePictureUrl"));
+  
   return (
     <Form {...form}>
       <form

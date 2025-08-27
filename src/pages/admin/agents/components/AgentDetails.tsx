@@ -1,4 +1,3 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -10,9 +9,8 @@ import {
   XCircle,
 } from "lucide-react";
 import React from "react";
-import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
-import { agentsMockData } from "../../../../common/data/data";
+import Loader from "../../../../common/Loader";
 import { Badge } from "../../../../common/ui/badge";
 import { Button } from "../../../../common/ui/button";
 import {
@@ -29,57 +27,14 @@ import {
 } from "../../../../common/ui/tabs";
 import { Agent } from "../../../../constants/interface/admin/agent";
 import OverlayCard from "../../components/OverlayCard";
-
-// Function to fetch a single agent by ID
-const fetchAgentById = async (agentId: string): Promise<Agent> => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
-
-  const agent = agentsMockData.find((agent) => agent.id.toString() === agentId);
-  if (!agent) {
-    throw new Error(`Agent with ID ${agentId} not found`);
-  }
-  return agent;
-};
-
-// Function to update agent status
-const updateAgentStatus = async ({
-  agentId,
-  status,
-}: {
-  agentId: string;
-  status: boolean;
-}): Promise<Agent> => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
-
-  const agent = agentsMockData.find((agent) => agent.id.toString() === agentId);
-  if (!agent) {
-    throw new Error(`Agent with ID ${agentId} not found`);
-  }
-
-  // Update the agent status in mock data
-  agent.isActive = status;
-  return agent;
-};
-
-// Reusable Loading Component
-const LoadingState: React.FC = () => (
-  <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-6 flex items-center justify-center">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
-      <p className="text-gray-600 dark:text-slate-300">Loading agent details...</p>
-    </div>
-  </div>
-);
+import { useAgents } from "../../hooks/use-agents";
 
 // Reusable Error State Component
 interface ErrorStateProps {
-  error: Error | null;
   onBack: () => void;
 }
 
-const ErrorState: React.FC<ErrorStateProps> = ({ error, onBack }) => (
+const ErrorState: React.FC<ErrorStateProps> = ({ onBack }) => (
   <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-6 flex items-center justify-center">
     <div className="text-center">
       <div className="text-red-500 dark:text-red-400 mb-4">
@@ -89,9 +44,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({ error, onBack }) => (
         Agent Not Found
       </h2>
       <p className="text-gray-600 dark:text-slate-300 mb-4">
-        {error instanceof Error
-          ? error.message
-          : "The requested agent could not be found."}
+        The requested agent could not be found.
       </p>
       <Button onClick={onBack} variant="outline">
         <ArrowLeft className="w-4 h-4 mr-2" />
@@ -116,7 +69,9 @@ const InfoField: React.FC<InfoFieldProps> = ({
   <div
     className={`flex justify-between items-center p-3 bg-gray-50 dark:bg-slate-800 rounded-lg ${className}`}
   >
-    <span className="text-sm font-medium text-gray-600 dark:text-slate-300">{label}</span>
+    <span className="text-sm font-medium text-gray-600 dark:text-slate-300">
+      {label}
+    </span>
     <span className="text-sm text-gray-900 dark:text-slate-100">{value}</span>
   </div>
 );
@@ -136,28 +91,26 @@ const InfoFieldStart: React.FC<InfoFieldStartProps> = ({
   <div
     className={`flex justify-between items-start p-3 bg-gray-50 dark:bg-slate-800 rounded-lg ${className}`}
   >
-    <span className="text-sm font-medium text-gray-600 dark:text-slate-300">{label}</span>
-    <div className="text-sm text-gray-900 dark:text-slate-100 text-right">{value}</div>
+    <span className="text-sm font-medium text-gray-600 dark:text-slate-300">
+      {label}
+    </span>
+    <div className="text-sm text-gray-900 dark:text-slate-100 text-right">
+      {value}
+    </div>
   </div>
 );
-
 
 // Reusable Status Button Component
 interface StatusButtonProps {
   agent: Agent;
-  onStatusChange: (status: boolean) => void;
   isLoading: boolean;
 }
 
-const StatusButton: React.FC<StatusButtonProps> = ({
-  agent,
-  onStatusChange,
-  isLoading,
-}) => (
+const StatusButton: React.FC<StatusButtonProps> = ({ agent, isLoading }) => (
   <Button
     variant={agent.isActive ? "destructive" : "default"}
     size="sm"
-    onClick={() => onStatusChange(!agent.isActive)}
+    // onClick={() => onStatusChange(!agent.isActive)}
     disabled={isLoading}
   >
     {agent.isActive ? (
@@ -207,8 +160,12 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ action, timestamp }) => (
   <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
     <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
     <div className="flex-1">
-      <div className="text-sm font-medium text-gray-900 dark:text-slate-100">{action}</div>
-      <div className="text-xs text-gray-500 dark:text-slate-400">{timestamp}</div>
+      <div className="text-sm font-medium text-gray-900 dark:text-slate-100">
+        {action}
+      </div>
+      <div className="text-xs text-gray-500 dark:text-slate-400">
+        {timestamp}
+      </div>
     </div>
   </div>
 );
@@ -216,50 +173,22 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ action, timestamp }) => (
 const AgentDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-
-  // Fetch agent data
-  const {
-    data: agent,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["agent", id],
-    queryFn: () => fetchAgentById(id!),
-    enabled: !!id,
-  });
-
-  // Status change mutation
-  const statusMutation = useMutation({
-    mutationFn: updateAgentStatus,
-    onSuccess: () => {
-      toast.success("Agent status updated successfully");
-      queryClient.invalidateQueries({ queryKey: ["agent", id] });
-      queryClient.invalidateQueries({ queryKey: ["agents"] });
-    },
-    onError: () => {
-      toast.error("Failed to update agent status");
-    },
-  });
+  const { agents, isLoading } = useAgents({ isFetchAgents: true });
+  const agent = agents?.find((agent: Agent) => agent?.id?.toString() === id);
 
   // Handler functions
   const handleBack = () => {
     navigate("/admin/agents");
   };
 
-  const handleStatusChange = async (newStatus: boolean) => {
-    if (!agent?.id) return;
-    statusMutation.mutate({ agentId: agent.id.toString(), status: newStatus });
-  };
-
   // Loading state
   if (isLoading) {
-    return <LoadingState />;
+    return <Loader />;
   }
 
   // Error state
-  if (error || !agent) {
-    return <ErrorState error={error} onBack={handleBack} />;
+  if (!agent) {
+    return <ErrorState onBack={handleBack} />;
   }
 
   // Mock data for demonstration
@@ -303,11 +232,7 @@ const AgentDetails: React.FC = () => {
             <CardTitle className="flex items-center justify-between dark:text-slate-100">
               <span>Agent Information</span>
               <div className="flex items-center space-x-2">
-                <StatusButton
-                  agent={agent}
-                  onStatusChange={handleStatusChange}
-                  isLoading={statusMutation.isPending}
-                />
+                <StatusButton agent={agent} isLoading={isLoading} />
               </div>
             </CardTitle>
           </CardHeader>
@@ -371,9 +296,24 @@ const AgentDetails: React.FC = () => {
       {/* Tabbed Sections */}
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-3 dark:bg-slate-700">
-          <TabsTrigger value="overview" className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200">Overview</TabsTrigger>
-          <TabsTrigger value="financial" className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200">Financial</TabsTrigger>
-          <TabsTrigger value="activity" className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200">Activity</TabsTrigger>
+          <TabsTrigger
+            value="overview"
+            className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
+          >
+            Overview
+          </TabsTrigger>
+          <TabsTrigger
+            value="financial"
+            className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
+          >
+            Financial
+          </TabsTrigger>
+          <TabsTrigger
+            value="activity"
+            className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
+          >
+            Activity
+          </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
