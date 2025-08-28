@@ -1,15 +1,15 @@
 import { Modal } from "../../../../common/ui/modal";
 import { BranchFormValues } from "../../../../schema/admin/institution";
 import { useAddBranchModal } from "../../hooks/use-add-branch-modal";
+import { useInstitutionBranches } from "../../hooks/use-institutions";
 import BranchForm from "./BranchForm";
 
 const AddBranchModal: React.FC = () => {
   const { isOpen, onClose, institutionId } = useAddBranchModal();
+  const { handleAddBranch } = useInstitutionBranches(institutionId ?? "");
 
   const handleSubmit = (data: BranchFormValues) => {
-    // TODO: Implement API call to create branch
-    console.log("Creating branch:", data);
-    onClose();
+    handleAddBranch({ branchData: data });
   };
 
   if (!institutionId) return null;

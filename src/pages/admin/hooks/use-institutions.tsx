@@ -2,7 +2,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
 // import { institutionsMockData } from "../../../common/data/data";
-import { InstitutionFormValues } from "../../../schema/admin/institution";
+import {
+  BranchFormValues,
+  InstitutionFormValues,
+} from "../../../schema/admin/institution";
 import { RootState } from "../../../store";
 
 const baseUrl =
@@ -20,25 +23,6 @@ const fetchInstitutions = async (accessToken: string) => {
     const errorData = await res.json();
     toast.error(errorData.message ?? "Failed to fetch institutions");
     throw new Error(errorData.message ?? "Failed to fetch institutions");
-  }
-  const data = await res.json();
-  return data.data ?? [];
-};
-
-// Branch-related fetch function
-const fetchInstitutionBranches = async (
-  accessToken: string,
-  institutionId: string
-) => {
-  const res = await fetch(`${baseUrl}/institutions/${institutionId}/branches`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-  if (!res.ok) {
-    const errorData = await res.json();
-    toast.error(errorData.message ?? "Failed to fetch branches");
-    throw new Error(errorData.message ?? "Failed to fetch branches");
   }
   const data = await res.json();
   return data.data ?? [];
@@ -148,6 +132,24 @@ export const useInstitutions = (options?: { isFetchInstitutions: boolean }) => {
   };
 };
 
+const fetchInstitutionBranches = async (
+  accessToken: string,
+  institutionId: string
+) => {
+  const res = await fetch(`${baseUrl}/institutions/${institutionId}/branches`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    toast.error(errorData.message ?? "Failed to fetch branches");
+    throw new Error(errorData.message ?? "Failed to fetch branches");
+  }
+  const data = await res.json();
+  return data.data ?? [];
+};
+
 export const useInstitutionBranches = (
   institutionId: string,
   options?: { enabled?: boolean }
@@ -170,7 +172,7 @@ export const useInstitutionBranches = (
   });
 
   const addBranchMutation = useMutation({
-    mutationFn: async ({ branchData }: { branchData: any }) => {
+    mutationFn: async (branchData: BranchFormValues) => {
       const res = await fetch(
         `${baseUrl}/institutions/${institutionId}/branches`,
         {
@@ -203,7 +205,7 @@ export const useInstitutionBranches = (
       branchData,
     }: {
       branchId: string;
-      branchData: any;
+      branchData: BranchFormValues;
     }) => {
       const res = await fetch(
         `${baseUrl}/institutions/${institutionId}/branches/${branchId}`,
