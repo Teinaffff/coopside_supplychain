@@ -39,9 +39,11 @@ const ManufacturerForm: React.FC<ManufacturerFormProps> = ({
 
   const handleSubmit = async (data: ManufacturerFormValues) => {
     onSubmit(data);
-    onClose();
-    form.reset();
+    // onClose();
+    // form.reset();
   };
+
+  console.log("object: ", form.formState.errors)
 
   return (
     <div className="max-h-[80vh] overflow-y-auto">
