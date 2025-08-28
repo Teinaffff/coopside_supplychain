@@ -1,21 +1,33 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { institutionsMockData } from "../../../common/data/data";
+import { useSelector } from "react-redux";
+// import { institutionsMockData } from "../../../common/data/data";
 import { InstitutionFormValues } from "../../../schema/admin/institution";
+import { RootState } from "../../../store";
 
-const fetchInstitutions = async () => {
-  // const res = await fetch('/api/institutions');
-  // if (!res.ok) {
-  //   const errorData = await res.json();
-  //   toast.error(errorData.message ?? 'Failed to fetch institutions');
-  //   throw new Error(errorData.message ?? 'Failed to fetch institutions');
-  // }
-  // const data = await res.json();
-  return institutionsMockData;
+const baseUrl =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:8081/api"
+    : "https://supply-chain-api.onrender.com";
+
+const fetchInstitutions = async (accessToken: string) => {
+  const res = await fetch(`${baseUrl}/institutions`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    toast.error(errorData.message ?? "Failed to fetch institutions");
+    throw new Error(errorData.message ?? "Failed to fetch institutions");
+  }
+  const data = await res.json();
+  return data.data ?? [];
 };
 
 export const useInstitutions = (options?: { isFetchInstitutions: boolean }) => {
   const queryClient = useQueryClient();
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
 
   const {
     data: institutions,
@@ -23,17 +35,22 @@ export const useInstitutions = (options?: { isFetchInstitutions: boolean }) => {
     error,
   } = useQuery({
     queryKey: ["institutions"],
-    queryFn: fetchInstitutions,
+    queryFn: () => fetchInstitutions(accessToken ?? ""),
     enabled: options?.isFetchInstitutions,
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 
   const addInstitutionMutation = useMutation({
     mutationFn: async (data: InstitutionFormValues) => {
       const { id, ...rest } = data;
-      const res = await fetch("/api/institutions", {
+      const res = await fetch(`${baseUrl}/institutions/onboard`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(rest),
       });
@@ -58,6 +75,7 @@ export const useInstitutions = (options?: { isFetchInstitutions: boolean }) => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(rest),
       });
@@ -78,6 +96,9 @@ export const useInstitutions = (options?: { isFetchInstitutions: boolean }) => {
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/institutions/${id}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
       });
       if (!res.ok) {
         const errorData = await res.json();

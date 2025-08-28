@@ -10,7 +10,6 @@ export const EditInstitutionsModal = () => {
 
   const handleSubmit = (data: InstitutionFormValues) => {
     handleEditInstitution(data);
-    onClose();
   };
 
   return (
@@ -39,7 +38,7 @@ export const EditInstitutionsModal = () => {
               contactEmail: "",
               contactPhone: "",
               mainOfficeAddress: "",
-              institutionType: "",
+              institutionType: "GOVERNMENT",
               businessLicenseNumber: "",
               establishmentProclamation: "",
               employeeConsentProvided: false,

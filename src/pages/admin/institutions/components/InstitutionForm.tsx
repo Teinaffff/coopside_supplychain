@@ -12,11 +12,27 @@ import {
 import { Input } from "../../../../common/ui/input";
 import { Loader } from "../../../../common/ui/loader";
 import { Checkbox } from "../../../../common/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../common/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../../common/ui/select";
 import {
   institutionFormSchema,
   InstitutionFormValues,
 } from "../../../../schema/admin/institution";
+
+const InstitutionTypes = [
+  "GOVERNMENT",
+  "PRIVATE",
+  "NON_PROFIT",
+  "CHARITY",
+  "PUBLIC",
+  "NGO",
+  "OTHER",
+];
 
 interface InstitutionFormProps {
   defaultValues: Partial<InstitutionFormValues>;
@@ -41,6 +57,7 @@ const InstitutionForm: React.FC<InstitutionFormProps> = ({
   const handleSubmit = async (data: InstitutionFormValues) => {
     onSubmit(data);
     form.reset();
+     onClose();
   };
 
   return (
@@ -67,11 +84,11 @@ const InstitutionForm: React.FC<InstitutionFormProps> = ({
               <FormItem>
                 <FormLabel>Year of Establishment:</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    {...field} 
+                  <Input
+                    type="number"
+                    {...field}
                     onChange={(e) => field.onChange(parseInt(e.target.value))}
-                    disabled={loading} 
+                    disabled={loading}
                   />
                 </FormControl>
                 <FormMessage />
@@ -124,11 +141,11 @@ const InstitutionForm: React.FC<InstitutionFormProps> = ({
               <FormItem>
                 <FormLabel>Current Capital:</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    {...field} 
+                  <Input
+                    type="number"
+                    {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                    disabled={loading} 
+                    disabled={loading}
                   />
                 </FormControl>
                 <FormMessage />
@@ -142,11 +159,11 @@ const InstitutionForm: React.FC<InstitutionFormProps> = ({
               <FormItem>
                 <FormLabel>Permanent Employees:</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    {...field} 
+                  <Input
+                    type="number"
+                    {...field}
                     onChange={(e) => field.onChange(parseInt(e.target.value))}
-                    disabled={loading} 
+                    disabled={loading}
                   />
                 </FormControl>
                 <FormMessage />
@@ -160,11 +177,11 @@ const InstitutionForm: React.FC<InstitutionFormProps> = ({
               <FormItem>
                 <FormLabel>Contractual Employees:</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    {...field} 
+                  <Input
+                    type="number"
+                    {...field}
                     onChange={(e) => field.onChange(parseInt(e.target.value))}
-                    disabled={loading} 
+                    disabled={loading}
                   />
                 </FormControl>
                 <FormMessage />
@@ -178,11 +195,11 @@ const InstitutionForm: React.FC<InstitutionFormProps> = ({
               <FormItem>
                 <FormLabel>Total Branches:</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    {...field} 
+                  <Input
+                    type="number"
+                    {...field}
                     onChange={(e) => field.onChange(parseInt(e.target.value))}
-                    disabled={loading} 
+                    disabled={loading}
                   />
                 </FormControl>
                 <FormMessage />
@@ -196,11 +213,11 @@ const InstitutionForm: React.FC<InstitutionFormProps> = ({
               <FormItem>
                 <FormLabel>Total Asset Valuation:</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="number" 
-                    {...field} 
+                  <Input
+                    type="number"
+                    {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                    disabled={loading} 
+                    disabled={loading}
                   />
                 </FormControl>
                 <FormMessage />
@@ -266,16 +283,19 @@ const InstitutionForm: React.FC<InstitutionFormProps> = ({
               <FormItem>
                 <FormLabel>Institution Type:</FormLabel>
                 <FormControl>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select institution type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="University">University</SelectItem>
-                      <SelectItem value="College">College</SelectItem>
-                      <SelectItem value="Institute">Institute</SelectItem>
-                      <SelectItem value="School">School</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
+                      {InstitutionTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </FormControl>
@@ -316,7 +336,10 @@ const InstitutionForm: React.FC<InstitutionFormProps> = ({
               <FormItem>
                 <FormLabel>Onboarding Status:</FormLabel>
                 <FormControl>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
@@ -332,7 +355,7 @@ const InstitutionForm: React.FC<InstitutionFormProps> = ({
             )}
           />
         </div>
-        
+
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Agreements</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -385,7 +408,9 @@ const InstitutionForm: React.FC<InstitutionFormProps> = ({
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>Employee Termination Notification Agreement</FormLabel>
+                    <FormLabel>
+                      Employee Termination Notification Agreement
+                    </FormLabel>
                   </div>
                 </FormItem>
               )}
@@ -403,7 +428,9 @@ const InstitutionForm: React.FC<InstitutionFormProps> = ({
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>Outstanding Receivables Priority Agreement</FormLabel>
+                    <FormLabel>
+                      Outstanding Receivables Priority Agreement
+                    </FormLabel>
                   </div>
                 </FormItem>
               )}

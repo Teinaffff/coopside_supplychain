@@ -13,7 +13,7 @@ import ExportInstitutionsDataToExcel from "./components/ExportInstitutionsDataTo
 import { columns } from "./components/columns";
 
 const InstitutionsPage = () => {
-  const { institutions } = useInstitutions();
+  const { institutions } = useInstitutions({ isFetchInstitutions: true });
   const { onOpen } = useAddInstitutionModal();
   const { onOpen: onOpenImport } = useImportInstitutionsModal();
 
@@ -29,7 +29,7 @@ const InstitutionsPage = () => {
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
-            title={`Institutions (${institutions?.length})`}
+            title={`Institutions (${institutions?.length ?? 0})`}
             description="Manage Institutions"
           />
           <div></div>

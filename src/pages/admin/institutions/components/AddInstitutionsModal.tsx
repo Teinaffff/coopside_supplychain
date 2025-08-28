@@ -10,7 +10,6 @@ export const AddInstitutionsModal = () => {
 
   const handleSubmit = (data: InstitutionFormValues) => {
     handleAddInstitution(data);
-    onClose();
   };
 
   return (
@@ -38,7 +37,7 @@ export const AddInstitutionsModal = () => {
             contactEmail: "",
             contactPhone: "",
             mainOfficeAddress: "",
-            institutionType: "",
+            institutionType: "GOVERNMENT",
             businessLicenseNumber: "",
             establishmentProclamation: "",
             employeeConsentProvided: false,
