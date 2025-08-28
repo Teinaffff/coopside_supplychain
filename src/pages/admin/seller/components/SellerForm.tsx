@@ -195,19 +195,7 @@ const SellerForm: React.FC<SellerFormProps> = ({
               </FormItem>
             )}
           />
-          <FormField
-            name="address.country"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Country:</FormLabel>
-                <FormControl>
-                  <Input {...field} disabled={loading} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+
           <FormField
             name="bankAccountNumber"
             control={form.control}
@@ -257,7 +245,7 @@ const SellerForm: React.FC<SellerFormProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-x-2">
+        <div className="flex items-center justify-center gap-x-2">
           <Button
             onClick={onClose}
             variant="outline"
