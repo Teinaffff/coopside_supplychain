@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { useSelector } from "react-redux";
-import { manufacturersMockData } from "../../../common/data/data";
+// import { manufacturersMockData } from "../../../common/data/data";
 import { ManufacturerFormValues } from "../../../schema/admin/manufacturer";
 import { RootState } from "../../../store";
 
@@ -21,9 +21,9 @@ const fetchManufacturers = async (accessToken: string) => {
     toast.error(errorData.message ?? "Failed to fetch manufacturers");
     throw new Error(errorData.message ?? "Failed to fetch manufacturers");
   }
-  return manufacturersMockData;
-  // const data = await res.json();
-  // return data.data ?? [];
+  // return manufacturersMockData;
+  const data = await res.json();
+  return data.data ?? [];
 };
 
 const addManufacturer = async (
