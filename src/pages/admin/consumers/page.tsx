@@ -13,7 +13,7 @@ import ExportConsumerDataToExcel from "./components/ExportConsumerDataToExcel";
 import { columns } from "./components/columns";
 
 const ConsumersPage = () => {
-  const { consumers } = useConsumers();
+  const { consumers } = useConsumers({ isFetchConsumers: true });
   const { onOpen } = useAddConsumerModal();
   const { onOpen: onOpenImport } = useImportConsumersModal();
 
@@ -29,7 +29,7 @@ const ConsumersPage = () => {
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
-            title={`Consumers (${consumers?.length})`}
+            title={`Consumers (${consumers?.length ?? 0})`}
             description="Manage Consumers"
           />
           <div></div>
@@ -59,7 +59,7 @@ const ConsumersPage = () => {
           </div>
         </div>
         <DataTable
-          searchKey="name"
+          searchKey="fullLegalName"
           searchPlaceholder="Search by name"
           clickable={true}
           columns={columns}
