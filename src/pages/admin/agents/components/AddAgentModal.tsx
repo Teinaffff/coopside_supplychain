@@ -31,7 +31,7 @@ export const AddAgentModal = () => {
             fullName: "",
             email: "",
             phoneNumber: "",
-            agentType: "",
+            agentType: "AGENT",
             idNumber: "",
             commissionRate: 0,
             address: {

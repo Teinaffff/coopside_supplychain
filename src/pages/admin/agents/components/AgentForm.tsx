@@ -12,13 +12,6 @@ import {
 import { Input } from "../../../../common/ui/input";
 import { Loader } from "../../../../common/ui/loader";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../../common/ui/select";
-import {
   agentFormSchema,
   AgentFormValues,
 } from "../../../../schema/admin/agent";
@@ -59,7 +52,7 @@ const AgentForm: React.FC<AgentFormProps> = ({
       form.setValue("profilePictureUrl", null);
     }
   };
-  
+
   return (
     <Form {...form}>
       <form
@@ -117,36 +110,6 @@ const AgentForm: React.FC<AgentFormProps> = ({
                 <FormControl>
                   <Input type="number" {...field} disabled={loading} />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            name="agentType"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Agent Type:</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  disabled={loading}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select agent type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="sales">Sales Agent</SelectItem>
-                    <SelectItem value="distribution">
-                      Distribution Agent
-                    </SelectItem>
-                    <SelectItem value="field">Field Agent</SelectItem>
-                    <SelectItem value="regional">Regional Agent</SelectItem>
-                  </SelectContent>
-                </Select>
                 <FormMessage />
               </FormItem>
             )}
