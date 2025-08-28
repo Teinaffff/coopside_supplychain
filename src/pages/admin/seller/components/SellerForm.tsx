@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
 import { Button } from "../../../../common/ui/button";
 import {
   Form,
@@ -32,38 +31,25 @@ const SellerForm: React.FC<SellerFormProps> = ({
   onClose,
   buttonTitle,
 }) => {
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(
-    defaultValues.profilePictureUrl || null
-  );
-
   const form = useForm<SellerFormValues>({
     resolver: zodResolver(sellerFormSchema),
     defaultValues,
   });
 
   const handleSubmit = async (data: SellerFormValues) => {
-    const sellerData: SellerFormValues = {
-      ...data,
-      agentType: "SHEMACH",
-      profilePictureUrl: selectedImage
-        ? URL.createObjectURL(selectedImage)
-        : data.profilePictureUrl,
-    };
-    onSubmit(sellerData);
+    onSubmit(data);
     onClose();
     form.reset();
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handleImageChange = (event: any) => {
+    const selectedImage = event.target.files[0];
+    if (selectedImage) {
+      // form.setValue("profilePictureUrl", selectedImage);
+      form.setValue("profilePictureUrl", "http://localhost:3000/uploads/img1");
+      form.clearErrors("profilePictureUrl");
+    } else {
+      form.setValue("profilePictureUrl", null);
     }
   };
 
@@ -73,7 +59,7 @@ const SellerForm: React.FC<SellerFormProps> = ({
         onSubmit={form.handleSubmit(handleSubmit)}
         className="space-y-4 w-full"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           <FormField
             name="username"
             control={form.control}
@@ -248,31 +234,27 @@ const SellerForm: React.FC<SellerFormProps> = ({
               </FormItem>
             )}
           />
-        </div>
 
-        <div className="space-y-4">
-          <FormItem>
-            <FormLabel>Profile Picture:</FormLabel>
-            <FormControl>
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                disabled={loading}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-
-          {imagePreview && (
-            <div className="mt-2">
-              <img
-                src={imagePreview}
-                alt="Profile picture preview"
-                className="w-20 h-20 object-cover rounded-md"
-              />
-            </div>
-          )}
+          <div className="col-span-3 grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <FormField
+              name="profilePictureUrl"
+              control={form.control}
+              render={() => (
+                <FormItem>
+                  <FormLabel>Profile Picture:</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      disabled={loading}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
 
         <div className="flex items-center gap-x-2">

@@ -18,8 +18,10 @@ export const sellerFormSchema = z.object({
   }),
   isActive: z.boolean().default(true),
   bankAccountNumber: z.string().min(1, "Bank account number is required"),
-  taxIdentificationNumber: z.string().min(1, "Tax identification number is required"),
-  profilePictureUrl: z.string().optional(),
+  taxIdentificationNumber: z
+    .string()
+    .min(1, "Tax identification number is required"),
+  profilePictureUrl: z.string().optional().nullable(),
 });
 
 export type SellerFormValues = z.infer<typeof sellerFormSchema>;
