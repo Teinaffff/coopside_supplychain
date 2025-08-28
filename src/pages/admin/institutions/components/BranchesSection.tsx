@@ -19,7 +19,7 @@ import EditBranchModal from "./EditBranchModal";
 const mockBranches = [
   {
     id: 1,
-    institutionId: 101,
+    institutionId: 1,
     branchName: "Main Branch",
     address: "123 Main St, Addis Ababa",
     phoneNumber: "+251-11-123-4567",
@@ -29,7 +29,7 @@ const mockBranches = [
   },
   {
     id: 2,
-    institutionId: 101,
+    institutionId: 1,
     branchName: "Downtown Branch",
     address: "456 Downtown Ave, Addis Ababa",
     phoneNumber: "+251-11-987-6543",
