@@ -1,15 +1,20 @@
 import { Modal } from "../../../../common/ui/modal";
 import { BranchFormValues } from "../../../../schema/admin/institution";
 import { useEditBranchModal } from "../../hooks/use-edit-branch-modal";
+import { useInstitutionBranches } from "../../hooks/use-institutions";
 import BranchForm from "./BranchForm";
 
 const EditBranchModal: React.FC = () => {
   const { isOpen, onClose, defaultValues } = useEditBranchModal();
+  const { handleUpdateBranch, isUpdateBranchLoading } = useInstitutionBranches(
+    defaultValues?.institutionId!.toString() ?? ""
+  );
 
   const handleSubmit = (data: BranchFormValues) => {
-    // TODO: Implement API call to update branch
-    console.log("Updating branch:", data);
-    onClose();
+    handleUpdateBranch({
+      branchId: defaultValues?.id?.toString() ?? "",
+      data: data,
+    });
   };
 
   if (!defaultValues) return null;
@@ -37,7 +42,7 @@ const EditBranchModal: React.FC = () => {
         onClose={onClose}
         buttonTitle="Update Branch"
         institutionId={defaultValues.institutionId!.toString()}
-        loading={false}
+        loading={isUpdateBranchLoading}
       />
     </Modal>
   );

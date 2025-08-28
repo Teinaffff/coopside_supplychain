@@ -6,10 +6,12 @@ import BranchForm from "./BranchForm";
 
 const AddBranchModal: React.FC = () => {
   const { isOpen, onClose, institutionId } = useAddBranchModal();
-  const { handleAddBranch } = useInstitutionBranches(institutionId ?? "");
+  const { handleAddBranch, isAddBranchLoading } = useInstitutionBranches(
+    institutionId ?? ""
+  );
 
   const handleSubmit = (data: BranchFormValues) => {
-    handleAddBranch({ branchData: data });
+    handleAddBranch(data);
   };
 
   if (!institutionId) return null;
@@ -27,7 +29,7 @@ const AddBranchModal: React.FC = () => {
         onClose={onClose}
         buttonTitle="Add Branch"
         institutionId={institutionId}
-        loading={false}
+        loading={isAddBranchLoading}
       />
     </Modal>
   );

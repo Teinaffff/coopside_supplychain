@@ -172,7 +172,7 @@ export const useInstitutionBranches = (
   });
 
   const addBranchMutation = useMutation({
-    mutationFn: async (branchData: BranchFormValues) => {
+    mutationFn: async (data: BranchFormValues) => {
       const res = await fetch(
         `${baseUrl}/institutions/${institutionId}/branches`,
         {
@@ -181,7 +181,7 @@ export const useInstitutionBranches = (
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
-          body: JSON.stringify(branchData),
+          body: JSON.stringify(data),
         }
       );
       if (!res.ok) {
@@ -202,10 +202,10 @@ export const useInstitutionBranches = (
   const updateBranchMutation = useMutation({
     mutationFn: async ({
       branchId,
-      branchData,
+      data,
     }: {
       branchId: string;
-      branchData: BranchFormValues;
+      data: BranchFormValues;
     }) => {
       const res = await fetch(
         `${baseUrl}/institutions/${institutionId}/branches/${branchId}`,
@@ -215,7 +215,7 @@ export const useInstitutionBranches = (
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
-          body: JSON.stringify(branchData),
+          body: JSON.stringify(data),
         }
       );
       if (!res.ok) {
