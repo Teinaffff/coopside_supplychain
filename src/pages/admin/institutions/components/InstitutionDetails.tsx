@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -10,12 +9,12 @@ import {
   MapPin,
   Package,
   Users,
-  XCircle
+  XCircle,
 } from "lucide-react";
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import coopImage from "../../../../assets/images/coop.png";
-import { institutionsMockData } from "../../../../common/data/data";
+import Loader from "../../../../common/Loader";
 import { Badge } from "../../../../common/ui/badge";
 import { Button } from "../../../../common/ui/button";
 import {
@@ -32,43 +31,15 @@ import {
 } from "../../../../common/ui/tabs";
 import { Institution } from "../../../../constants/interface/admin/institution";
 import OverlayCard from "../../components/OverlayCard";
+import { useInstitutions } from "../../hooks/use-institutions";
 import BranchesSection from "./BranchesSection";
-
-// Function to fetch a single institution by ID
-const fetchInstitutionById = async (
-  institutionId: string
-): Promise<Institution> => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
-
-  const institution = institutionsMockData.find(
-    (institution) => institution.id.toString() === institutionId
-  );
-  if (!institution) {
-    throw new Error(`Institution with ID ${institutionId} not found`);
-  }
-  return institution;
-};
-
-// Reusable Loading Component
-const LoadingState: React.FC = () => (
-  <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-6 flex items-center justify-center">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
-      <p className="text-gray-600 dark:text-slate-300">
-        Loading institution details...
-      </p>
-    </div>
-  </div>
-);
 
 // Reusable Error State Component
 interface ErrorStateProps {
-  error: Error | null;
   onBack: () => void;
 }
 
-const ErrorState: React.FC<ErrorStateProps> = ({ error, onBack }) => (
+const ErrorState: React.FC<ErrorStateProps> = ({ onBack }) => (
   <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-6 flex items-center justify-center">
     <div className="text-center">
       <div className="text-red-500 mb-4">
@@ -78,9 +49,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({ error, onBack }) => (
         Institution Not Found
       </h2>
       <p className="text-gray-600 dark:text-slate-300 mb-4">
-        {error instanceof Error
-          ? error.message
-          : "The requested institution could not be found."}
+        The requested institution could not be found.
       </p>
       <Button onClick={onBack} variant="outline">
         <ArrowLeft className="w-4 h-4 mr-2" />
@@ -208,17 +177,13 @@ const AgreementStatus: React.FC<AgreementStatusProps> = ({ label, status }) => (
 const InstitutionDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
-  // Fetch institution data
-  const {
-    data: institution,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["institution", id],
-    queryFn: () => fetchInstitutionById(id!),
-    enabled: !!id,
+  const { institutions, isLoading } = useInstitutions({
+    isFetchInstitutions: true,
   });
+
+  const institution = institutions.find(
+    (inst: Institution) => inst.id.toString() === id
+  );
 
   // Handler functions
   const handleBack = () => {
@@ -227,12 +192,12 @@ const InstitutionDetails: React.FC = () => {
 
   // Loading state
   if (isLoading) {
-    return <LoadingState />;
+    return <Loader />;
   }
 
   // Error state
-  if (error || !institution) {
-    return <ErrorState error={error} onBack={handleBack} />;
+  if (!institution) {
+    return <ErrorState onBack={handleBack} />;
   }
 
   // Mock data for demonstration
