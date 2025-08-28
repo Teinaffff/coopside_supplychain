@@ -1,8 +1,8 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Badge } from "../../../../common/ui/badge";
 import { Button } from "../../../../common/ui/button";
+import StatusBadge from "../../../../common/ui/status-badge";
 import { Agent } from "../../../../constants/interface/admin/agent";
 import { CellActions } from "./cell-actions";
 
@@ -26,7 +26,10 @@ export const columns: ColumnDef<Agent>[] = [
           to={`/admin/agents/${row.original.id}`}
           className="hover:text-underline"
         >
-          <Button variant={"link"} className="text-slate-600  hover:text-cyan-500 dark:text-slate-50">
+          <Button
+            variant={"link"}
+            className="text-slate-600  hover:text-cyan-500 dark:text-slate-50"
+          >
             {row.original.fullName}
           </Button>
         </Link>
@@ -62,14 +65,14 @@ export const columns: ColumnDef<Agent>[] = [
     },
   },
   {
-    accessorKey: "agentType",
+    accessorKey: "taxIdentificationNumber",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Type
+          TIN Number
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -106,15 +109,8 @@ export const columns: ColumnDef<Agent>[] = [
       );
     },
     cell: ({ row }) => {
-      return (
-        <Badge
-          className={`text-white ${
-            row.original.isActive === "true" ? "bg-green-500" : "bg-red-500"
-          }`}
-        >
-          {row.original.isActive === "true" ? "Active" : "Inactive"}
-        </Badge>
-      );
+      const status = row.original.isActive ? "ACTIVE" : "INACTIVE";
+      return <StatusBadge status={status} isActive={row.original.isActive} />;
     },
     filterFn: (row, id, value) => {
       if (!value || value.length === 0) return true;

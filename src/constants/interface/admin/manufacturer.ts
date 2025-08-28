@@ -56,4 +56,5 @@ export interface Manufacturer extends Timestamps {
   paymentTerms: string;
   erpSystem: string;
   apiIntegrationId: string;
+  isActive?: boolean;
 }

@@ -5,6 +5,7 @@ import { Button } from "../../../../common/ui/button";
 import { Checkbox } from "../../../../common/ui/checkbox";
 import { Manufacturer } from "../../../../constants/interface/admin/manufacturer";
 import { CellAction } from "./cell-actions";
+import StatusBadge from "../../../../common/ui/status-badge";
 
 export const columns: ColumnDef<Manufacturer>[] = [
   {
@@ -122,6 +123,29 @@ export const columns: ColumnDef<Manufacturer>[] = [
           Employees
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
+      );
+    },
+  },
+  {
+    accessorKey: "isActive",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Status
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const status = row.original.isActive ? "ACTIVE" : "INACTIVE";
+      return (
+        <StatusBadge
+          status={status}
+          isActive={row.original.isActive ?? false}
+        />
       );
     },
   },

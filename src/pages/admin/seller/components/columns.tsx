@@ -1,7 +1,9 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "../../../../common/ui/button";
 import { Checkbox } from "../../../../common/ui/checkbox";
+import StatusBadge from "../../../../common/ui/status-badge";
 import { Seller } from "../../../../constants/interface/admin/seller";
 import { CellAction } from "./cell-actions";
 
@@ -38,18 +40,21 @@ export const columns: ColumnDef<Seller>[] = [
         </Button>
       );
     },
-    // cell: ({ row }) => {
-    //   return (
-    //     <Link
-    //       to={`/admin/sellers/${row.original.id}`}
-    //       className="hover:text-underline"
-    //     >
-    //       <Button variant={"link"} className="text-slate-600  hover:text-cyan-500">
-    //         {row.original.name}
-    //       </Button>
-    //     </Link>
-    //   );
-    // },
+    cell: ({ row }) => {
+      return (
+        <Link
+          to={`/admin/sellers/${row.original.id}`}
+          className="hover:text-underline"
+        >
+          <Button
+            variant={"link"}
+            className="text-slate-600  hover:text-cyan-500"
+          >
+            {row.original.fullName}
+          </Button>
+        </Link>
+      );
+    },
   },
   {
     accessorKey: "email",
@@ -105,6 +110,10 @@ export const columns: ColumnDef<Seller>[] = [
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
+    },
+    cell: ({ row }) => {
+      const status = row.original.isActive ? "ACTIVE" : "INACTIVE";
+      return <StatusBadge status={status} isActive={row.original.isActive} />;
     },
   },
   {

@@ -3,6 +3,7 @@ import { ArrowUpDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "../../../../common/ui/button";
 import { Checkbox } from "../../../../common/ui/checkbox";
+import StatusBadge from "../../../../common/ui/status-badge";
 import { Institution } from "../../../../constants/interface/admin/institution";
 import { CellAction } from "./cell-actions";
 
@@ -109,6 +110,11 @@ export const columns: ColumnDef<Institution>[] = [
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
+    },
+    cell: ({ row }) => {
+      const status = row.original.onboardingStatus;
+      const isActive = status === "approved";
+      return <StatusBadge status={status.toUpperCase()} isActive={isActive} />;
     },
   },
   {

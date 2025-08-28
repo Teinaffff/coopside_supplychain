@@ -7,6 +7,7 @@ import {
 import { Badge } from "../../../../common/ui/badge";
 import { Button } from "../../../../common/ui/button";
 import { CellActions } from "./cell-actions";
+import StatusBadge from "../../../../common/ui/status-badge";
 
 const getAdminTypeLabel = (type: AdminModuleType): string => {
   const labels = {
@@ -128,17 +129,8 @@ export const columns: ColumnDef<AdminUser>[] = [
       );
     },
     cell: ({ row }) => {
-      const isActive =
-        row.getValue("isActive") === "true" ||
-        row.getValue("isActive") === true;
-      return (
-        <Badge
-          variant={isActive ? "default" : "secondary"}
-          className={`${isActive ? "bg-green-500" : "bg-red-500"}`}
-        >
-          {isActive ? "Active" : "Inactive"}
-        </Badge>
-      );
+      const status = row.original.isActive ? "ACTIVE" : "INACTIVE";
+      return <StatusBadge status={status} isActive={row.original.isActive} />;
     },
     filterFn: (row, id, value) => {
       if (!value || value.length === 0) return true;

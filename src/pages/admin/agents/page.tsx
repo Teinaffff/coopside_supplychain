@@ -1,10 +1,8 @@
 import { Download, Plus, Trash, Upload } from "lucide-react";
-import { useMemo } from "react";
 import { Button } from "../../../common/ui/button";
 import { Card } from "../../../common/ui/card";
 import { DataTable } from "../../../common/ui/data-table";
 import { Heading } from "../../../common/ui/heading";
-import { Agent } from "../../../constants/interface/admin/agent";
 import { useAddAgentModal } from "../hooks/use-add-agent-modal";
 import { useAgents } from "../hooks/use-agents";
 import { useImportAgentsModal } from "../hooks/use-import-agents-modal";
@@ -21,16 +19,8 @@ const AgentPage = () => {
     isFetchAgents: true,
   });
 
-
-  const formattedAgents = useMemo(() => {
-    return agents?.map((agent: Agent) => ({
-      ...agent,
-      isActive: agent.isActive.toString(),
-    }));
-  }, [agents]);
-
   const deleteselectedMembers = () => {};
-  
+
   return (
     <>
       <AddAgentModal />
@@ -73,7 +63,7 @@ const AgentPage = () => {
           searchPlaceholder="Search by name"
           clickable={true}
           columns={columns}
-          data={formattedAgents ?? []}
+          data={agents ?? []}
           onConfirmFunction={deleteselectedMembers}
           onExport={ExportAgentsDataToExcel}
           buttonTitle="Delete Selection"
