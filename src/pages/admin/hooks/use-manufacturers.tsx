@@ -1,65 +1,91 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 import { manufacturersMockData } from "../../../common/data/data";
-import { Manufacturer } from "../../../constants/interface/admin/manufacturer";
 import { ManufacturerFormValues } from "../../../schema/admin/manufacturer";
+import { RootState } from "../../../store";
 
-const fetchManufacturers = async () => {
-  // const res = await fetch('/api/manufacturers');
-  // if (!res.ok) {
-  //   const errorData = await res.json();
-  //   toast.error(errorData.message ?? 'Failed to fetch manufacturers');
-  //   throw new Error(errorData.message ?? 'Failed to fetch manufacturers');
-  // }
+const baseUrl =
+  import.meta.env.MODE === "development"
+    ? "http://localhost:8081/api"
+    : "https://supply-chain-api.onrender.com";
+
+const fetchManufacturers = async (accessToken: string) => {
+  const res = await fetch(`${baseUrl}/factories`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    toast.error(errorData.message ?? "Failed to fetch manufacturers");
+    throw new Error(errorData.message ?? "Failed to fetch manufacturers");
+  }
   // const data = await res.json();
-  return manufacturersMockData.slice(0, 10); // Limit to 10 entries
+  return manufacturersMockData.slice(0, 10);
 };
 
-const addManufacturer = async (manufacturer: ManufacturerFormValues) => {
-  // const res = await fetch('/api/manufacturers', {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify(manufacturer),
-  // });
-  // if (!res.ok) {
-  //   const errorData = await res.json();
-  //   toast.error(errorData.message ?? 'Failed to add manufacturer');
-  //   throw new Error(errorData.message ?? 'Failed to add manufacturer');
-  // }
-  // return res.json();
-  return manufacturer;
+const addManufacturer = async (
+  manufacturer: ManufacturerFormValues,
+  accessToken: string
+) => {
+  const res = await fetch(`${baseUrl}/factories`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(manufacturer),
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    toast.error(errorData.message ?? "Failed to add factory");
+    throw new Error(errorData.message ?? "Failed to add factory");
+  }
+  return res.json();
 };
 
-const editManufacturer = async (manufacturer: ManufacturerFormValues) => {
-  // const res = await fetch(`/api/manufacturers/${manufacturer.manufacturerId}`, {
-  //   method: 'PUT',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify(manufacturer),
-  // });
-  // if (!res.ok) {
-  //   const errorData = await res.json();
-  //   toast.error(errorData.message ?? 'Failed to edit manufacturer');
-  //   throw new Error(errorData.message ?? 'Failed to edit manufacturer');
-  // }
-  // return res.json();
-  return manufacturer;
+const editManufacturer = async (
+  manufacturer: ManufacturerFormValues,
+  accessToken: string
+) => {
+  const res = await fetch(`${baseUrl}/factories/${manufacturer.id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify(manufacturer),
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    toast.error(errorData.message ?? "Failed to edit factory");
+    throw new Error(errorData.message ?? "Failed to edit factory");
+  }
+  return res.json();
 };
 
-const deleteManufacturerById = async (manufacturerId: number) => {
-  // const res = await fetch(`/api/manufacturers/${manufacturerId}`, {
-  //   method: 'DELETE',
-  // });
-  // if (!res.ok) {
-  //   const errorData = await res.json();
-  //   toast.error(errorData.message ?? 'Failed to delete manufacturer');
-  //   throw new Error(errorData.message ?? 'Failed to delete manufacturer');
-  // }
-  // return res.json();
-  return { manufacturerId };
+const deleteManufacturerById = async (
+  manufacturerId: number,
+  accessToken: string
+) => {
+  const res = await fetch(`${baseUrl}/factories/${manufacturerId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    toast.error(errorData.message ?? "Failed to delete factory");
+    throw new Error(errorData.message ?? "Failed to delete factory");
+  }
+  return res.json();
 };
 
 export const useManufacturers = () => {
   const queryClient = useQueryClient();
+  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
 
   const {
     data: manufacturers = [],
@@ -67,39 +93,47 @@ export const useManufacturers = () => {
     error,
   } = useQuery({
     queryKey: ["manufacturers"],
-    queryFn: fetchManufacturers,
+    queryFn: () => fetchManufacturers(accessToken ?? ""),
+    enabled: true,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 
   const addManufacturerMutation = useMutation({
-    mutationFn: addManufacturer,
+    mutationFn: (manufacturer: ManufacturerFormValues) =>
+      addManufacturer(manufacturer, accessToken ?? ""),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["manufacturers"] });
-      toast.success("Manufacturer added successfully!");
+      toast.success("Factory added successfully!");
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to add manufacturer");
+      toast.error(error.message || "Failed to add factory");
     },
   });
 
   const editManufacturerMutation = useMutation({
-    mutationFn: editManufacturer,
+    mutationFn: (manufacturer: ManufacturerFormValues) =>
+      editManufacturer(manufacturer, accessToken ?? ""),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["manufacturers"] });
-      toast.success("Manufacturer updated successfully!");
+      toast.success("Factory updated successfully!");
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to update manufacturer");
+      toast.error(error.message || "Failed to update factory");
     },
   });
 
   const deleteManufacturer = useMutation({
-    mutationFn: deleteManufacturerById,
+    mutationFn: (manufacturerId: number) =>
+      deleteManufacturerById(manufacturerId, accessToken ?? ""),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["manufacturers"] });
-      toast.success("Manufacturer deleted successfully!");
+      toast.success("Factory deleted successfully!");
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to delete manufacturer");
+      toast.error(error.message || "Failed to delete factory");
     },
   });
 
