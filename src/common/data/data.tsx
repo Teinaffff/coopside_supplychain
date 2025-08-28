@@ -1203,7 +1203,7 @@ export const institutionsMockData = [
 
 export const sellerMockData = [
   {
-    id: 1,
+    id: 11,
     username: "abdu_cooperative",
     email: "abdu.cooperative@example.com",
     fullName: "Abdu Cooperative",
@@ -1226,7 +1226,7 @@ export const sellerMockData = [
     updatedAt: "2024-07-04T13:20:00Z",
   },
   {
-    id: 2,
+    id: 12,
     username: "hawassa_cooperative",
     email: "hawassa.cooperative@example.com",
     fullName: "Hawassa Cooperative",
@@ -1249,7 +1249,7 @@ export const sellerMockData = [
     updatedAt: "2024-07-04T13:20:00Z",
   },
   {
-    id: 3,
+    id: 13,
     username: "bahir_union",
     email: "bahir.union@example.com",
     fullName: "Bahir Union",
@@ -1272,7 +1272,7 @@ export const sellerMockData = [
     updatedAt: "2024-07-04T13:20:00Z",
   },
   {
-    id: 4,
+    id: 14,
     username: "dire_cooperative",
     email: "dire.cooperative@example.com",
     fullName: "Dire Cooperative",
@@ -1295,7 +1295,7 @@ export const sellerMockData = [
     updatedAt: "2024-07-04T13:20:00Z",
   },
   {
-    id: 5,
+    id: 15,
     username: "addis_cooperative",
     email: "addis.cooperative@example.com",
     fullName: "Addis Cooperative",
