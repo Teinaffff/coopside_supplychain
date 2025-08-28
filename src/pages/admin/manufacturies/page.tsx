@@ -15,7 +15,7 @@ import { columns } from "./components/columns";
 const ManufacturersPage = () => {
   const { onOpen } = useAddManufacturerModal();
   const { onOpen: onOpenImport } = useImportManufacturersModal();
-  const { manufacturers } = useManufacturers();
+  const { manufacturers } = useManufacturers({ isFetchManufacturers: true });
 
   const deleteSelectedManufacturers = () => {
     // Implementation for bulk delete

@@ -1,15 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-    AlertTriangle,
-    ArrowLeft,
-    Building2,
-    Clock,
-    CreditCard,
-    Factory,
-    Globe,
-    MapPin,
-    Package,
-    Users,
+  AlertTriangle,
+  ArrowLeft,
+  Building2,
+  CheckCircle,
+  Clock,
+  CreditCard,
+  Factory,
+  Globe,
+  MapPin,
+  Package,
+  Users,
+  XCircle,
 } from "lucide-react";
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -18,53 +20,28 @@ import { manufacturersMockData } from "../../../../common/data/data";
 import { Badge } from "../../../../common/ui/badge";
 import { Button } from "../../../../common/ui/button";
 import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
 } from "../../../../common/ui/card";
 import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
 } from "../../../../common/ui/tabs";
 import { Manufacturer } from "../../../../constants/interface/admin/manufacturer";
 import OverlayCard from "../../components/OverlayCard";
-
-// Function to fetch a single manufacturer by ID
-const fetchManufacturerById = async (
-  manufacturerId: string
-): Promise<Manufacturer> => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
-
-  const manufacturer = manufacturersMockData.find(
-    (manufacturer) => manufacturer.id.toString() === manufacturerId
-  );
-  if (!manufacturer) {
-    throw new Error(`Factory with ID ${manufacturerId} not found`);
-  }
-  return manufacturer;
-};
-
-// Reusable Loading Component
-const LoadingState: React.FC = () => (
-  <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-6 flex items-center justify-center">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-      <p className="text-gray-600 dark:text-slate-300">Loading factory details...</p>
-    </div>
-  </div>
-);
+import { useManufacturers } from "../../hooks/use-manufacturers";
+import Loader from "../../../../common/Loader";
 
 // Reusable Error State Component
 interface ErrorStateProps {
-  error: Error | null;
   onBack: () => void;
 }
 
-const ErrorState: React.FC<ErrorStateProps> = ({ error, onBack }) => (
+const ErrorState: React.FC<ErrorStateProps> = ({ onBack }) => (
   <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-6 flex items-center justify-center">
     <div className="text-center">
       <div className="text-red-500 mb-4">
@@ -74,9 +51,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({ error, onBack }) => (
         Factory Not Found
       </h2>
       <p className="text-gray-600 dark:text-slate-300 mb-4">
-        {error instanceof Error
-          ? error.message
-          : "The requested factory could not be found."}
+        The requested factory could not be found.
       </p>
       <Button onClick={onBack} variant="outline">
         <ArrowLeft className="w-4 h-4 mr-2" />
@@ -101,7 +76,9 @@ const InfoField: React.FC<InfoFieldProps> = ({
   <div
     className={`flex justify-between items-center p-3 bg-gray-50 dark:bg-slate-800 rounded-lg ${className}`}
   >
-    <span className="text-sm font-medium text-gray-600 dark:text-slate-300">{label}</span>
+    <span className="text-sm font-medium text-gray-600 dark:text-slate-300">
+      {label}
+    </span>
     <span className="text-sm text-gray-900 dark:text-slate-100">{value}</span>
   </div>
 );
@@ -121,8 +98,12 @@ const InfoFieldStart: React.FC<InfoFieldStartProps> = ({
   <div
     className={`flex justify-between items-start p-3 bg-gray-50 dark:bg-slate-800 rounded-lg ${className}`}
   >
-    <span className="text-sm font-medium text-gray-600 dark:text-slate-300">{label}</span>
-    <div className="text-sm text-gray-900 dark:text-slate-100 text-right">{value}</div>
+    <span className="text-sm font-medium text-gray-600 dark:text-slate-300">
+      {label}
+    </span>
+    <div className="text-sm text-gray-900 dark:text-slate-100 text-right">
+      {value}
+    </div>
   </div>
 );
 
@@ -160,7 +141,9 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ action, timestamp }) => (
     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
     <div className="flex-1">
       <div className="text-sm font-medium dark:text-slate-100">{action}</div>
-      <div className="text-xs text-gray-500 dark:text-slate-400">{timestamp}</div>
+      <div className="text-xs text-gray-500 dark:text-slate-400">
+        {timestamp}
+      </div>
     </div>
   </div>
 );
@@ -168,17 +151,12 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ action, timestamp }) => (
 const FactoryDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
-  // Fetch manufacturer data
-  const {
-    data: manufacturer,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["manufacturer", id],
-    queryFn: () => fetchManufacturerById(id!),
-    enabled: !!id,
+  const { manufacturers, isLoading } = useManufacturers({
+    isFetchManufacturers: true,
   });
+  const manufacturer = manufacturers?.find(
+    (manufacturer: Manufacturer) => manufacturer?.id?.toString() === id
+  );
 
   // Handler functions
   const handleBack = () => {
@@ -187,12 +165,12 @@ const FactoryDetails: React.FC = () => {
 
   // Loading state
   if (isLoading) {
-    return <LoadingState />;
+    return <Loader />;
   }
 
   // Error state
-  if (error || !manufacturer) {
-    return <ErrorState error={error} onBack={handleBack} />;
+  if (!manufacturer) {
+    return <ErrorState onBack={handleBack} />;
   }
 
   // Mock data for demonstration
@@ -305,10 +283,30 @@ const FactoryDetails: React.FC = () => {
       {/* Tabbed Sections */}
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-4 dark:bg-slate-800">
-          <TabsTrigger value="overview" className="dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100">Overview</TabsTrigger>
-          <TabsTrigger value="production" className="dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100">Production</TabsTrigger>
-          <TabsTrigger value="financial" className="dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100">Financial</TabsTrigger>
-          <TabsTrigger value="activity" className="dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100">Activity</TabsTrigger>
+          <TabsTrigger
+            value="overview"
+            className="dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100"
+          >
+            Overview
+          </TabsTrigger>
+          <TabsTrigger
+            value="production"
+            className="dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100"
+          >
+            Production
+          </TabsTrigger>
+          <TabsTrigger
+            value="financial"
+            className="dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100"
+          >
+            Financial
+          </TabsTrigger>
+          <TabsTrigger
+            value="activity"
+            className="dark:text-slate-300 dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-slate-100"
+          >
+            Activity
+          </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
@@ -413,15 +411,17 @@ const FactoryDetails: React.FC = () => {
                     label="Main Products"
                     value={
                       <div className="space-y-1">
-                        {manufacturer.mainProducts.map((product, index) => (
-                          <Badge
-                            key={index}
-                            variant="outline"
-                            className="mr-1 mb-1"
-                          >
-                            {product}
-                          </Badge>
-                        ))}
+                        {manufacturer.mainProducts.map(
+                          (product: string, index: number) => (
+                            <Badge
+                              key={index}
+                              variant="outline"
+                              className="mr-1 mb-1"
+                            >
+                              {product}
+                            </Badge>
+                          )
+                        )}
                       </div>
                     }
                   />
@@ -429,15 +429,17 @@ const FactoryDetails: React.FC = () => {
                     label="Certifications"
                     value={
                       <div className="space-y-1">
-                        {manufacturer.certifications.map((cert, index) => (
-                          <Badge
-                            key={index}
-                            variant="secondary"
-                            className="mr-1 mb-1"
-                          >
-                            {cert}
-                          </Badge>
-                        ))}
+                        {manufacturer.certifications.map(
+                          (cert: string, index: number) => (
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="mr-1 mb-1"
+                            >
+                              {cert}
+                            </Badge>
+                          )
+                        )}
                       </div>
                     }
                   />
@@ -458,11 +460,13 @@ const FactoryDetails: React.FC = () => {
                     label="Production Lines"
                     value={
                       <div className="space-y-1">
-                        {manufacturer.productionLines.map((line, index) => (
-                          <div key={index} className="text-sm">
-                            {line}
-                          </div>
-                        ))}
+                        {manufacturer?.productionLines?.map(
+                          (line: string, index: number) => (
+                            <div key={index} className="text-sm">
+                              {line}
+                            </div>
+                          )
+                        )}
                       </div>
                     }
                   />
@@ -470,11 +474,13 @@ const FactoryDetails: React.FC = () => {
                     label="Machinery"
                     value={
                       <div className="space-y-1">
-                        {manufacturer.machineryList.map((machine, index) => (
-                          <div key={index} className="text-sm">
-                            {machine}
-                          </div>
-                        ))}
+                        {manufacturer?.machineryList?.map(
+                          (machine: string, index: number) => (
+                            <div key={index} className="text-sm">
+                              {machine}
+                            </div>
+                          )
+                        )}
                       </div>
                     }
                   />
@@ -498,7 +504,7 @@ const FactoryDetails: React.FC = () => {
                 <div className="space-y-4">
                   <InfoField
                     label="Preferred Currency"
-                    value={manufacturer.preferredCurrency}
+                    value={manufacturer?.preferredCurrency}
                   />
                   <InfoField
                     label="Payment Terms"

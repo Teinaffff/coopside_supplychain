@@ -84,7 +84,9 @@ const deleteManufacturerById = async (
   return res.json();
 };
 
-export const useManufacturers = () => {
+export const useManufacturers = (options: {
+  isFetchManufacturers?: boolean;
+}) => {
   const queryClient = useQueryClient();
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
 
@@ -95,7 +97,7 @@ export const useManufacturers = () => {
   } = useQuery({
     queryKey: ["manufacturers"],
     queryFn: () => fetchManufacturers(accessToken ?? ""),
-    enabled: true,
+    enabled: options?.isFetchManufacturers ?? false,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
