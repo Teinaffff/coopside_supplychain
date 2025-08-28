@@ -1,22 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   ArrowLeft,
   Building2,
-  CheckCircle,
   Clock,
   CreditCard,
   Factory,
   Globe,
   MapPin,
   Package,
-  Users,
-  XCircle,
+  Users
 } from "lucide-react";
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import coopImage from "../../../../assets/images/coop.png";
-import { manufacturersMockData } from "../../../../common/data/data";
+import Loader from "../../../../common/Loader";
 import { Badge } from "../../../../common/ui/badge";
 import { Button } from "../../../../common/ui/button";
 import {
@@ -34,7 +31,6 @@ import {
 import { Manufacturer } from "../../../../constants/interface/admin/manufacturer";
 import OverlayCard from "../../components/OverlayCard";
 import { useManufacturers } from "../../hooks/use-manufacturers";
-import Loader from "../../../../common/Loader";
 
 // Reusable Error State Component
 interface ErrorStateProps {
