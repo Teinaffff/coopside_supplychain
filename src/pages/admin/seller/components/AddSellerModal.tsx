@@ -26,18 +26,25 @@ export const AddSellerModal = () => {
         className="z-[101] w-full sm:w-[80%] lg:w-[70%] h-[90%] sm:h-[700px] mt-5 overflow-y-scroll"
       >
         <SellerForm
-          defaultValues={ {
-              name: "",
+          defaultValues={{
+              username: "",
+              fullName: "",
               email: "",
-              phone: "",
-              chairperson: "",
-              memberCount: 0,
-              city: "",
-              subcity: "",
-              woreda: "",
-              establishedDate: "",
-              sellerStatus: "",
-              logoUrl: "",
+              phoneNumber: "",
+              agentType: "SHEMACH",
+              idNumber: "",
+              commissionRate: 0,
+              address: {
+                street: "",
+                city: "",
+                state: "",
+                postalCode: "",
+                country: "",
+              },
+              isActive: true,
+              bankAccountNumber: "",
+              taxIdentificationNumber: "",
+              profilePictureUrl: "",
             }
           }
           onSubmit={handleSubmit}

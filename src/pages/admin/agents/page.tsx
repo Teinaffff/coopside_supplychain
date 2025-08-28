@@ -11,6 +11,8 @@ import { EditAgentModal } from "./components/EditAgentModal";
 import ExportAgentsDataToExcel from "./components/ExportAgentsDataToExcel";
 import { ImportAgentsModal } from "./components/ImportAgentsModal";
 import { columns } from "./components/columns";
+import { useMemo } from "react";
+import { Agent } from "../../../constants/interface/admin/agent";
 
 const AgentPage = () => {
   const { onOpen } = useAddAgentModal();
@@ -18,6 +20,11 @@ const AgentPage = () => {
   const { agents } = useAgents({
     isFetchAgents: true,
   });
+
+  const formattedAgents = useMemo(
+    () => agents?.filter((agent: Agent) => agent.agentType === "AGENT"),
+    [agents]
+  );
 
   const deleteselectedMembers = () => {};
 
@@ -49,7 +56,7 @@ const AgentPage = () => {
             <Button
               className={`bg-cyan-600 hover:bg-cyan-600`}
               onClick={() =>
-                ExportAgentsDataToExcel("notfiltered", agents ?? [])
+                ExportAgentsDataToExcel("notfiltered", formattedAgents ?? [])
               }
               title="disabled"
             >
@@ -63,7 +70,7 @@ const AgentPage = () => {
           searchPlaceholder="Search by name"
           clickable={true}
           columns={columns}
-          data={agents ?? []}
+          data={formattedAgents ?? []}
           onConfirmFunction={deleteselectedMembers}
           onExport={ExportAgentsDataToExcel}
           buttonTitle="Delete Selection"

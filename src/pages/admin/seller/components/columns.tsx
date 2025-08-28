@@ -2,33 +2,13 @@ import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "../../../../common/ui/button";
-import { Checkbox } from "../../../../common/ui/checkbox";
 import StatusBadge from "../../../../common/ui/status-badge";
 import { Seller } from "../../../../constants/interface/admin/seller";
 import { CellAction } from "./cell-actions";
 
 export const columns: ColumnDef<Seller>[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected()}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "name",
+    accessorKey: "fullName",
     header: ({ column }) => {
       return (
         <Button
@@ -48,11 +28,25 @@ export const columns: ColumnDef<Seller>[] = [
         >
           <Button
             variant={"link"}
-            className="text-slate-600  hover:text-cyan-500"
+            className="text-slate-600  hover:text-cyan-500 dark:text-slate-50"
           >
             {row.original.fullName}
           </Button>
         </Link>
+      );
+    },
+  },
+  {
+    accessorKey: "phoneNumber",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Phone
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
       );
     },
   },
@@ -71,35 +65,38 @@ export const columns: ColumnDef<Seller>[] = [
     },
   },
   {
-    accessorKey: "chairperson",
+    accessorKey: "taxIdentificationNumber",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Chairperson
+          TIN Number
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
   {
-    accessorKey: "memberCount",
+    accessorKey: "address.city",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Member Count
+          City
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
+    cell: ({ row }) => {
+      return <span>{row.original.address.city}</span>;
+    },
   },
   {
-    accessorKey: "sellerStatus",
+    accessorKey: "isActive",
     header: ({ column }) => {
       return (
         <Button
@@ -112,8 +109,16 @@ export const columns: ColumnDef<Seller>[] = [
       );
     },
     cell: ({ row }) => {
-      const status = row.original.isActive ? "ACTIVE" : "INACTIVE";
-      return <StatusBadge status={status} isActive={row.original.isActive} />;
+      const isActive = row.original.isActive;
+      return (
+        <StatusBadge
+          status={isActive ? "Active" : "Inactive"}
+          isActive={isActive}
+        />
+      );
+    },
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id));
     },
   },
   {

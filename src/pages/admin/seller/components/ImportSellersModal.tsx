@@ -1,19 +1,26 @@
 import { ExpectedColumn } from "../../../../constants/general";
 import {
-    transformNumeric,
-    validateEmail,
-    validateNumeric
+  transformBoolean,
+  transformNumeric,
+  validateBoolean,
+  validateEmail,
+  validateNumeric,
 } from "../../../../lib/validation-utils";
+import { SellerFormValues } from "../../../../schema/admin/seller";
 import { GenericImportModal } from "../../components/GenericImportModal";
 import { useImportSellersModal } from "../../hooks/use-import-sellers-modal";
 import { useSellers } from "../../hooks/use-sellers";
 
-// Define seller columns based on seller schema
 const SELLER_COLUMNS: ExpectedColumn[] = [
   {
-    field: "name",
+    field: "username",
     required: true,
-    description: "Name of the cooperative",
+    description: "Unique username for the seller",
+  },
+  {
+    field: "fullName",
+    required: true,
+    description: "Full name of the seller",
   },
   {
     field: "email",
@@ -22,96 +29,144 @@ const SELLER_COLUMNS: ExpectedColumn[] = [
     validator: validateEmail,
   },
   {
-    field: "phone",
-    required: true,
+    field: "phoneNumber",
+    required: false,
     description: "Contact phone number",
   },
   {
-    field: "chairperson",
-    required: true,
-    description: "Name of the chairperson",
+    field: "agentType",
+    required: false,
+    description: "Type of agent (defaults to SHEMACH)",
   },
   {
-    field: "memberCount",
-    required: true,
-    description: "Number of members",
+    field: "idNumber",
+    required: false,
+    description: "ID number",
+  },
+  {
+    field: "commissionRate",
+    required: false,
+    description: "Commission rate (number)",
     validator: validateNumeric,
     transformer: transformNumeric,
   },
   {
+    field: "street",
+    required: false,
+    description: "Street address",
+  },
+  {
     field: "city",
-    required: true,
-    description: "City location",
+    required: false,
+    description: "City",
   },
   {
-    field: "subcity",
-    required: true,
-    description: "Subcity location",
+    field: "state",
+    required: false,
+    description: "State",
   },
   {
-    field: "woreda",
-    required: true,
-    description: "Woreda location",
+    field: "postalCode",
+    required: false,
+    description: "Postal code",
   },
   {
-    field: "establishedDate",
-    required: true,
-    description: "Date of establishment (YYYY-MM-DD)",
+    field: "country",
+    required: false,
+    description: "Country",
   },
   {
-    field: "sellerStatus",
-    required: true,
-    description: "Current status of the seller",
+    field: "isActive",
+    required: false,
+    description: "Active status (true/false)",
+    validator: validateBoolean,
+    transformer: transformBoolean,
+  },
+  {
+    field: "bankAccountNumber",
+    required: false,
+    description: "Bank account number",
+  },
+  {
+    field: "taxIdentificationNumber",
+    required: false,
+    description: "Tax identification number",
   },
 ];
 
 const TEMPLATE_DATA = [
   [
-    "Cooperative ABC",
-    "coop.abc@example.com",
+    "seller1",
+    "John Doe",
+    "john.doe@example.com",
     "+1234567890",
-    "Melaku Tesfaye",
-    "150",
+    "SHEMACH",
+    "ID123456",
+    "5.5",
+    "123 Main St",
     "Addis Ababa",
-    "Bole",
-    "03",
-    "2020-01-15",
-    "ACTIVE",
+    "Addis Ababa",
+    "1000",
+    "Ethiopia",
+    "true",
+    "1234567890",
+    "TIN123456",
   ],
   [
-    "Cooperative XYZ",
-    "coop.xyz@example.com",
-    "+1987654321",
+    "seller2",
     "Jane Smith",
-    "200",
+    "jane.smith@example.com",
+    "+1987654321",
+    "SHEMACH",
+    "ID789012",
+    "6.0",
+    "456 Oak Ave",
     "Dire Dawa",
-    "Sabian",
-    "02",
-    "2019-05-20",
-    "ACTIVE",
+    "Dire Dawa",
+    "2000",
+    "Ethiopia",
+    "true",
+    "0987654321",
+    "TIN789012",
   ],
 ];
 
 const convertRowToSeller = (
   row: any,
   columnMapping: Record<string, string>
-): any => {
+): SellerFormValues => {
   const getFieldValue = (fieldName: string) => {
     const mappedColumn = columnMapping[fieldName];
     return mappedColumn ? row[mappedColumn] : undefined;
   };
 
+  const isActiveValue = getFieldValue("isActive");
+  let isActive = true;
+  if (isActiveValue !== undefined) {
+    const val = isActiveValue.toString().toLowerCase();
+    isActive = ["true", "1", "yes"].includes(val);
+  }
+
   return {
-    name: getFieldValue("name")?.toString() || "",
+    username: getFieldValue("username")?.toString() || "",
+    fullName: getFieldValue("fullName")?.toString() || "",
     email: getFieldValue("email")?.toString() || "",
-    phone: getFieldValue("phone")?.toString() || "",
-    chairperson: getFieldValue("chairperson")?.toString() || "",
-    memberCount: Number(getFieldValue("memberCount")) || 0,
-    city: getFieldValue("city")?.toString() || "",
-    subcity: getFieldValue("subcity")?.toString() || "",
-    woreda: getFieldValue("woreda")?.toString() || "",
-    establishedDate: getFieldValue("establishedDate")?.toString() || "",
-    sellerStatus: getFieldValue("sellerStatus")?.toString() || "",
+    phoneNumber: getFieldValue("phoneNumber")?.toString() || "",
+    agentType: "SHEMACH",
+    idNumber: getFieldValue("idNumber")?.toString() || "",
+    commissionRate: Number(getFieldValue("commissionRate")) || 0,
+    address: {
+      street: getFieldValue("street")?.toString() || "",
+      city: getFieldValue("city")?.toString() || "",
+      state: getFieldValue("state")?.toString() || "",
+      postalCode: getFieldValue("postalCode")?.toString() || "",
+      country: getFieldValue("country")?.toString() || "",
+    },
+    isActive,
+    bankAccountNumber: getFieldValue("bankAccountNumber")?.toString() || "",
+    taxIdentificationNumber:
+      getFieldValue("taxIdentificationNumber")?.toString() || "",
+    profilePictureUrl: undefined,
   };
 };
 
@@ -119,14 +174,14 @@ export const ImportSellersModal = () => {
   const { isOpen, onClose } = useImportSellersModal();
   const { handleAddSeller } = useSellers();
 
-  const handleBulkSubmit = async (sellers: any[]) => {
+  const handleBulkSubmit = async (sellers: SellerFormValues[]) => {
     for (const seller of sellers) {
       await handleAddSeller(seller);
     }
   };
 
   return (
-    <GenericImportModal<any>
+    <GenericImportModal<SellerFormValues>
       isOpen={isOpen}
       onClose={onClose}
       entityName="Seller"

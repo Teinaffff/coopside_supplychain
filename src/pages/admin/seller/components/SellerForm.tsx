@@ -34,7 +34,7 @@ const SellerForm: React.FC<SellerFormProps> = ({
 }) => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(
-    defaultValues.logoUrl || null
+    defaultValues.profilePictureUrl || null
   );
 
   const form = useForm<SellerFormValues>({
@@ -45,7 +45,10 @@ const SellerForm: React.FC<SellerFormProps> = ({
   const handleSubmit = async (data: SellerFormValues) => {
     const sellerData: SellerFormValues = {
       ...data,
-      logoUrl: selectedImage ? URL.createObjectURL(selectedImage) : data.logoUrl,
+      agentType: "SHEMACH",
+      profilePictureUrl: selectedImage
+        ? URL.createObjectURL(selectedImage)
+        : data.profilePictureUrl,
     };
     onSubmit(sellerData);
     onClose();
@@ -72,11 +75,24 @@ const SellerForm: React.FC<SellerFormProps> = ({
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
-            name="name"
+            name="username"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name:</FormLabel>
+                <FormLabel>Username:</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            name="fullName"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Full Name:</FormLabel>
                 <FormControl>
                   <Input {...field} disabled={loading} />
                 </FormControl>
@@ -91,18 +107,18 @@ const SellerForm: React.FC<SellerFormProps> = ({
               <FormItem>
                 <FormLabel>Email:</FormLabel>
                 <FormControl>
-                  <Input {...field} disabled={loading} />
+                  <Input type="email" {...field} disabled={loading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
           <FormField
-            name="phone"
+            name="phoneNumber"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone:</FormLabel>
+                <FormLabel>Phone Number:</FormLabel>
                 <FormControl>
                   <Input {...field} disabled={loading} />
                 </FormControl>
@@ -111,11 +127,11 @@ const SellerForm: React.FC<SellerFormProps> = ({
             )}
           />
           <FormField
-            name="chairperson"
+            name="idNumber"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Chairperson:</FormLabel>
+                <FormLabel>ID Number:</FormLabel>
                 <FormControl>
                   <Input {...field} disabled={loading} />
                 </FormControl>
@@ -124,16 +140,16 @@ const SellerForm: React.FC<SellerFormProps> = ({
             )}
           />
           <FormField
-            name="memberCount"
+            name="commissionRate"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Member Count:</FormLabel>
+                <FormLabel>Commission Rate:</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
                     {...field}
-                    onChange={(e) => field.onChange(parseInt(e.target.value, 10))}
+                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
                     disabled={loading}
                   />
                 </FormControl>
@@ -142,7 +158,20 @@ const SellerForm: React.FC<SellerFormProps> = ({
             )}
           />
           <FormField
-            name="city"
+            name="address.street"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Street:</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            name="address.city"
             control={form.control}
             render={({ field }) => (
               <FormItem>
@@ -155,11 +184,11 @@ const SellerForm: React.FC<SellerFormProps> = ({
             )}
           />
           <FormField
-            name="subcity"
+            name="address.state"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Subcity:</FormLabel>
+                <FormLabel>State:</FormLabel>
                 <FormControl>
                   <Input {...field} disabled={loading} />
                 </FormControl>
@@ -168,11 +197,11 @@ const SellerForm: React.FC<SellerFormProps> = ({
             )}
           />
           <FormField
-            name="woreda"
+            name="address.postalCode"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Woreda:</FormLabel>
+                <FormLabel>Postal Code:</FormLabel>
                 <FormControl>
                   <Input {...field} disabled={loading} />
                 </FormControl>
@@ -181,24 +210,37 @@ const SellerForm: React.FC<SellerFormProps> = ({
             )}
           />
           <FormField
-            name="establishedDate"
+            name="address.country"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Established Date:</FormLabel>
+                <FormLabel>Country:</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} disabled={loading} />
+                  <Input {...field} disabled={loading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
           <FormField
-            name="sellerStatus"
+            name="bankAccountNumber"
             control={form.control}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Status:</FormLabel>
+                <FormLabel>Bank Account Number:</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={loading} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            name="taxIdentificationNumber"
+            control={form.control}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Tax Identification Number:</FormLabel>
                 <FormControl>
                   <Input {...field} disabled={loading} />
                 </FormControl>
@@ -210,7 +252,7 @@ const SellerForm: React.FC<SellerFormProps> = ({
 
         <div className="space-y-4">
           <FormItem>
-            <FormLabel>Logo:</FormLabel>
+            <FormLabel>Profile Picture:</FormLabel>
             <FormControl>
               <Input
                 type="file"
@@ -226,7 +268,7 @@ const SellerForm: React.FC<SellerFormProps> = ({
             <div className="mt-2">
               <img
                 src={imagePreview}
-                alt="Logo preview"
+                alt="Profile picture preview"
                 className="w-20 h-20 object-cover rounded-md"
               />
             </div>

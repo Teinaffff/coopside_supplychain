@@ -1,5 +1,3 @@
-  
-
 import { Edit, MoreHorizontal, Trash } from "lucide-react";
 import { useState } from "react";
 import { AlertModal } from "../../../../common/modals/alert-modal";
@@ -25,9 +23,8 @@ export const CellAction: React.FC<{ data: Seller }> = ({ data }) => {
   const onDelete = async () => {
     try {
       setLoading(true);
-      await handleDeleteSeller(data.sellerId ?? "1");
+      await handleDeleteSeller(data.id?.toString() ?? "");
     } catch (error) {
-      // Error is handled in the hook
     } finally {
       setLoading(false);
       setOpenDelete(false);

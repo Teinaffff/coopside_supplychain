@@ -1,7 +1,7 @@
 import { Modal } from "../../../../common/ui/modal";
+import { SellerFormValues } from "../../../../schema/admin/seller";
 import { useEditSellerModal } from "../../hooks/use-edit-seller-modal";
 import { useSellers } from "../../hooks/use-sellers";
-import { SellerFormValues } from "../../../../schema/admin/seller";
 import SellerForm from "./SellerForm";
 
 export const EditSellerModal = () => {
@@ -9,11 +9,11 @@ export const EditSellerModal = () => {
   const { handleEditSeller, isEditSellerLoading } = useSellers();
 
   const handleSubmit = async (data: SellerFormValues) => {
-      try {
-        await handleEditSeller(data);
-      } catch (error) {
-        // Error is handled in the hook
-      }
+    try {
+      await handleEditSeller(data);
+    } catch (error) {
+      // Error is handled in the hook
+    }
   };
 
   return (
@@ -28,17 +28,25 @@ export const EditSellerModal = () => {
         <SellerForm
           defaultValues={
             defaultValues || {
-              name: "",
+              username: "",
+              fullName: "",
               email: "",
-              phone: "",
-              chairperson: "",
-              memberCount: 0,
-              city: "",
-              subcity: "",
-              woreda: "",
-              establishedDate: "",
-              sellerStatus: "",
-              logoUrl: "",
+              phoneNumber: "",
+              agentType: "SHEMACH",
+              idNumber: "",
+              commissionRate: 0,
+              address: {
+                street: "",
+                city: "",
+                state: "",
+                postalCode: "",
+                country: "",
+              },
+              isActive: true,
+              bankAccountNumber: "",
+              taxIdentificationNumber: "",
+              profilePictureUrl: "",
+              id: -1,
             }
           }
           onSubmit={handleSubmit}

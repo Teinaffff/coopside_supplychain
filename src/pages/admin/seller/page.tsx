@@ -1,15 +1,17 @@
 import { Download, Plus, Trash, Upload } from "lucide-react";
+import { useMemo } from "react";
 import { Button } from "../../../common/ui/button";
 import { Card } from "../../../common/ui/card";
 import { DataTable } from "../../../common/ui/data-table";
 import { Heading } from "../../../common/ui/heading";
+import { Seller } from "../../../constants/interface/admin/seller";
 import { useAddSellerModal } from "../hooks/use-add-seller-modal";
 import { useImportSellersModal } from "../hooks/use-import-sellers-modal";
 import { useSellers } from "../hooks/use-sellers";
 import { AddSellerModal } from "./components/AddSellerModal";
 import { EditSellerModal } from "./components/EditSellerModal";
-import { ImportSellersModal } from "./components/ImportSellersModal";
 import ExportSellerDataToExcel from "./components/ExportSellerDataToExcel";
+import { ImportSellersModal } from "./components/ImportSellersModal";
 import { columns } from "./components/columns";
 
 const SellersPage = () => {
@@ -18,6 +20,11 @@ const SellersPage = () => {
   const { sellers } = useSellers({
     isFetchSellers: true,
   });
+
+  const formattedSellers = useMemo(
+    () => sellers?.filter((seller: Seller) => seller.agentType === "SHEMACH") || [],
+    [sellers]
+  );
 
   const deleteSelectedSellers = () => {};
 
@@ -33,11 +40,8 @@ const SellersPage = () => {
             description="Manage Sellers"
           />
           <div></div>
-           <div className="flex space-x-2">
-            <Button
-              variant={"outline"}
-              onClick={() => onOpen()}
-            >
+          <div className="flex space-x-2">
+            <Button variant={"outline"} onClick={() => onOpen()}>
               <Plus className="mr-2 h-4 w-4" />
               Add New
             </Button>
@@ -52,7 +56,7 @@ const SellersPage = () => {
             <Button
               className={`bg-cyan-600 hover:bg-cyan-600`}
               onClick={() =>
-                ExportSellerDataToExcel("notfiltered", sellers || [])
+                ExportSellerDataToExcel("notfiltered", formattedSellers || [])
               }
               title="disabled"
             >
@@ -66,7 +70,7 @@ const SellersPage = () => {
           searchPlaceholder="Search by name"
           clickable={true}
           columns={columns}
-          data={sellers || []}
+          data={formattedSellers || []}
           onConfirmFunction={deleteSelectedSellers}
           onExport={ExportSellerDataToExcel}
           buttonTitle="Delete Selection"
