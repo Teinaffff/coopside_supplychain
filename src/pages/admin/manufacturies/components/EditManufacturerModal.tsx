@@ -39,13 +39,15 @@ export const EditManufacturerModal = () => {
                 postalCode: "",
                 country: "",
               },
-              factoryAddresses: [{
-                street: "",
-                city: "",
-                state: "",
-                postalCode: "",
-                country: "",
-              }],
+              factoryAddresses: [
+                {
+                  street: "",
+                  city: "",
+                  state: "",
+                  postalCode: "",
+                  country: "",
+                },
+              ],
               gpsCoordinates: "",
               website: "",
               phoneNumber: "",

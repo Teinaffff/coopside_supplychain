@@ -1488,13 +1488,13 @@ export const manufacturersMockData = [
     updatedAt: "2024-07-18T16:45:00Z",
   },
   {
-    id: 3,
-    factoryName: "Mekelle Cement Factory",
-    factoryCode: "MCF003",
+    id: 4,
+    factoryName: "Meski Cement Factory",
+    factoryCode: "MCF103",
     factoryType: "Cement Manufacturing",
-    tinNumber: "TIN003456789",
-    registrationNumber: "REG003456789",
-    licenseNumber: "LIC003456789",
+    tinNumber: "TIN003456489",
+    registrationNumber: "REG001456789",
+    licenseNumber: "LIC001456789",
     licenseExpiryDate: "2027-11-08",
     headOfficeAddress: {
       street: "Industrial Area 67",
@@ -1523,7 +1523,7 @@ export const manufacturersMockData = [
     website: "https://www.mekellecement.com",
     phoneNumber: "+251933456789",
     faxNumber: "+251344551234",
-    contactPerson: "Yohannes Kebede",
+    contactPerson: "Abdi Kebede",
     alternateContactPerson: "Hiwot Gebre",
     operatingLicenses: [
       "Cement Production License CPL-003",

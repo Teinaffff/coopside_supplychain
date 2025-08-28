@@ -21,15 +21,16 @@ const fetchManufacturers = async (accessToken: string) => {
     toast.error(errorData.message ?? "Failed to fetch manufacturers");
     throw new Error(errorData.message ?? "Failed to fetch manufacturers");
   }
+  return manufacturersMockData;
   // const data = await res.json();
-  return manufacturersMockData.slice(0, 10);
+  // return data.data ?? [];
 };
 
 const addManufacturer = async (
   manufacturer: ManufacturerFormValues,
   accessToken: string
 ) => {
-  const res = await fetch(`${baseUrl}/factories`, {
+  const res = await fetch(`${baseUrl}/factories/onboard`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
