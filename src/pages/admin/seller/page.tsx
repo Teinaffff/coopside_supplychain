@@ -36,7 +36,7 @@ const SellersPage = () => {
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
-            title={`Sellers (${sellers?.length || 0})`}
+            title={`Sellers (${formattedSellers?.length || 0})`}
             description="Manage Sellers"
           />
           <div></div>

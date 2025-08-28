@@ -36,7 +36,7 @@ const AgentPage = () => {
       <Card className="p-5">
         <div className="flex border-b pb-2 items-center justify-between">
           <Heading
-            title={`Agents (${agents?.length ?? 0})`}
+            title={`Agents (${formattedAgents?.length ?? 0})`}
             description="Manage Agents"
           />
           <div></div>
