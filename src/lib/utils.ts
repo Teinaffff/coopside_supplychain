@@ -62,3 +62,11 @@ export function getInitials(fullName: string): string {
 export const capitalize = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
+
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('en-ET', {
+    style: 'currency',
+    currency: 'ETB',
+    minimumFractionDigits: 2,
+  }).format(amount);
+};
