@@ -233,6 +233,32 @@ export const useInstitutionBranches = (
     },
   });
 
+  const handleDeleteBranch = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(
+        `${baseUrl}/institutions/${institutionId}/branches/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      if (!res.ok) {
+        const errorData = await res.json();
+        toast.error(errorData.message ?? "Failed to delete branch");
+        throw new Error(errorData.message ?? "Failed to delete branch");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["institution-branches", institutionId],
+      });
+      toast.success("Branch deleted successfully");
+    },
+  });
+
   const activateBranchMutation = useMutation({
     mutationFn: async ({ branchId }: { branchId: string }) => {
       const res = await fetch(
@@ -301,5 +327,8 @@ export const useInstitutionBranches = (
     updateBranchError: updateBranchMutation.error,
     deactivateBranchError: deactivateBranchMutation.error,
     activateBranchError: activateBranchMutation.error,
+    handleDeleteBranch: handleDeleteBranch.mutateAsync,
+    isDeleteBranchLoading: handleDeleteBranch.isPending,
+    deleteBranchError: handleDeleteBranch.error,
   };
 };

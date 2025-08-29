@@ -30,14 +30,13 @@ export interface BaseUser extends Timestamps {
 export interface OrganizationReference {
   id: number;
   name: string;
-  type: 'AGENT' | 'SELLER' | 'INSTITUTION' | 'MANUFACTURER';
+  type: "AGENT" | "SELLER" | "INSTITUTION" | "MANUFACTURER";
 }
 
 export interface AdminUser extends BaseUser {
   userType: AdminModuleType;
   assignedOrganization?: OrganizationReference;
 }
-
 
 export interface AdminModuleOption {
   value: AdminModuleType;
@@ -48,7 +47,7 @@ export interface AdminModuleOption {
 export const ADMIN_MODULE_OPTIONS: AdminModuleOption[] = [
   {
     value: AdminModuleType.WEB_ADMIN,
-    label: "Web Admin",
+    label: "Admin",
     requiresOrganization: false,
   },
   {
@@ -70,10 +69,5 @@ export const ADMIN_MODULE_OPTIONS: AdminModuleOption[] = [
     value: AdminModuleType.MANUFACTURER_ADMIN,
     label: "Manufacturer Admin",
     requiresOrganization: true,
-  },
-  {
-    value: AdminModuleType.SUPER_ADMIN,
-    label: "Super Admin",
-    requiresOrganization: false,
   },
 ];

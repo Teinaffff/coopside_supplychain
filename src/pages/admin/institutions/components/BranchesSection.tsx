@@ -14,9 +14,10 @@ import { useAddBranchModal } from "../../hooks/use-add-branch-modal";
 import { useEditBranchModal } from "../../hooks/use-edit-branch-modal";
 import AddBranchModal from "./AddBranchModal";
 import EditBranchModal from "./EditBranchModal";
+import { useInstitutionBranches } from "../../hooks/use-institutions";
 
 // Mock branch data - replace with actual API call
-const mockBranches = [
+export const mockBranches = [
   {
     id: 1,
     institutionId: 1,
@@ -50,16 +51,17 @@ const BranchesSection: React.FC<BranchesSectionProps> = ({
 }) => {
   const { onOpen: onOpenAddModal } = useAddBranchModal();
   const { onOpen: onOpenEditModal } = useEditBranchModal();
+  const {
+    branches,
+    isBranchesLoading,
+    branchesError,
+    handleDeactivateBranch,
+    isDeactivateBranchLoading,
+  } = useInstitutionBranches(institutionId);
 
   // State for delete modal
   const [openDelete, setOpenDelete] = useState(false);
-  const [branchToDelete, setBranchToDelete] = useState<number | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  // Filter branches for this institution
-  const branches = mockBranches.filter(
-    (branch) => branch.institutionId.toString() === institutionId
-  );
+  const [selectedBranch, setSelectedBranch] = useState<any>(null);
 
   const handleAddBranch = () => {
     onOpenAddModal(institutionId);
@@ -70,28 +72,20 @@ const BranchesSection: React.FC<BranchesSectionProps> = ({
   };
 
   const onDelete = async () => {
-    if (!branchToDelete) return;
-
-    setIsDeleting(true);
-    try {
-      // Implement your delete API call here
-      console.log("Deleting branch:", branchToDelete);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Close modal and reset state
-      setOpenDelete(false);
-      setBranchToDelete(null);
-
-      // You might want to refresh the data or remove from local state
-      // For now, just log success
-      console.log("Branch deleted successfully");
-    } catch (error) {
-      console.error("Error deleting branch:", error);
-    } finally {
-      setIsDeleting(false);
+    if (selectedBranch) {
+      try {
+        await handleDeactivateBranch({ branchId: selectedBranch.id });
+        setOpenDelete(false);
+        setSelectedBranch(null);
+      } catch (error) {
+        console.error("Failed to deactivate branch:", error);
+      }
     }
+  };
+
+  const handleDeleteClick = (branch: any) => {
+    setSelectedBranch(branch);
+    setOpenDelete(true);
   };
 
   const columns = [
@@ -153,10 +147,7 @@ const BranchesSection: React.FC<BranchesSectionProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                setBranchToDelete(branch.id);
-                setOpenDelete(true);
-              }}
+              onClick={() => handleDeleteClick(branch)}
               className="text-red-600 hover:text-red-800"
             >
               <Trash className="h-4 w-4" />
@@ -167,16 +158,54 @@ const BranchesSection: React.FC<BranchesSectionProps> = ({
     },
   ];
 
+  if (isBranchesLoading) {
+    return (
+      <Card className="dark:bg-slate-800 dark:border-slate-700">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
+            <MapPin className="w-5 h-5" />
+            <span>Branches</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <p className="text-gray-600 dark:text-slate-400">Loading branches...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (branchesError) {
+    return (
+      <Card className="dark:bg-slate-800 dark:border-slate-700">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
+            <MapPin className="w-5 h-5" />
+            <span>Branches</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <p className="text-red-600">Failed to load branches. Please try again.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <>
       <AlertModal
         isOpen={openDelete}
         onClose={() => {
           setOpenDelete(false);
-          setBranchToDelete(null);
+          setSelectedBranch(null);
         }}
         onConfirm={onDelete}
-        loading={isDeleting}
+        loading={isDeactivateBranchLoading}
+        title="Deactivate Branch"
+        description={`Are you sure you want to deactivate "${selectedBranch?.branchName}"? This action will mark the branch as inactive.`}
       />
       <Card className="dark:bg-slate-800 dark:border-slate-700">
         <CardHeader>
@@ -187,7 +216,7 @@ const BranchesSection: React.FC<BranchesSectionProps> = ({
                 <span>Branches</span>
               </CardTitle>
               <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">
-                {branches.length} branches for {institutionName}
+                {branches?.length || 0} branches for {institutionName}
               </p>
             </div>
             <Button onClick={handleAddBranch}>
@@ -197,7 +226,7 @@ const BranchesSection: React.FC<BranchesSectionProps> = ({
           </div>
         </CardHeader>
         <CardContent>
-          {branches.length > 0 ? (
+          {branches && branches.length > 0 ? (
             <DataTable
               columns={columns}
               data={branches}

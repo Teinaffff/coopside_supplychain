@@ -181,7 +181,7 @@ const InstitutionDetails: React.FC = () => {
     isFetchInstitutions: true,
   });
 
-  const institution = institutions.find(
+  const institution = institutions?.find(
     (inst: Institution) => inst.id.toString() === id
   );
 
