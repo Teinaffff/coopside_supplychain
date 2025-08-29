@@ -1,22 +1,23 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Badge } from "../../../../common/ui/badge";
 import { Button } from "../../../../common/ui/button";
 import StatusBadge from "../../../../common/ui/status-badge";
-import { Order } from "../../../../constants/interface/admin/order";
+import { Loan } from "../../../../constants/interface/admin/loan";
+import { formatCurrency, formatTime } from "../../../../lib/utils";
 import { CellActions } from "./cell-actions";
-import { formatCurrency } from "../../../../lib/utils";
 
-export const columns: ColumnDef<Order>[] = [
+export const columns: ColumnDef<Loan>[] = [
   {
-    accessorKey: "orderNumber",
+    accessorKey: "loanId",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Order #
+          Loan ID
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -24,21 +25,21 @@ export const columns: ColumnDef<Order>[] = [
     cell: ({ row }) => {
       return (
         <Link
-          to={`/admin/orders/${row.original.id}`}
+          to={`/admin/loans/${row.original.id}`}
           className="hover:text-underline"
         >
           <Button
             variant={"link"}
             className="text-slate-600 hover:text-cyan-500 dark:text-slate-50"
           >
-            {row.original.orderNumber}
+            {row.original.loanId}
           </Button>
         </Link>
       );
     },
   },
   {
-    accessorKey: "orderType",
+    accessorKey: "loanType",
     header: ({ column }) => {
       return (
         <Button
@@ -50,62 +51,69 @@ export const columns: ColumnDef<Order>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => {
-      const type = row.original.orderType;
-      return (
-        <span className="text-sm">
-          {type === 'AGENT_TO_FACTORY' ? 'Agent → Factory' : 'Consumer → Agent'}
-        </span>
-      );
-    },
+    cell: ({ row }) => (
+      <Badge variant="outline">{row.getValue("loanType")}</Badge>
+    ),
   },
   {
-    accessorKey: "buyerName",
+    accessorKey: "borrower",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Buyer
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: "sellerName",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Seller
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: "totalAmount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Total Amount
+          Borrower
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
     cell: ({ row }) => {
+      const borrower = row.getValue("borrower") as Loan["borrower"];
       return (
-        <span className="font-medium">
-          {formatCurrency(row.original.totalAmount)}
-        </span>
+        <div>
+          <div className="font-medium">{borrower.name}</div>
+          <div className="text-sm text-muted-foreground">{borrower.type}</div>
+        </div>
       );
+    },
+  },
+  {
+    accessorKey: "amount",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Amount
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue("amount"));
+      const currency = row.original.currency;
+      return <div className="font-medium">{formatCurrency(amount)}</div>;
+    },
+  },
+  {
+    accessorKey: "outstandingBalance",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Outstanding
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const balance = parseFloat(row.getValue("outstandingBalance"));
+      const currency = row.original.currency;
+      return <div className="font-medium">{formatCurrency(balance)}</div>;
     },
   },
   {
@@ -122,61 +130,29 @@ export const columns: ColumnDef<Order>[] = [
       );
     },
     cell: ({ row }) => {
-      const status = row.original.status;
-      return <StatusBadge status={status} />;
+      const status = row.getValue("status") as string;
+      return <StatusBadge isActive={status === "true"} status={status} />;
     },
     filterFn: (row, id, value) => {
-      if (!value || value.length === 0) return true;
-      return value.includes(row.getValue(id) as string);
+      return value.includes(row.getValue(id));
     },
   },
   {
-    accessorKey: "priority",
+    accessorKey: "disbursementDate",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Priority
+          Disbursement Date
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
     cell: ({ row }) => {
-      const priority = row.original.priority;
-      const priorityColors = {
-        LOW: 'text-green-600 bg-green-50',
-        MEDIUM: 'text-yellow-600 bg-yellow-50',
-        HIGH: 'text-orange-600 bg-orange-50',
-        URGENT: 'text-red-600 bg-red-50'
-      };
-      return (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColors[priority]}`}>
-          {priority}
-        </span>
-      );
-    },
-  },
-  {
-    accessorKey: "createdAt",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Created
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      return (
-        <span className="text-sm text-gray-500">
-          {new Date(row.original.createdAt!).toLocaleDateString()}
-        </span>
-      );
+      const date = row.getValue("disbursementDate") as string;
+      return date ? formatTime(date).shortDate : "Not disbursed";
     },
   },
   {

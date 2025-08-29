@@ -55,12 +55,12 @@ export const menuItems = [
   },
   
   // Financial Management
-  // {
-  //   label: "Loans",
-  //   to: "/admin/loans",
-  //   pathname: "/admin/loans",
-  //   icon: <HandCoins width={18} height={18} />,
-  // },
+  {
+    label: "Loans",
+    to: "/admin/loans",
+    pathname: "/admin/loans",
+    icon: <HandCoins width={18} height={18} />,
+  },
   // {
   //   label: "Payments",
   //   to: "/admin/payments",

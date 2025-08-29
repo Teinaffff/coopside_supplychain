@@ -13,8 +13,8 @@ import Seller from "../../pages/admin/seller/page";
 import UsersPage from "../../pages/admin/users/page";
 import Orders from "../../pages/admin/orders/page";
 import OrderDetails from "../../pages/admin/orders/components/OrderDetails";
-// import Loans from "../../pages/admin/loans/page";
-// import LoanDetails from "../../pages/admin/loans/components/LoanDetails";
+import Loans from "../../pages/admin/loans/page";
+import LoanDetails from "../../pages/admin/loans/components/LoanDetails";
 // import Payments from "../../pages/admin/payments/page";
 // import PaymentDetails from "../../pages/admin/payments/components/PaymentDetails";
 // import Transactions from "../../pages/admin/transactions/page";
@@ -85,16 +85,16 @@ export const ROUTES = [
   },
   
   // Financial Management Routes
-  // {
-  //   path: "loans",
-  //   title: "Loans",
-  //   element: <Loans />,
-  // },
-  // {
-  //   path: "loans/:id",
-  //   title: "Loan Details",
-  //   element: <LoanDetails />,
-  // },
+  {
+    path: "loans",
+    title: "Loans",
+    element: <Loans />,
+  },
+  {
+    path: "loans/:id",
+    title: "Loan Details",
+    element: <LoanDetails />,
+  },
   // {
   //   path: "payments",
   //   title: "Payments",
