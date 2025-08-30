@@ -1,4 +1,4 @@
-import { Download, Trash } from "lucide-react";
+import { Download } from "lucide-react";
 import { useMemo } from "react";
 import { Button } from "../../../common/ui/button";
 import { Card } from "../../../common/ui/card";
@@ -6,6 +6,7 @@ import { DataTable } from "../../../common/ui/data-table";
 import { Heading } from "../../../common/ui/heading";
 import { useOrders } from "../hooks/use-orders";
 import { columns } from "./components/columns";
+import ExportOrdersDataToExcel from "./components/ExportOrdersDataToExcel";
 
 const OrdersPage = () => {
   const { orders } = useOrders({
@@ -13,14 +14,6 @@ const OrdersPage = () => {
   });
 
   const formattedOrders = useMemo(() => orders || [], [orders]);
-
-  const deleteSelectedOrders = () => {
-    // Implementation for bulk delete
-  };
-
-  const exportOrdersToExcel = () => {
-    // Implementation for export
-  };
 
   return (
     <>
@@ -34,7 +27,9 @@ const OrdersPage = () => {
           <div className="flex space-x-2">
             <Button
               className={`bg-cyan-600 hover:bg-cyan-600`}
-              onClick={exportOrdersToExcel}
+              onClick={() =>
+                ExportOrdersDataToExcel("notfiltered", formattedOrders)
+              }
               title="Export orders"
             >
               <Download className="mr-2 h-4 w-4" />
@@ -48,10 +43,7 @@ const OrdersPage = () => {
           clickable={true}
           columns={columns}
           data={formattedOrders ?? []}
-          onConfirmFunction={deleteSelectedOrders}
-          onExport={exportOrdersToExcel}
-          buttonTitle="Cancel Selected"
-          ButtonIcon={Trash}
+          onExport={ExportOrdersDataToExcel}
           facetedFilters={[
             {
               columnId: "status",

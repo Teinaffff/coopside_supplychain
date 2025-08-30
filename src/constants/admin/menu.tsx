@@ -1,5 +1,6 @@
 import {
   Building2,
+  CreditCard,
   Factory,
   FileBarChart,
   HandCoins,
@@ -7,7 +8,7 @@ import {
   ShoppingCart,
   User2,
   UserCircle2,
-  Users2
+  Users2,
 } from "lucide-react";
 import { ROLES } from "../../config/permissions";
 
@@ -65,13 +66,13 @@ export const menuItems = [
     icon: <HandCoins width={18} height={18} />,
     roles: [ROLES.ADMIN],
   },
-  // {
-  //   label: "Payments",
-  //   to: "/admin/payments",
-  //   pathname: "/admin/payments",
-  //   icon: <CreditCard width={18} height={18} />,
-  //  roles: [ROLES.ADMIN],
-  // },
+  {
+    label: "Payments",
+    to: "/admin/payments",
+    pathname: "/admin/payments",
+    icon: <CreditCard width={18} height={18} />,
+    roles: [ROLES.ADMIN],
+  },
   // {
   //   label: "Transactions",
   //   to: "/admin/transactions",

@@ -3,20 +3,20 @@ import { ArrowUpDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "../../../../common/ui/button";
 import StatusBadge from "../../../../common/ui/status-badge";
-import { Order } from "../../../../constants/interface/admin/order";
-import { CellActions } from "./cell-actions";
+import { Payment } from "../../../../constants/interface/admin/payment";
 import { formatCurrency } from "../../../../lib/utils";
+import { CellActions } from "./cell-actions";
 
-export const columns: ColumnDef<Order>[] = [
+export const columns: ColumnDef<Payment>[] = [
   {
-    accessorKey: "orderNumber",
+    accessorKey: "paymentId",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Order #
+          Payment ID
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -24,21 +24,21 @@ export const columns: ColumnDef<Order>[] = [
     cell: ({ row }) => {
       return (
         <Link
-          to={`/admin/orders/${row.original.id}`}
+          to={`/admin/payments/${row.original.id}`}
           className="hover:text-underline"
         >
           <Button
             variant={"link"}
             className="text-slate-600 hover:text-cyan-500 dark:text-slate-50"
           >
-            {row.original.orderNumber}
+            {row.original.paymentId}
           </Button>
         </Link>
       );
     },
   },
   {
-    accessorKey: "orderType",
+    accessorKey: "paymentType",
     header: ({ column }) => {
       return (
         <Button
@@ -51,60 +51,79 @@ export const columns: ColumnDef<Order>[] = [
       );
     },
     cell: ({ row }) => {
-      const type = row.original.orderType;
+      const type = row.original.paymentType;
       return (
         <span className="text-sm">
-          {type === "AGENT_TO_FACTORY" ? "Agent → Factory" : "Consumer → Agent"}
+          {type}
         </span>
       );
     },
   },
   {
-    accessorKey: "buyerName",
+    accessorKey: "payer.name",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Buyer
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: "sellerName",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Seller
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: "totalAmount",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Total Amount
+          Payer
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
     cell: ({ row }) => {
       return (
-        <span className="font-medium">
-          {formatCurrency(row.original.totalAmount)}
-        </span>
+        <div className="flex flex-col">
+          <span className="font-medium">{row.original.payer?.name}</span>
+          <span className="text-xs text-gray-500">{row.original.payer?.type}</span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "payee.name",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Payee
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      return (
+        <div className="flex flex-col">
+          <span className="font-medium">{row.original.payee?.name}</span>
+          <span className="text-xs text-gray-500">{row.original.payee?.type}</span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "amount",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Amount
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      return (
+        <div className="flex flex-col">
+          <span className="font-medium">
+            {formatCurrency(row.original.amount)} {row.original.currency}
+          </span>
+          <span className="text-xs text-gray-500">{row.original.paymentMethod}</span>
+        </div>
       );
     },
   },
@@ -124,18 +143,20 @@ export const columns: ColumnDef<Order>[] = [
     cell: ({ row }) => {
       const status = row.original.status;
       const statusColors = {
-        PENDING: "bg-yellow-50 text-yellow-600",
-        CONFIRMED: "bg-blue-50 text-blue-600",
-        PROCESSING: "bg-purple-50 text-purple-600",
-        SHIPPED: "bg-indigo-50 text-indigo-600", 
-        DELIVERED: "bg-green-50 text-green-600",
-        RETURNED: "bg-red-50 text-red-600"
+        pending: "bg-yellow-50 text-yellow-600",
+        processing: "bg-blue-50 text-blue-600",
+        completed: "bg-green-50 text-green-600",
+        failed: "bg-red-50 text-red-600",
+        cancelled: "bg-gray-50 text-gray-600",
+        refunded: "bg-purple-50 text-purple-600",
       };
-      return <StatusBadge 
-        status={status} 
-        isActive={status !== "CANCELLED" && status !== "RETURNED"} 
-        className={statusColors[status as keyof typeof statusColors]} 
-      />;
+      return (
+        <StatusBadge
+          status={status}
+          isActive={status === "completed" || status === "processing"}
+          className={statusColors[status as keyof typeof statusColors]}
+        />
+      );
     },
     filterFn: (row, id, value) => {
       if (!value || value.length === 0) return true;
@@ -143,56 +164,59 @@ export const columns: ColumnDef<Order>[] = [
     },
   },
   {
-    accessorKey: "priority",
+    accessorKey: "relatedEntity.type",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Priority
+          Related To
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
     cell: ({ row }) => {
-      const priority = row.original.priority;
-      const priorityColors = {
-        LOW: "text-green-600 bg-green-50",
-        MEDIUM: "text-yellow-600 bg-yellow-50",
-        HIGH: "text-orange-600 bg-orange-50",
-        URGENT: "text-red-600 bg-red-50",
-      };
+      const relatedEntity = row.original.relatedEntity;
       return (
-        <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColors[priority]}`}
-        >
-          {priority}
-        </span>
+        <div className="flex flex-col">
+          <span className="text-sm font-medium">{relatedEntity?.type}</span>
+          <span className="text-xs text-gray-500">{relatedEntity?.id}</span>
+        </div>
       );
     },
   },
   {
-    accessorKey: "createdAt",
+    accessorKey: "paymentDate",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Created
+          Payment Date
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
     cell: ({ row }) => {
+      const paymentDate = row.original.paymentDate;
+      const processedDate = row.original.processedDate;
       return (
-        <span className="text-sm text-gray-500">
-          {new Date(row.original.createdAt!).toLocaleDateString()}
-        </span>
+        <div className="flex flex-col">
+          <span className="text-sm">
+            {paymentDate ? new Date(paymentDate).toLocaleDateString() : "N/A"}
+          </span>
+          {processedDate && (
+            <span className="text-xs text-gray-500">
+              Processed: {new Date(processedDate).toLocaleDateString()}
+            </span>
+          )}
+        </div>
       );
     },
   },
+  
   {
     id: "actions",
     cell: ({ row }) => <CellActions data={row.original} />,

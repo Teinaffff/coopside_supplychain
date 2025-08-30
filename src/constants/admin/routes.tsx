@@ -16,8 +16,8 @@ import OrderDetails from "../../pages/admin/orders/components/OrderDetails";
 import Loans from "../../pages/admin/loans/page";
 import LoanDetails from "../../pages/admin/loans/components/LoanDetails";
 import { ROLES } from "../../config/permissions";
-// import Payments from "../../pages/admin/payments/page";
-// import PaymentDetails from "../../pages/admin/payments/components/PaymentDetails";
+import Payments from "../../pages/admin/payments/page";
+import PaymentDetails from "../../pages/admin/payments/components/PaymentDetails";
 // import Transactions from "../../pages/admin/transactions/page";
 // import TransactionDetails from "../../pages/admin/transactions/components/TransactionDetails";
 // import Products from "../../pages/admin/products/page";
@@ -109,18 +109,18 @@ export const ROUTES = [
     element: <LoanDetails />,
     roles: [ROLES.ADMIN],
   },
-  // {
-  //   path: "payments",
-  //   title: "Payments",
-  //   element: <Payments />,
-  //  roles: [ROLES.ADMIN],
-  // },
-  // {
-  //   path: "payments/:id",
-  //   title: "Payment Details",
-  //   element: <PaymentDetails />,
-  //  roles: [ROLES.ADMIN],
-  // },
+  {
+    path: "payments",
+    title: "Payments",
+    element: <Payments />,
+    roles: [ROLES.ADMIN],
+  },
+  {
+    path: "payments/:id",
+    title: "Payment Details",
+    element: <PaymentDetails />,
+    roles: [ROLES.ADMIN],
+  },
   // {
   //   path: "transactions",
   //   title: "Transactions",
