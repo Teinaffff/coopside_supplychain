@@ -1385,7 +1385,7 @@ export const manufacturersMockData = [
     bankAccountInfo: {
       accountNumber: "1234567890",
       accountName: "Ethiopian Textile Factory",
-      bankName: "Commercial Bank of Ethiopia",
+      bankName: "Coop Bank",
       branchName: "Bole Branch",
       swiftCode: "CBETETAA",
       iban: "ET210123456789012345678901",
@@ -2169,7 +2169,7 @@ export const loansMockData = [
     },
     lender: {
       id: "bank_001",
-      name: "Commercial Bank of Ethiopia",
+      name: "Coop Bank",
       type: "Bank",
     },
     amount: 500000,
@@ -2664,7 +2664,7 @@ export const paymentsMockData = [
     },
     payee: {
       id: "bank_001",
-      name: "Commercial Bank of Ethiopia",
+      name: "Coop Bank",
       type: "Bank",
     },
     relatedEntity: {
@@ -2684,7 +2684,7 @@ export const paymentsMockData = [
     processedDate: "2025-01-15T10:35:00Z",
     bankDetails: {
       accountNumber: "1234567890",
-      bankName: "Commercial Bank of Ethiopia",
+      bankName: "Coop Bank",
       branchCode: "CBE001",
       swiftCode: "CBETETAA",
     },
@@ -2836,7 +2836,7 @@ export const transactionsMockData = [
       accountNumber: "1234567890",
       accountName: "Dawit Tesfaye",
       accountType: "Agent Account",
-      bankName: "Commercial Bank of Ethiopia",
+      bankName: "Coop Bank",
     },
     amount: 500000.00,
     currency: "ETB",
@@ -2850,7 +2850,7 @@ export const transactionsMockData = [
     },
     counterparty: {
       id: "bank_001",
-      name: "Commercial Bank of Ethiopia",
+      name: "Coop Bank",
       type: "Bank",
       accountNumber: "BANK-MAIN-001",
     },

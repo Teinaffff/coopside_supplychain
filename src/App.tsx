@@ -1,23 +1,23 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import PageNotFound from "./common/PageNotFound";
+import { appRoutes } from "./config/routes";
 import Layout from "./layout/Layout";
-import Admin from "./pages/admin";
-import Login from "./pages/auth/Login";
 import RequireAuth from "./pages/auth/RequireAuth";
-import Landing from "./pages/landing";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<Layout />}>
-        <Route path="/" element={<Landing />} />
+        {appRoutes.map(({ path, element, roles }) =>
+          roles ? (
+            <Route key={path} element={<RequireAuth allowedRoles={roles} />}>
+              <Route path={path} element={element} />
+            </Route>
+          ) : (
+            <Route key={path} path={path} element={element} />
+          )
+        )}
 
-        <Route element={<RequireAuth allowedRoles={"admin"} />}>
-          <Route path="/admin/*" element={<Admin />} />
-        </Route>
-
-        <Route path="/login" element={<Login />} />
-        <Route path="/not-found" element={<PageNotFound />} />
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/not-found" replace />} />
       </Route>
     </Routes>

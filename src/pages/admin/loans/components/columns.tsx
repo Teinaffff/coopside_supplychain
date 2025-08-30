@@ -6,7 +6,6 @@ import { Button } from "../../../../common/ui/button";
 import StatusBadge from "../../../../common/ui/status-badge";
 import { Loan } from "../../../../constants/interface/admin/loan";
 import { formatCurrency, formatTime } from "../../../../lib/utils";
-import { CellActions } from "./cell-actions";
 
 export const columns: ColumnDef<Loan>[] = [
   {
@@ -93,7 +92,6 @@ export const columns: ColumnDef<Loan>[] = [
     },
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("amount"));
-      const currency = row.original.currency;
       return <div className="font-medium">{formatCurrency(amount)}</div>;
     },
   },
@@ -112,7 +110,6 @@ export const columns: ColumnDef<Loan>[] = [
     },
     cell: ({ row }) => {
       const balance = parseFloat(row.getValue("outstandingBalance"));
-      const currency = row.original.currency;
       return <div className="font-medium">{formatCurrency(balance)}</div>;
     },
   },
@@ -155,8 +152,8 @@ export const columns: ColumnDef<Loan>[] = [
       return date ? formatTime(date).shortDate : "Not disbursed";
     },
   },
-  {
-    id: "actions",
-    cell: ({ row }) => <CellActions data={row.original} />,
-  },
+  //   {
+  //     id: "actions",
+  //     cell: ({ row }) => <CellActions data={row.original} />,
+  //   },
 ];

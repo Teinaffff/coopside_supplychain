@@ -46,20 +46,20 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSubmit, loading }) => {
   const dispatch = useAppDispatch();
   const location = useLocation();
 
-  const { isAuthenticated, accessToken, currentUser } = useAppSelector(
+  const { isAuthenticated, accessToken, user } = useAppSelector(
     (state) => state.auth
   );
   const redirectPath = location.state?.path ?? "/admin";
 
   useEffect(() => {
-    if (isAuthenticated && accessToken && currentUser) {
+    if (isAuthenticated && accessToken && user) {
       if (!isTokenExpired(accessToken)) {
         navigate(redirectPath, { replace: true });
       } else {
         dispatch(logout());
       }
     }
-  }, [isAuthenticated, accessToken, currentUser, navigate, redirectPath]);
+  }, [isAuthenticated, accessToken, user, navigate, redirectPath]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),

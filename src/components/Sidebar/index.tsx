@@ -4,6 +4,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import Logo from "../../common/Logo";
 import { NavigationItem } from "../../constants/interface/NavigationItem";
 import { isActivePath } from "../../lib/utils";
+import { useAppSelector } from "../../store";
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -20,6 +21,12 @@ const Sidebar = ({
 }: SidebarProps) => {
   const location = useLocation();
   const { pathname } = location;
+
+  const { user } = useAppSelector((state) => state.auth);
+
+  const allowedMenu = menuItems.filter(
+    (item) => !item.roles || item.roles.includes(user?.userType ?? "")
+  );
 
   const trigger = useRef<any>(null);
   const sidebar = useRef<any>(null);
@@ -117,7 +124,7 @@ const Sidebar = ({
             </h3>
 
             <ul className="mb-6 flex flex-col gap-1.5">
-              {menuItems.map((item) => (
+              {allowedMenu.map((item) => (
                 <li key={item.to}>
                   <SidebarItem
                     label={item.label}

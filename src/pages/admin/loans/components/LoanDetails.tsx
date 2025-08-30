@@ -1,16 +1,14 @@
 import {
-  AlertTriangle,
-  ArrowLeft,
-  Calendar,
-  CheckCircle,
-  Clock,
-  CreditCard,
-  DollarSign,
-  FileText,
-  History,
-  User,
-  Users,
-  XCircle,
+    AlertTriangle,
+    ArrowLeft,
+    Calendar,
+    CheckCircle,
+    CreditCard,
+    DollarSign,
+    FileText,
+    History,
+    Users,
+    XCircle
 } from "lucide-react";
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -18,16 +16,16 @@ import { loansMockData, loanStatuses } from "../../../../common/data/data";
 import { Badge } from "../../../../common/ui/badge";
 import { Button } from "../../../../common/ui/button";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
 } from "../../../../common/ui/card";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
 } from "../../../../common/ui/tabs";
 import { formatCurrency, formatTime } from "../../../../lib/utils";
 import OverlayCard from "../../components/OverlayCard";
@@ -76,30 +74,6 @@ const InfoField: React.FC<InfoFieldProps> = ({
       {label}
     </span>
     <span className="text-sm text-gray-900 dark:text-slate-100">{value}</span>
-  </div>
-);
-
-// Reusable Info Field with Start Alignment
-interface InfoFieldStartProps {
-  label: string;
-  value: React.ReactNode;
-  className?: string;
-}
-
-const InfoFieldStart: React.FC<InfoFieldStartProps> = ({
-  label,
-  value,
-  className = "",
-}) => (
-  <div
-    className={`flex justify-between items-start p-3 bg-gray-50 dark:bg-slate-800 rounded-lg ${className}`}
-  >
-    <span className="text-sm font-medium text-gray-600 dark:text-slate-300">
-      {label}
-    </span>
-    <div className="text-sm text-gray-900 dark:text-slate-100 text-right">
-      {value}
-    </div>
   </div>
 );
 
@@ -170,26 +144,6 @@ const SummaryCard: React.FC<SummaryCardProps> = ({
   </Card>
 );
 
-// Reusable Activity Item Component
-interface ActivityItemProps {
-  action: string;
-  timestamp: string;
-}
-
-const ActivityItem: React.FC<ActivityItemProps> = ({ action, timestamp }) => (
-  <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
-    <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
-    <div className="flex-1">
-      <div className="text-sm font-medium text-gray-900 dark:text-slate-100">
-        {action}
-      </div>
-      <div className="text-xs text-gray-500 dark:text-slate-400">
-        {timestamp}
-      </div>
-    </div>
-  </div>
-);
-
 const LoanDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -208,13 +162,6 @@ const LoanDetails: React.FC = () => {
   }
 
   const statusConfig = loanStatuses.find((s) => s.value === loan.status);
-
-  // Mock data for demonstration
-  const recentActivities = [
-    { action: "Loan application submitted", timestamp: "2 hours ago" },
-    { action: "Documents uploaded", timestamp: "1 day ago" },
-    { action: "Initial review completed", timestamp: "2 days ago" },
-  ];
 
   return (
     <Card className="px-5 pt-5 pb-10 dark:bg-slate-800 dark:border-slate-700">
@@ -326,18 +273,12 @@ const LoanDetails: React.FC = () => {
 
       {/* Tabbed Sections */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 dark:bg-slate-700">
+        <TabsList className="grid w-full grid-cols-3 dark:bg-slate-700">
           <TabsTrigger
             value="overview"
             className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
           >
             Overview
-          </TabsTrigger>
-          <TabsTrigger
-            value="borrower"
-            className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
-          >
-            Borrower
           </TabsTrigger>
           <TabsTrigger
             value="payments"
@@ -356,30 +297,20 @@ const LoanDetails: React.FC = () => {
         {/* Overview Tab */}
         <TabsContent value="overview">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Loan Details */}
+            {/* Borrower Information */}
             <Card className="dark:bg-slate-800 dark:border-slate-700">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
                   <FileText className="w-5 h-5" />
-                  <span>Loan Details</span>
+                  <span>Borrower Information</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <InfoField label="Loan ID" value={loan.loanId} />
-                  <InfoField label="Loan Type" value={loan.loanType} />
-                  <InfoField label="Purpose" value={loan.purpose} />
-                  <InfoField
-                    label="Status"
-                    value={
-                      <Badge
-                        variant="outline"
-                        className={`bg-${statusConfig?.color}-50 text-${statusConfig?.color}-700 border-${statusConfig?.color}-200`}
-                      >
-                        {statusConfig?.label || loan.status}
-                      </Badge>
-                    }
-                  />
+                  <InfoField label="Name" value={loan.borrower.name} />
+                  <InfoField label="Type" value={loan.borrower.type} />
+                  <InfoField label="Email" value={loan.borrower.email} />
+                  <InfoField label="Phone" value={loan.borrower.phone} />
                 </div>
               </CardContent>
             </Card>
@@ -394,39 +325,14 @@ const LoanDetails: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div>
-                    <h4 className="font-medium mb-2 text-gray-900 dark:text-slate-100">Lender</h4>
-                    <InfoField label="Name" value={loan.lender.name} />
-                    <InfoField label="Type" value={loan.lender.type} />
-                  </div>
+                  <InfoField label="Name" value={loan.lender.name} />
+                  <InfoField label="Type" value={loan.lender.type} />
                   <InfoField label="Guarantor" value={loan.guarantor} />
                   <InfoField label="Collateral" value={loan.collateral} />
                 </div>
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
-
-        {/* Borrower Tab */}
-        <TabsContent value="borrower">
-          <Card className="dark:bg-slate-800 dark:border-slate-700">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
-                <User className="w-5 h-5" />
-                <span>Borrower Information</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <InfoField label="Name" value={loan.borrower.name} />
-                  <InfoField label="Type" value={loan.borrower.type} />
-                  <InfoField label="Email" value={loan.borrower.email} />
-                  <InfoField label="Phone" value={loan.borrower.phone} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         {/* Payments Tab */}
@@ -499,7 +405,9 @@ const LoanDetails: React.FC = () => {
                     >
                       <div className="flex items-center space-x-2">
                         <FileText className="w-4 h-4 text-gray-600 dark:text-slate-300" />
-                        <span className="text-gray-900 dark:text-slate-100">{document}</span>
+                        <span className="text-gray-900 dark:text-slate-100">
+                          {document}
+                        </span>
                       </div>
                       <Button variant="outline" size="sm">
                         Download
@@ -508,7 +416,9 @@ const LoanDetails: React.FC = () => {
                   ))}
                 </div>
               ) : (
-                <p className="text-gray-600 dark:text-slate-300">No documents uploaded.</p>
+                <p className="text-gray-600 dark:text-slate-300">
+                  No documents uploaded.
+                </p>
               )}
             </CardContent>
           </Card>

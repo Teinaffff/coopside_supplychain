@@ -4,7 +4,6 @@ import API from "../../config/axios-config";
 import { HTTP_RESPONSE } from "../../constants/general";
 import { Login } from "../../constants/interface/auth";
 import {
-  updateCurrentUser,
   updateTokens,
   updateUser,
   updateUserFields,
@@ -115,7 +114,7 @@ export const authenticate = createAsyncThunk(
       if (status === HTTP_RESPONSE.SUCCESS && data.success) {
         // Update current user
         dispatch(
-          updateCurrentUser({
+          updateUser({
             username: data.data.username,
             userType: data.data.userType,
           })

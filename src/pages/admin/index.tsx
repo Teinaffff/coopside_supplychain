@@ -6,26 +6,26 @@ import { ROUTES } from "../../constants/admin/routes";
 import DefaultLayout from "../../layout/DefaultLayout";
 import { useAppDispatch } from "../../store";
 import { fetchNotificationsData } from "../../store/notification/notification-extra";
+import RequireAuth from "../auth/RequireAuth";
 
-const Member = () => {
+const Admin = () => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    // dispatch(getMembersData());
     dispatch(fetchNotificationsData());
   }, []);
 
   return (
-    <DefaultLayout menuItems={menuItems} rootPath='/admin'>
+    <DefaultLayout menuItems={menuItems} rootPath="/admin">
       <Routes>
-        {ROUTES.map(({ title, path, element }, index) => (
+        {ROUTES.map(({ title, path, element, roles  }, index) => (
           <Route
             key={index}
             path={path}
             element={
               <>
                 <PageTitle title={`${title} - Admin Dashboard`} />
-                {element}
+                <RequireAuth allowedRoles={roles}>{element}</RequireAuth>
               </>
             }
           />
@@ -36,4 +36,4 @@ const Member = () => {
   );
 };
 
-export default Member;
+export default Admin;

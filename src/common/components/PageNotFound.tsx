@@ -1,4 +1,4 @@
-import { IMAGES } from "../assets";
+import { IMAGES } from "../../assets";
 
 function PageNotFound() {
   return (

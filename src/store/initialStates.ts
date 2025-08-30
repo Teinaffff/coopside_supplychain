@@ -5,5 +5,4 @@ export const authInitialState: AuthSliceType = {
   accessToken: undefined,
   refreshToken: undefined,
   user: undefined,
-  currentUser: undefined,
 };

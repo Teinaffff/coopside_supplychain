@@ -6,4 +6,5 @@ export interface NavigationItem {
   pathname: string; // The current route pathname
   icon: ReactElement; // The React element for the icon
   subMenu?: NavigationItem[];
+  roles?: string[]; // optional -> visible only for these roles
 }
