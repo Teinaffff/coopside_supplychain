@@ -11,6 +11,7 @@ import {
   Zap,
 } from "lucide-react";
 import { useIntersectionObserver } from "../../../hooks/use-intersection-observer";
+import { useState, useEffect } from "react";
 
 const services = [
   {
@@ -89,7 +90,6 @@ const services = [
     title: "Multi-Channel Access",
     description:
       "Access the platform through web and mobile apps for maximum reach and accessibility.",
-
     icon: <Globe size={32} />,
     color: "from-pink-500 to-rose-500",
     features: ["Web Platform", "Mobile Apps"],
@@ -97,6 +97,19 @@ const services = [
 ];
 
 const Services = () => {
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+  
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsSmallScreen(window.innerWidth < 1024);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -121,13 +134,16 @@ const Services = () => {
   };
 
   const { ref, inView } = useIntersectionObserver();
+  
+  // Force inView to true on small screens
+  const effectiveInView = isSmallScreen || inView;
 
   return (
     <motion.section
       className="py-20 bg-gradient-to-br from-gray-50 to-gray-100"
       id="services"
       initial="hidden"
-      animate={inView ? "visible" : "hidden"}
+      animate={effectiveInView ? "visible" : "hidden"}
       variants={containerVariants}
       ref={ref}
     >
@@ -200,7 +216,7 @@ const Services = () => {
                     key={featureIndex}
                     className="flex items-center text-sm text-gray-500"
                     initial={{ opacity: 0, x: -10 }}
-                    animate={inView ? { opacity: 1, x: 0 } : {}}
+                    animate={effectiveInView ? { opacity: 1, x: 0 } : {}}
                     transition={{ delay: index * 0.1 + featureIndex * 0.1 }}
                   >
                     <div
