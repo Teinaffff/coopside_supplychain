@@ -1,11 +1,5 @@
 import { motion } from "framer-motion";
-import {
-  BarChart3,
-  CheckCircle,
-  Shield,
-  Smartphone,
-  Zap,
-} from "lucide-react";
+import { BarChart3, CheckCircle, Shield, Smartphone, Zap } from "lucide-react";
 import { useIntersectionObserver } from "../../../hooks/use-intersection-observer";
 
 const PlatformFeatures = () => {
@@ -83,14 +77,14 @@ const PlatformFeatures = () => {
           transition={{ duration: 0.8 }}
         >
           <motion.span
-            className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-6 py-3 rounded-full text-sm font-medium inline-block shadow-lg"
+            className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-6 py-3 rounded-full text-sm font-medium inline-block shadow-lg"
             whileHover={{ scale: 1.05 }}
           >
             Platform Features
           </motion.span>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mt-6 mb-4">
             Built for
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-600 to-blue-600">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-500 to-cyan-600">
               {" "}
               Modern Cooperatives
             </span>
@@ -162,7 +156,7 @@ const PlatformFeatures = () => {
                 </div>
 
                 {/* Hover Effect */}
-                <motion.div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                <motion.div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-cyan-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
               </motion.div>
             );
           })}

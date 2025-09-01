@@ -25,9 +25,12 @@ const NavLink: React.FC<NavLinkProps> = ({ href, children }) => (
 const LandingHeader = () => {
   const navItems = [
     { href: "#home", label: "Home" },
-    { href: "#about", label: "About Us" },
     { href: "#services", label: "Services" },
-    { href: "#contact", label: "Contact" },
+    { href: "#features", label: "Features" },
+    { href: "#about", label: "About Us" },
+    { href: "#statistics", label: "Statistics" },
+    { href: "#testimonials", label: "Testimonials" },
+    { href: "#contact-us", label: "Contact" },
   ];
 
   const navigate = useNavigate();
@@ -63,7 +66,7 @@ const LandingHeader = () => {
         </div>
         <div>
           <motion.span
-            className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:cursor-pointer text-white px-6 py-3 rounded-full text-sm font-medium inline-block shadow-lg"
+            className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:cursor-pointer text-white px-6 py-3 rounded-full text-sm font-medium inline-block shadow-lg"
             whileHover={{ scale: 1.05 }}
             onClick={() => navigate("/login")}
           >

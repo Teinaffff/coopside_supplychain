@@ -134,16 +134,16 @@ const Services = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div className="text-center mb-16" variants={cardVariants}>
           <motion.span
-            className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-6 py-3 rounded-full text-sm font-medium inline-block shadow-lg"
+            className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-6 py-3 rounded-full text-sm font-medium inline-block shadow-lg"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
-            Platform Features
+            Our Services
           </motion.span>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mt-6 mb-4">
             Comprehensive Supply Chain
             <br />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-600 to-blue-600">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-500 to-cyan-600">
               Management Solutions
             </span>
           </h2>
@@ -212,7 +212,7 @@ const Services = () => {
               </div>
 
               {/* Hover Effect */}
-              <motion.div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+              <motion.div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-cyan-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
             </motion.div>
           ))}
         </motion.div>

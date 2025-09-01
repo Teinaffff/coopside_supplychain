@@ -114,7 +114,7 @@ const ContactMethods = () => {
         <motion.div className="text-center mt-12" variants={itemVariants}>
           <Button
             onClick={() => navigate("/contact")}
-            className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-8 py-4 text-lg rounded-full shadow-xl transition-all duration-300 hover:scale-105 group"
+            className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white px-8 py-4 text-lg rounded-full shadow-xl transition-all duration-300 hover:scale-105 group"
           >
             <span>Contact Our Team</span>
             <ArrowRight

@@ -4,11 +4,11 @@ import PlatformImpact from "./PlatformImpact";
 
 const AboutUs = () => {
   return (
-    <>
+    <div id="about">
       <MissionVisionValues />
       <PlatformImpact />
       <AchievementBadges />
-    </>
+    </div>
   );
 };
 

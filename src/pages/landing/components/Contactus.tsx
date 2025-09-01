@@ -7,7 +7,7 @@ const ContactUs = () => {
   const { ref, inView } = useIntersectionObserver();
 
   return (
-    <section className="py-20 bg-gray-50" id="contact" ref={ref}>
+    <section className="py-20 bg-gray-50" id="contact-us" ref={ref}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Section */}
         <motion.div
@@ -17,7 +17,7 @@ const ContactUs = () => {
           transition={{ duration: 0.8 }}
         >
           <motion.span
-            className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-6 py-3 rounded-full text-sm font-medium inline-block shadow-lg"
+            className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-6 py-3 rounded-full text-sm font-medium inline-block shadow-lg"
             whileHover={{ scale: 1.05 }}
           >
             Contact Us
@@ -56,7 +56,7 @@ const ContactInfo = ({ inView }: { inView: boolean }) => {
             icon: Mail,
             label: "Email",
             value: "contact@ethiopiancooperative.org",
-            color: "text-blue-600",
+            color: "text-cyan-600",
           },
           {
             icon: Phone,

@@ -3,10 +3,10 @@ import PlatformFeatures from "./PlatformFeatures";
 
 const Features = () => {
   return (
-    <>
+    <div id="features">
       <PlatformFeatures />
       <MultipleAccessChannels />
-    </>
+    </div>
   );
 };
 

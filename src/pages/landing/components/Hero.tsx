@@ -104,7 +104,7 @@ const Hero = () => {
           className="flex justify-center mb-8"
           variants={fadeInVariants}
         >
-          <div className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-6 py-3 rounded-full inline-flex items-center shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <div className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-6 py-3 rounded-full inline-flex items-center shadow-lg hover:shadow-xl transition-shadow duration-300">
             <TrendingUp className="mr-2" size={16} />
             <span className="text-sm font-medium">
               Revolutionizing Supply Chain Management
@@ -113,7 +113,7 @@ const Hero = () => {
         </motion.div>
 
         <motion.h1
-          className="text-4xl md:text-6xl font-bold text-center mb-6 bg-clip-text text-transparent bg-gradient-to-r from-cyan-600 via-blue-600 to-purple-600"
+          className="text-4xl md:text-6xl font-bold text-center mb-6 bg-clip-text text-transparent bg-gradient-to-r from-cyan-500 to-cyan-600"
           variants={fadeInVariants}
         >
           Empowering Ethiopia's Supply
@@ -140,7 +140,7 @@ const Hero = () => {
         >
           <Button
             variant="ghost"
-            className="flex items-center space-x-2 h-12 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 hover:bg-cyan-500/90 hover:text-white text-white px-8 py-6 text-lg rounded-full shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
+            className="flex items-center space-x-2 h-12 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 hover:bg-cyan-400/90 hover:text-white text-white px-8 py-6 text-lg rounded-full shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
             onClick={() => navigate("/register")}
           >
             <span>Join Our Network</span>

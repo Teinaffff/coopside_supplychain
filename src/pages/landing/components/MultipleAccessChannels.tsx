@@ -1,10 +1,5 @@
 import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  Globe,
-  Monitor,
-  Smartphone,
-} from "lucide-react";
+import { ArrowRight, Globe, Monitor, Smartphone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../../common/ui/button";
 import { useIntersectionObserver } from "../../../hooks/use-intersection-observer";
@@ -136,7 +131,7 @@ const MultipleAccessChannels = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
                   onClick={() => navigate("/register")}
-                  className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-8 py-4 text-lg rounded-full shadow-xl transition-all duration-300 hover:scale-105 group"
+                  className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white px-8 py-4 text-lg rounded-full shadow-xl transition-all duration-300 hover:scale-105 group"
                 >
                   <span>Request Demo</span>
                   <ArrowRight

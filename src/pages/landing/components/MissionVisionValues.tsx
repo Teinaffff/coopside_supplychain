@@ -72,7 +72,7 @@ const MissionVisionValues = () => {
           transition={{ duration: 0.8 }}
         >
           <motion.span
-            className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-6 py-3 rounded-full text-sm font-medium inline-block shadow-lg"
+            className="bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-6 py-3 rounded-full text-sm font-medium inline-block shadow-lg"
             whileHover={{ scale: 1.05 }}
           >
             About Our Platform
@@ -80,7 +80,7 @@ const MissionVisionValues = () => {
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mt-6 mb-4">
             Transforming Ethiopia's
             <br />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-600 to-blue-600">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-500 to-cyan-600">
               Cooperative Economy
             </span>
           </h2>
