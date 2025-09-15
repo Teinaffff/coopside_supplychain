@@ -1,10 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
-import { AxiosError } from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { LoginFormValues, SignupFormValues } from "../schema/auth";
 import { useAppDispatch, useAppSelector } from "../store";
-import { authenticate, createUserData } from "../store/auth/auth-extra";
+import { createUserData } from "../store/auth/auth-extra";
 import { logout } from "../store/auth/auth-slice";
 
 export const useAuth = () => {
@@ -14,28 +13,22 @@ export const useAuth = () => {
     (state) => state.auth
   );
 
+  // Mock login with hard-coded credentials (username: admin, password: password)
   const loginMutation = useMutation({
-    mutationFn: (data: LoginFormValues) => dispatch(authenticate(data)),
-    onSuccess: (response: any) => {
-      if (response?.payload?.success) {
-        navigate("/admin");
+    mutationFn: async (data: LoginFormValues) => {
+      const { username, password } = data;
+      await new Promise((res) => setTimeout(res, 500)); // simulate network delay
+      if (username === "admin" && password === "password") {
+        return { success: true };
       }
+      throw new Error("Invalid credentials");
     },
-    onError: (error: AxiosError<any>) => {
-      const errorMessage = error.response?.data?.message;
-
-      if (error.response?.status === 400) {
-        if (
-          errorMessage === "Invalid credentials" ||
-          errorMessage?.includes("credentials")
-        ) {
-          toast.error("Invalid username or password");
-        } else {
-          toast.error(errorMessage || "Invalid login credentials");
-        }
-      } else {
-        toast.error(errorMessage || "Something went wrong! Please try again.");
-      }
+    onSuccess: () => {
+      navigate("/coop");
+    },
+    onError: (error: any) => {
+      const errorMessage = error.message || "Invalid login credentials";
+      toast.error(errorMessage);
     },
   });
 
@@ -45,7 +38,7 @@ export const useAuth = () => {
       toast.success("Registration successful! Please login.");
       navigate("/login");
     },
-    onError: (error: AxiosError) => {
+    onError: (error: any) => {
       if (error.message === "Email already exists") {
         toast.error("Email is already registered");
       } else {
