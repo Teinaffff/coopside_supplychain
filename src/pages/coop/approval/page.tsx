@@ -193,14 +193,7 @@ const ApprovalManagementPage: React.FC = () => {
         docs: mockData.institutions,
         form: { institutionName:"Bahir Dar University", registrationNo: "BL103234567", address: "Bahir Dar" },
       },
-      {
-        id: 104,
-        name: "Dire Dawa University",
-        type: "institution",
-        status: "Approved",
-        docs: mockData.institutions,
-        form: { institutionName:"Dire Dawa University", registrationNo: "BL104234567", address: "Dire Dawa" },
-      },
+    
     ],
     consumers: [
       {
