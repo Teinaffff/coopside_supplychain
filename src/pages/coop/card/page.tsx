@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../../common/ui/car
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../common/ui/tabs";
 import { Button } from "../../../common/ui/button";
 import { Input } from "../../../common/ui/input";
+import toast from "react-hot-toast";
 // import { Checkbox } from "../../../common/ui/checkbox";
 // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../common/ui/select";
 import { Badge } from "../../../common/ui/badge";
@@ -127,7 +128,24 @@ const CardManagementPage: React.FC = () => {
   const [profileSearch, setProfileSearch] = useState("Abebe Kebede");
   const currentProfile: Profile | undefined = profiles[profileSearch] ?? undefined;
   const currentTransactions: Transaction[] = usageByUser[profileSearch] ?? [];
-
+  // KYC validation state
+  const [kycRef, setKycRef] = useState("");
+  const [isKycValidated, setIsKycValidated] = useState(false);
+  
+  const handleValidateKyc = () => {
+    if (!kycRef.trim()) {
+      toast.error("Please enter KYC Reference");
+      return;
+    }
+    // Mock validation logic – treat references starting with "KYC" as valid
+    if (kycRef.trim().toUpperCase().startsWith("KYC")) {
+      toast.success("KYC validated successfully");
+      setIsKycValidated(true);
+    } else {
+      toast.error("KYC reference not found");
+      setIsKycValidated(false);
+    }
+  };
   return (
     <div className="space-y-4">
       <Card>
@@ -140,7 +158,7 @@ const CardManagementPage: React.FC = () => {
               <TabsTrigger value="issuance">Card Issuance</TabsTrigger>
               <TabsTrigger value="controls">Card Replacement and Security</TabsTrigger>
               <TabsTrigger value="profile">Unified Profile</TabsTrigger>
-              <TabsTrigger value="limits">Limits & Billing</TabsTrigger>
+              {/* <TabsTrigger value="limits">Limits & Billing</TabsTrigger> */}
             </TabsList>
             <TabsContent value="issuance">
               <div className="space-y-4 mt-2">
@@ -155,10 +173,12 @@ const CardManagementPage: React.FC = () => {
                       <Input placeholder="Address" />
                       <Input type="number" placeholder="Credit Limit (ETB)" />
                       <Input placeholder="Expiry (MM/YY)" />
-                      <Input placeholder="KYC Reference" />
+                      <Input placeholder="KYC Reference" value={kycRef} onChange={(e) => setKycRef(e.target.value)} />
                     </div>
                     <div className="flex items-center justify-end gap-2">
-                      <Button variant="secondary">Validate KYC</Button>
+                      {/* <Button variant="secondary" onClick={handleValidateKyc} disabled={isKycValidated}>
+                        {isKycValidated ? "KYC Validated" : "Validate KYC"}
+                      </Button> */}
                       <Button className="bg-cyan-600 hover:bg-cyan-700">Issue Card</Button>
                     </div>
                   </CardContent>

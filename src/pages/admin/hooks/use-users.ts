@@ -68,7 +68,7 @@ const fetchUsers = async () => {
       userType: "INSTITUTION_ADMIN" as any,
       assignedOrganization: {
         id: 3,
-        name: "Central Banking Institution",
+        name: "Ethiopia Airlinesing Institution",
         type: "INSTITUTION",
       },
       isActive: true,
