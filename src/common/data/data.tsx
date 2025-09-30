@@ -715,7 +715,7 @@ export const consumersMockData = [
     employmentStatus: "ACTIVE" as const,
     institution: {
       id: 101,
-      fullLegalName: "Addis Ababa University",
+      fullLegalName: "Ethiopian Airlines",
       yearOfEstablishment: 1950,
       businessSector: "Education",
       tin: "TIN101234567",
@@ -1003,7 +1003,7 @@ export const consumersMockData = [
     employmentStatus: "ACTIVE" as const,
     institution: {
       id: 101,
-      fullLegalName: "Addis Ababa University",
+      fullLegalName: "Ethiopian Airlines",
       yearOfEstablishment: 1950,
       businessSector: "Education",
       tin: "TIN101234567",
@@ -1065,7 +1065,7 @@ export const consumersMockData = [
 export const institutionsMockData = [
   {
     id: 101,
-    fullLegalName: "Addis Ababa University",
+    fullLegalName: "Ethiopian Airlines",
     yearOfEstablishment: 1950,
     businessSector: "Education",
     tin: "0012345678",

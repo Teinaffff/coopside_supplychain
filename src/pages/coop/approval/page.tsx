@@ -13,6 +13,17 @@ import {
 import { Textarea } from "../../../common/ui/textarea";
 import { useNavigate } from "react-router-dom";
 import ApprovalReportingDashboard from "./ApprovalReportingDashboard";
+import { Label } from "../../../common/ui/label";
+import { Input } from "../../../common/ui/input";
+
+const PREDEFINED_DECLINE_REASONS = [
+  "Incomplete documentation",
+  "Fails eligibility criteria",
+  "Fraudulent information detected",
+  "Applicant credit score too low",
+  "High risk assessment",
+  "Other (please specify)",
+];
 
 interface DocItem {
   id: number;
@@ -171,11 +182,11 @@ const ApprovalManagementPage: React.FC = () => {
     institutions: [
       {
         id: 101,
-        name: "Addis Ababa University",
+        name: "Ethiopian Airlines",
         type: "institution",
         status: "Approved",
         docs: mockData.institutions,
-        form: { institutionName:"Addis Ababa University", registrationNo: "BL001234567", address: "Addis Ababa" },
+        form: { institutionName:"Ethiopian Airlines", registrationNo: "BL001234567", address: "Addis Ababa" },
       },
       {
         id: 102,
@@ -226,6 +237,7 @@ const ApprovalManagementPage: React.FC = () => {
   const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
   const [actionLoading, setActionLoading] = useState<null | "approve" | "decline">(null);
   const [declineReason, setDeclineReason] = useState<string>("");
+  const [selectedDeclineReason, setSelectedDeclineReason] = useState<string>("");
   
   const handleApprove = () => {
     if (!selectedEntity) return;
@@ -243,10 +255,13 @@ const ApprovalManagementPage: React.FC = () => {
     if (!selectedEntity) return;
     setActionLoading("decline");
     // TODO: integrate API
+    console.log("Declining entity with reason:", declineReason);
     setTimeout(() => {
       selectedEntity.status = "Rejected";
       setActionLoading(null);
       setSelectedEntity(null);
+      setDeclineReason(""); // Clear decline reason after action
+      setSelectedDeclineReason(""); // Clear selected radio reason
     }, 800);
   };
   
@@ -420,25 +435,53 @@ const ApprovalManagementPage: React.FC = () => {
 
           {/* Details dialog */}
           <Dialog open={!!selectedEntity} onOpenChange={(open)=>{if(!open) setSelectedEntity(null);}}>
-            <DialogContent className="w-[90vw] max-w-6xl">
+            <DialogContent className="w-[90vw] max-w-3xl flex flex-col max-h-[90vh]">
               {selectedEntity && (
                 <>
-                  <DialogHeader>
+                  <DialogHeader className="pb-4">
                     <DialogTitle>{selectedEntity.name} – Details</DialogTitle>
                   </DialogHeader>
-                  {renderEntityDetails(selectedEntity)}
+                  <div className="flex-grow overflow-auto pr-2">
+                    {renderEntityDetails(selectedEntity)}
 
-                  {/* Decline reason textarea */}
-                  <div className="mt-4 space-y-2">
-                    <label htmlFor="declineReason" className="text-sm font-medium">Reason for Decline <span className="text-gray-400">(optional)</span></label>
-                    <Textarea
-                      id="declineReason"
-                      placeholder="Provide a reason for declining this application..."
-                      value={declineReason}
-                      onChange={(e)=>setDeclineReason(e.target.value)}
-                      className="w-full"
-                      rows={3}
-                    />
+                    {/* Decline reason section */}
+                    <div className="mt-4 space-y-2">
+                      <label htmlFor="declineReason" className="text-sm font-medium">Reason for Decline</label>
+                      <div className="space-y-2">
+                        {PREDEFINED_DECLINE_REASONS.map((reason) => (
+                          <div key={reason} className="flex items-center">
+                            <Input
+                              type="radio"
+                              id={reason}
+                              value={reason}
+                              checked={selectedDeclineReason === reason}
+                              onChange={() => {
+                                setSelectedDeclineReason(reason);
+                                if (reason !== "Other (please specify)") {
+                                  setDeclineReason(reason);
+                                } else {
+                                  setDeclineReason(""); // Clear custom reason if "Other" is deselected
+                                }
+                              }}
+                              className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            />
+                            <Label htmlFor={reason} className="ml-2 text-sm text-gray-700 dark:text-gray-200">
+                              {reason}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                      {selectedDeclineReason === "Other (please specify)" && (
+                        <Textarea
+                          id="customDeclineReason"
+                          placeholder="Please specify your reason..."
+                          value={declineReason}
+                          onChange={(e) => setDeclineReason(e.target.value)}
+                          className="w-full mt-2"
+                          rows={3}
+                        />
+                      )}
+                    </div>
                   </div>
 
                   <DialogFooter className="gap-2 pt-4">

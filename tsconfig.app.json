@@ -22,5 +22,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "src/constants/interface/admin/seller.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx"]
 }
