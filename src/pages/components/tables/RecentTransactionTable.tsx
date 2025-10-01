@@ -8,7 +8,17 @@ import {
   TableHeader,
   TableRow,
 } from "../../../common/ui/table";
-import { RecentProductTransaction } from "../../../constants/interface/admin/general";
+// Local lightweight type to avoid admin dependency
+type RecentProductTransaction = {
+  id: string | number;
+  buyer: string;
+  date: string;
+  productName: string;
+  quantity: number | string;
+  totalSales: number | string;
+  transactionId: string;
+  remark?: string;
+};
 
 interface RecentProductTransactionProps {
   data: RecentProductTransaction[];

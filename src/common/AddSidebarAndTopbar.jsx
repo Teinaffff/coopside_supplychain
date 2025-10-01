@@ -1,6 +1,7 @@
 import React from "react";
-import Sidebar from "../../admin/scenes/global/Sidebar";
-import Topbar from "../../admin/scenes/global/Topbar";
+// Removed admin dependency; provide simple placeholders or migrate to coop layout as needed
+const Sidebar = () => null;
+const Topbar = () => null;
 
 function AddSidebarAndTopbar({ children }) {
   return (

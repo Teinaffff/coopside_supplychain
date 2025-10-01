@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "../../../common/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../common/ui/select";
+import CreateUserModal from "./components/CreateUserModal";
 
 type User = {
   id: string;
@@ -39,9 +40,11 @@ const UserManagementPage = () => {
   const [filterRole, setFilterRole] = useState<User["role"] | "All">("All");
   const [filterPortal, setFilterPortal] = useState<User["portal"] | "All">("All");
   const [filterStatus, setFilterStatus] = useState<User["status"] | "All">("All");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [users, setUsers] = useState<User[]>(mockUsers);
 
   const filteredUsers = useMemo(() => {
-    return mockUsers.filter((user) => {
+    return users.filter((user) => {
       const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             user.phone.includes(searchTerm);
@@ -50,7 +53,31 @@ const UserManagementPage = () => {
       const matchesStatus = filterStatus === "All" || user.status === filterStatus;
       return matchesSearch && matchesRole && matchesPortal && matchesStatus;
     });
-  }, [searchTerm, filterRole, filterPortal, filterStatus]);
+  }, [users, searchTerm, filterRole, filterPortal, filterStatus]);
+
+  const handleCreateUser = async (userData: {
+    name: string;
+    email: string;
+    phone: string;
+    role: User["role"];
+    portal: User["portal"];
+    password: string;
+    status: User["status"];
+  }) => {
+    // Simulate API call
+    const newUser: User = {
+      id: (users.length + 1).toString(),
+      name: userData.name,
+      email: userData.email,
+      phone: userData.phone,
+      role: userData.role,
+      portal: userData.portal,
+      status: userData.status,
+    };
+    
+    setUsers(prev => [...prev, newUser]);
+    console.log("User created:", newUser);
+  };
 
   const columns: ColumnDef<User>[] = [
     { accessorKey: "name", header: "Name / Username" },
@@ -104,7 +131,7 @@ const UserManagementPage = () => {
     <div className="space-y-6 p-4">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">User Management</h1>
-        <Button onClick={() => console.log("Create new user")}>
+        <Button onClick={() => setIsCreateModalOpen(true)}>
           <PlusCircle className="mr-2 h-4 w-4" /> Create User
         </Button>
       </div>
@@ -161,6 +188,13 @@ const UserManagementPage = () => {
           <DataTable columns={columns} data={filteredUsers} searchKey="name" searchPlaceholder="Search user..." />
         </CardContent>
       </Card>
+
+      {/* Create User Modal */}
+      <CreateUserModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateUser}
+      />
     </div>
   );
 };

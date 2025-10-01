@@ -9,6 +9,7 @@ import {
   updateUser,
   updateUserFields,
   updateUserPhotoField,
+  logout,
 } from "./auth-slice";
 
 export const createUserData = createAsyncThunk(
@@ -110,7 +111,13 @@ export const authenticate = createAsyncThunk(
   "auth/login",
   async (credentials: Login, { dispatch }) => {
     try {
-      const { status, data } = await API.post(`/auth/login`, credentials);
+      const payload = {
+        usernameOrEmail: credentials.username?.trim().replace(/\u00A0/g, ''),
+        password: credentials.password?.trim().replace(/\u00A0/g, ''),
+      }as const;
+
+      const { status, data } = await API.post(`/v1/auth/login`, payload);
+      console.log("[LOGIN RESPONSE]", status, data);
 
       if (status === HTTP_RESPONSE.SUCCESS && data.success) {
         // Update current user
@@ -121,7 +128,7 @@ export const authenticate = createAsyncThunk(
           })
         );
 
-        // Update tokens (redux-persist will handle storage)
+    
         dispatch(
           updateTokens({
             accessToken: data.data.accessToken,
@@ -131,8 +138,34 @@ export const authenticate = createAsyncThunk(
 
         return data;
       } else {
-        const errorMessage = data.message || "Login Request Failed!";
+        const errorMessage = data?.message || "Login Request Failed!";
         throw new Error(errorMessage);
+      }
+    } catch (error: any) {
+      console.log("[LOGIN ERROR]", error?.response?.data || error?.message);
+      throw error;
+    }
+  }
+);
+
+export const refreshAccessToken = createAsyncThunk(
+  "auth/refreshToken",
+  async (refreshToken: string, { dispatch }) => {
+    try {
+      const { status, data } = await API.post(`/v1/auth/refresh-token`, {
+        refreshToken,
+      });
+
+      if (status === HTTP_RESPONSE.SUCCESS && data?.data?.accessToken) {
+        dispatch(
+          updateTokens({
+            accessToken: data.data.accessToken,
+            refreshToken: data.data.refreshToken ?? refreshToken,
+          })
+        );
+        return data;
+      } else {
+        throw new Error(data?.message || "Refresh token failed");
       }
     } catch (error: any) {
       console.log(error);
@@ -205,6 +238,21 @@ export const UpdateProfileImage = createAsyncThunk(
     } catch (error: any) {
       console.log(error);
       throw error;
+    }
+  }
+);
+
+
+export const logoutUser = createAsyncThunk(
+  "auth/logoutApi",
+  async (_: void, { dispatch }) => {
+    try {
+      await API.post(`/v1/auth/logout`);
+    } catch (error) {
+      
+      console.warn("[LOGOUT API ERROR]", (error as any)?.response?.data || (error as any)?.message);
+    } finally {
+      dispatch(logout());
     }
   }
 );

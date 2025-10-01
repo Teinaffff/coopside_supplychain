@@ -3,8 +3,7 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { LoginFormValues, SignupFormValues } from "../schema/auth";
 import { useAppDispatch, useAppSelector } from "../store";
-import { createUserData } from "../store/auth/auth-extra";
-import { logout } from "../store/auth/auth-slice";
+import { createUserData, authenticate, logoutUser } from "../store/auth/auth-extra";
 
 export const useAuth = () => {
   const navigate = useNavigate();
@@ -13,21 +12,26 @@ export const useAuth = () => {
     (state) => state.auth
   );
 
-  // Mock login with hard-coded credentials (username: admin, password: password)
+  // Real login using backend API
   const loginMutation = useMutation({
     mutationFn: async (data: LoginFormValues) => {
-      const { username, password } = data;
-      await new Promise((res) => setTimeout(res, 500)); // simulate network delay
-      if (username === "admin" && password === "password") {
-        return { success: true };
+      const res = await dispatch(authenticate(data) as any);
+      // unwrap result (RTK) if available
+      if ((res as any)?.error) {
+        throw new Error((res as any)?.error?.message || "Login failed");
       }
-      throw new Error("Invalid credentials");
+      return (res as any)?.payload ?? res;
     },
     onSuccess: () => {
       navigate("/coop");
+      toast.success("Logged in successfully");
     },
     onError: (error: any) => {
-      const errorMessage = error.message || "Invalid login credentials";
+      const serverMsg = error?.response?.data?.message;
+      const errorMessage = serverMsg || error.message || "Invalid login credentials";
+      // console surface
+      // eslint-disable-next-line no-console
+      console.error("[LOGIN ERROR UI]", errorMessage, error?.response?.data);
       toast.error(errorMessage);
     },
   });
@@ -47,8 +51,8 @@ export const useAuth = () => {
     },
   });
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(logoutUser() as any);
     navigate("/login");
     toast.success("Logged out successfully");
   };
