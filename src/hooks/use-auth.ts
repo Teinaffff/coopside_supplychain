@@ -27,8 +27,8 @@ export const useAuth = () => {
       toast.success("Logged in successfully");
     },
     onError: (error: any) => {
-      const serverMsg = error?.response?.data?.message;
-      const errorMessage = serverMsg || error.message || "Invalid login credentials";
+      const serverMsg = error?.response?.data?.message || error?.message;
+      const errorMessage = serverMsg || "Invalid login credentials";
       // console surface
       // eslint-disable-next-line no-console
       console.error("[LOGIN ERROR UI]", errorMessage, error?.response?.data);

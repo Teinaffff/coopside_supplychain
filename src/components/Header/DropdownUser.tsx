@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Settings, User } from "lucide-react";
 import { IMAGES } from "../../assets";
 import { useAppDispatch } from "../../store";
-import { logout } from "../../store/auth/auth-slice";
+import { logoutUser } from "../../store/auth/auth-extra";
 
 const DropdownUser = () => {
   const dispatch = useAppDispatch();
@@ -91,8 +91,8 @@ const DropdownUser = () => {
         </ul>
         <button
           className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
-          onClick={() => {
-            dispatch(logout());
+          onClick={async () => {
+            await dispatch(logoutUser() as any);
             navigate("/login");
           }}
         >

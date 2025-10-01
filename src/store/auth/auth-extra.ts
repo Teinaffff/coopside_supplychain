@@ -119,28 +119,42 @@ export const authenticate = createAsyncThunk(
       const { status, data } = await API.post(`/v1/auth/login`, payload);
       console.log("[LOGIN RESPONSE]", status, data);
 
-      if (status === HTTP_RESPONSE.SUCCESS && data.success) {
-        // Update current user
-        dispatch(
-          updateCurrentUser({
-            username: data.data.username,
-            userType: data.data.userType,
-          })
-        );
+      // Be tolerant to varying backend shapes
+      const container = (data?.data ?? data) as any;
+      const accessToken = container?.accessToken || container?.token || container?.access;
+      const refreshToken = container?.refreshToken || container?.refresh;
 
-    
+      if (accessToken) {
+        // Update current user if provided
+        const username = container?.username || container?.user?.username || container?.userName;
+        const userType = container?.userType || container?.role || container?.user?.role;
+        if (username || userType) {
+          dispatch(
+            updateCurrentUser({
+              username,
+              userType,
+            })
+          );
+        }
+
+        // Save tokens to redux and localStorage for now
         dispatch(
           updateTokens({
-            accessToken: data.data.accessToken,
-            refreshToken: data.data.refreshToken,
+            accessToken,
+            refreshToken,
           })
         );
 
+        try {
+          localStorage.setItem("accessToken", accessToken);
+          if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
+        } catch {}
+
         return data;
-      } else {
-        const errorMessage = data?.message || "Login Request Failed!";
-        throw new Error(errorMessage);
       }
+
+      const serverMessage = (data as any)?.message || (data as any)?.error || "Login Request Failed!";
+      throw new Error(serverMessage);
     } catch (error: any) {
       console.log("[LOGIN ERROR]", error?.response?.data || error?.message);
       throw error;
@@ -252,6 +266,10 @@ export const logoutUser = createAsyncThunk(
       
       console.warn("[LOGOUT API ERROR]", (error as any)?.response?.data || (error as any)?.message);
     } finally {
+      try {
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+      } catch {}
       dispatch(logout());
     }
   }
