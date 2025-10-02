@@ -16,7 +16,7 @@ import ApprovalReportingDashboard from "./ApprovalReportingDashboard";
 import { Label } from "../../../common/ui/label";
 import { Input } from "../../../common/ui/input";
 import { useFactories } from "../hooks/use-factories";
-
+import { useAgents } from "../hooks/use-Agents";
 import { useInstitutions } from "../hooks/useInstitutions";
 
 import { toast } from "react-hot-toast";
@@ -154,37 +154,39 @@ const ApprovalManagementPage: React.FC = () => {
   
   // Fetch factories data from API
   const { factories, isLoading: factoriesLoading, error: factoriesError, approveFactory, isApproving } = useFactories();
- const { institutions, isLoading: institutionsLoading, error: institutionsError, approveInstitutions, declineInstitutions, isApproving: isApprovingInstitution, isDeclining } = useInstitutions();
+    const { agents, isLoading, error, approveAgent } = useAgents();
+const { institutions, isLoading: institutionsLoading, error: institutionsError,  } = useInstitutions();
 
   const entities: Record<string, Entity[]> = {
     factories: factories,
         institutions: institutions,
-    agents: [
-      {
-        id: 4,
-        name: "Prime Agents",
-        type: "agent",
-        status: "Approved",
-        docs: mockData.agents,
-        form: { fullName:"Prime Agents", licenseNo: "AG-123", phone: "+123456789" },
-      },
-      {
-        id: 5,
-        name: "Sunrise Traders",
-        type: "agent",
-        status: "Pending",
-        docs: mockData.agents,
-        form: { fullName:"Sunrise Traders", licenseNo: "AG-456", phone: "+987654321" },
-      },
-      {
-        id: 6,
-        name: "MegaMart Sellers",
-        type: "agent",
-        status: "Rejected",
-        docs: mockData.agents,
-        form: { fullName:"MegaMart Sellers", licenseNo: "AG-789", phone: "+112233445" },
-      },
-    ],
+    // agents: [
+    //   {
+    //     id: 4,
+    //     name: "Prime Agents",
+    //     type: "agent",
+    //     status: "Approved",
+    //     docs: mockData.agents,
+    //     form: { fullName:"Prime Agents", licenseNo: "AG-123", phone: "+123456789" },
+    //   },
+    //   {
+    //     id: 5,
+    //     name: "Sunrise Traders",
+    //     type: "agent",
+    //     status: "Pending",
+    //     docs: mockData.agents,
+    //     form: { fullName:"Sunrise Traders", licenseNo: "AG-456", phone: "+987654321" },
+    //   },
+    //   {
+    //     id: 6,
+    //     name: "MegaMart Sellers",
+    //     type: "agent",
+    //     status: "Rejected",
+    //     docs: mockData.agents,
+    //     form: { fullName:"MegaMart Sellers", licenseNo: "AG-789", phone: "+112233445" },
+    //   },
+    // ],
+    agents: agents,
     // institutions: [
     //   {
     //     id: 101,
