@@ -15,6 +15,8 @@ import { useNavigate } from "react-router-dom";
 import ApprovalReportingDashboard from "./ApprovalReportingDashboard";
 import { Label } from "../../../common/ui/label";
 import { Input } from "../../../common/ui/input";
+import { useFactories } from "../hooks/use-factories";
+import { toast } from "react-hot-toast";
 
 const PREDEFINED_DECLINE_REASONS = [
   "Incomplete documentation",
@@ -59,7 +61,7 @@ interface Entity {
   type: "agent" | "factory" | "institution" | "consumer";
   status: "Pending" | "Approved" | "Rejected";
   docs: DocItem[];
-  form: Record<string, string>;
+  form: Record<string, any>;
 }
 
 // Field templates for each actor type
@@ -146,35 +148,12 @@ const FIELD_TEMPLATES: Record<Entity["type"], { key: string; label: string }[]> 
 
 const ApprovalManagementPage: React.FC = () => {
   const [filter, setFilter] = useState<DocItem["status"] | "All">("All");
-
+  
+  // Fetch factories data from API
+  const { factories, isLoading: factoriesLoading, error: factoriesError, approveFactory, isApproving } = useFactories();
 
   const entities: Record<string, Entity[]> = {
-    factories: [
-      {
-        id: 1,
-        name: "Abc Factory",
-        type: "factory",
-        status: "Pending",
-        docs: mockData.factories,
-        form: { factoryName:"Abc Factory", registrationNo: "FAC-001", location: "Industrial Zone" },
-      },
-      {
-        id: 2,
-        name: "Beta Manufacturing",
-        type: "factory",
-        status: "Approved",
-        docs: mockData.factories,
-        form: { factoryName:"Beta Manufacturing", registrationNo: "FAC-002", location: "Coastal Estate" },
-      },
-      {
-        id: 3,
-        name: "Global Textiles",
-        type: "factory",
-        status: "Rejected",
-        docs: mockData.factories,
-        form: { factoryName:"Global Textiles", registrationNo: "FAC-003", location: "Free Trade Zone" },
-      },
-    ],
+    factories: factories,
     agents: [
       {
         id: 4,
@@ -355,8 +334,24 @@ const ApprovalManagementPage: React.FC = () => {
   
   const handleApprove = () => {
     if (!selectedEntity) return;
+    
+    // Handle factory approval specifically
+    if (selectedEntity.type === "factory") {
+      // Check if factory is already approved
+      if (selectedEntity.status === "Approved") {
+        toast.error("This factory is already approved.");
+        return;
+      }
+      
+      approveFactory(selectedEntity.id);
+      setSelectedEntity(null);
+      setDeclineReason("");
+      return;
+    }
+    
+    // For other entity types, keep the existing behavior for now
     setActionLoading("approve");
-    // TODO: integrate API
+    // TODO: integrate API for other entity types
     setTimeout(() => {
       selectedEntity.status = "Approved";
       setActionLoading(null);
@@ -381,7 +376,31 @@ const ApprovalManagementPage: React.FC = () => {
   
   const navigate = useNavigate();
   
-  const renderEntitiesTable = (list: Entity[]) => {
+  const renderEntitiesTable = (list: Entity[], isLoading?: boolean, error?: any) => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <p className="text-red-600 dark:text-red-400 mb-2">Failed to load data</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {error?.message || "An error occurred while fetching data"}
+            </p>
+          </div>
+        </div>
+      );
+    }
+
     const visible = filter === "All" ? list : list.filter((e) => e.status === filter);
 
     const handleViewClick = (evt: React.MouseEvent, entity: Entity) => {
@@ -537,7 +556,7 @@ const ApprovalManagementPage: React.FC = () => {
               <ApprovalReportingDashboard />
             </TabsContent>
             <TabsContent value="factories" className="mt-4">
-              {renderEntitiesTable(entities.factories)}
+              {renderEntitiesTable(entities.factories, factoriesLoading, factoriesError)}
             </TabsContent>
             <TabsContent value="agents" className="mt-4">
               {renderEntitiesTable(entities.agents)}
@@ -602,8 +621,8 @@ const ApprovalManagementPage: React.FC = () => {
                     <Button variant="destructive" disabled={actionLoading==="decline"} onClick={handleDecline}>
                       {actionLoading==="decline"?"Declining...":"Decline"}
                     </Button>
-                    <Button disabled={actionLoading==="approve"} onClick={handleApprove}>
-                      {actionLoading==="approve"?"Approving...":"Approve"}
+                    <Button disabled={actionLoading==="approve" || (selectedEntity?.type === "factory" && isApproving)} onClick={handleApprove}>
+                      {actionLoading==="approve" || (selectedEntity?.type === "factory" && isApproving) ? "Approving..." : "Approve"}
                     </Button>
                     <DialogClose asChild>
                       <Button variant="outline">Close</Button>
