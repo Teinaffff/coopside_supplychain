@@ -121,72 +121,7 @@ export function DataTable<TData, TValue>({
         onConfirm={onConfirm}
         loading={loading}
       />
-      <div className="flex items-center py-4">
-        <Input
-          placeholder={`Search by ${searchPlaceholder ?? searchKey}`}
-          value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn(searchKey)?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm ml-2"
-        />
-        <div className="flex w-full items-center justify-between">
-          <div className="ml-2">
-            <DataTableToolbar table={table} facetedFilters={facetedFilters} />
-          </div>
-          {table.getFilteredSelectedRowModel().rows.length > 0 && (
-            <div className="flex space-x-2">
-              <div className="flex items-center justify-center">
-                {ButtonIcon && (
-                  <div
-                    className={`${
-                      !(
-                        userAuthorities?.includes("DELETE_ACCOUNT") ||
-                        !userAuthorities?.includes("DELETE_VISITORS")
-                      ) && "cursor-not-allowed"
-                    }`}
-                    title={`${
-                      !(
-                        userAuthorities?.includes("DELETE_ACCOUNT") ||
-                        !userAuthorities?.includes("DELETE_VISITORS")
-                      ) && "Not Authorized"
-                    }`}
-                  >
-                    <Button
-                      className="ml-2 border"
-                      size="sm"
-                      onClick={() => {
-                        setOpen(true);
-                      }}
-                      variant="destructive"
-                    >
-                      <ButtonIcon className="mr-2 h-4 w-4" />
-                      {buttonTitle}
-                    </Button>
-                  </div>
-                )}
-                {onExport && (
-                  <Button
-                    className="ml-2 border"
-                    size="sm"
-                    onClick={() =>
-                      onExport(
-                        "filtered",
-                        table.getFilteredSelectedRowModel().rows
-                      )
-                    }
-                    variant="secondary"
-                    disabled={loading}
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (

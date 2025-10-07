@@ -16,7 +16,7 @@ export const createUserData = createAsyncThunk(
   "auth/createUser",
   async (data: any) => {
     try {
-      const res = await API.post(`admin/user/add`, data);
+      const res = await API.post(`http://10.8.100.39:5005/api/v1/users`, data);
       const newData = await res.data;
       if (newData.status === "fail") {
         const message = newData.message

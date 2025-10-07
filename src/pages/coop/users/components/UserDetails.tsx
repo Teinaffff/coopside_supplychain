@@ -5,7 +5,7 @@ import { Label } from "../../../../common/ui/label";
 import { Badge } from "../../../../common/ui/badge";
 import { Edit, KeyRound, Ban } from "lucide-react";
 
-type UserRole = "Agent" | "Institution" | "Factory" | "Consumer" | "Admin";
+type UserRole = "Partner" | "Admin";
 type UserPortal = "Coop" | "Partner";
 type UserStatus = "Active" | "Inactive";
 

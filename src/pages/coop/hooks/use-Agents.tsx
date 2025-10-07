@@ -9,39 +9,44 @@ export function useAgents() {
   const [error, setError] = useState<any>(null);
   const [isApproving, setIsApproving] = useState(false);
 
-  useEffect(() => {
-    async function load() {
-      setIsLoading(true);
-      try {
-        const response = await API.get("/v1/agents");
-        const data = response.data;
+  const load = async () => {
+    setIsLoading(true);
+    try {
+      const response = await API.get("/v1/agents");
+      const data = response.data;
 
-        if (data?.success && Array.isArray(data.data)) {
-          const statusMap: Record<string, EntityStatus> = {
-            APPROVED: "Approved",
-            PENDING: "Pending",
-            REJECTED_BY_ADMIN: "Rejected",
-            REJECTED: "Rejected",
-          };
+      if (data?.success && Array.isArray(data.data)) {
+        const statusMap: Record<string, EntityStatus> = {
+          APPROVED: "Approved",
+          PENDING: "Pending",
+          REJECTED_BY_ADMIN: "Rejected",
+          REJECTED: "Rejected",
+        };
 
-          const mapped = data.data.map((a: any) => ({
-            id: a.id,
-            name: a.fullLegalName || a.username || `Agent ${a.id}`,
-            type: "agent" as const,
-            status: statusMap[a.approvalStatus] || (a.isActive ? "Approved" : "Pending"),
-            docs: [], // you can populate if API provides docs
-            form: a,
-          }));
+        const mapped = data.data.map((a: any) => ({
+          id: a.id,
+          name: a.fullLegalName || a.username || `Agent ${a.id}`,
+          type: "agent" as const,
+          status: statusMap[a.superAdminApprovalStatus] || "Pending", // Super Admin Status (this portal)
+          adminStatus: statusMap[a.adminApprovalStatus] || "Pending", // Admin Status (external portal)
+          docs: [], // you can populate if API provides docs
+          form: a,
+        }));
 
-          setAgents(mapped);
-        }
-      } catch (err) {
-        setError(err);
-      } finally {
-        setIsLoading(false);
+        setAgents(mapped);
       }
+    } catch (err) {
+      setError(err);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
+  const refetch = () => {
+    load();
+  };
+
+  useEffect(() => {
     load();
   }, []);
 
@@ -49,13 +54,29 @@ export function useAgents() {
     setIsApproving(true);
     try {
       await API.post(`/v1/agents/${id}/approve`);
-      setAgents((prev) => prev.map((a) => (a.id === id ? { ...a, status: "Approved" } : a)));
-    } catch (err) {
-      console.error(err);
+      // Refetch data to get updated status from backend
+      await refetch();
+    } catch (err: any) {
+      console.error("Error approving agent:", err);
+      throw new Error(err?.response?.data?.message || "Failed to approve agent");
     } finally {
       setIsApproving(false);
     }
   };
 
-  return { agents, isLoading, error, approveAgent };
+  const rejectAgent = async (id: number, reason: string) => {
+    setIsApproving(true);
+    try {
+      await API.post(`/v1/agents/${id}/reject`, { reason });
+      // Refetch data to get updated status from backend
+      await refetch();
+    } catch (err: any) {
+      console.error("Error rejecting agent:", err);
+      throw new Error(err?.response?.data?.message || "Failed to reject agent");
+    } finally {
+      setIsApproving(false);
+    }
+  };
+
+  return { agents, isLoading, error, approveAgent, rejectAgent, refetch };
 }

@@ -9,6 +9,11 @@ import ConsumerProfilePage from "../../pages/coop/approval/ConsumerProfilePage";
 import CreditProductManagement from "../../pages/coop/credit-products/page";
 import TermsConditionsPage from "../../pages/coop/terms-conditions/page";
 import UserManagementPage from "../../pages/coop/users/page";
+import FactoryDetailsPage from "../../pages/coop/approval/components/FactoryDetailsPage";
+import AgentDetailsPage from "../../pages/coop/approval/components/AgentDetailsPage";
+import InstitutionDetailsPageNew from "../../pages/coop/approval/components/InstitutionDetailsPage";
+import ConsumerListPage from "../../pages/coop/approval/components/ConsumerListPage";
+import ConsumerDetailsPage from "../../pages/coop/approval/components/ConsumerDetailsPage";
 
 export const ROUTES = [
   {
@@ -62,13 +67,28 @@ export const ROUTES = [
     element: <ApprovalManagementPage />,
   },
   {
+    path: "approval/factories/:id",
+    title: "Factory Details",
+    element: <FactoryDetailsPage />,
+  },
+  {
+    path: "approval/agents/:id",
+    title: "Agent Details",
+    element: <AgentDetailsPage />,
+  },
+  {
     path: "approval/institutions/:id",
     title: "Institution Details",
-    element: <InstitutionDetailsPage />,
+    element: <InstitutionDetailsPageNew />,
+  },
+  {
+    path: "approval/institutions/:id/consumers",
+    title: "Consumer List",
+    element: <ConsumerListPage />,
   },
   {
     path: "approval/consumers/:id",
-    title: "Consumer Profile",
-    element: <ConsumerProfilePage />,
+    title: "Consumer Details",
+    element: <ConsumerDetailsPage />,
   }
 ];

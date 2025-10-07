@@ -1,34 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../common/ui/tabs";
 import { Button } from "../../../common/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../common/ui/card";
-import {
-   Dialog,
-   DialogContent,
-   DialogHeader,
-   DialogTitle,
-   DialogFooter,
-   DialogClose,
-} from "../../../common/ui/dialog";
-import { Textarea } from "../../../common/ui/textarea";
 import { useNavigate } from "react-router-dom";
+import { RefreshCw } from "lucide-react";
 import ApprovalReportingDashboard from "./ApprovalReportingDashboard";
-import { Label } from "../../../common/ui/label";
-import { Input } from "../../../common/ui/input";
 import { useFactories } from "../hooks/use-factories";
 import { useAgents } from "../hooks/use-Agents";
 import { useInstitutions } from "../hooks/useInstitutions";
 
-import { toast } from "react-hot-toast";
 
-const PREDEFINED_DECLINE_REASONS = [
-  "Incomplete documentation",
-  "Fails eligibility criteria",
-  "Fraudulent information detected",
-  "Applicant credit score too low",
-  "High risk assessment",
-  "Other (please specify)",
-];
 
 interface DocItem {
   id: number;
@@ -37,20 +18,6 @@ interface DocItem {
   status: "Pending" | "Approved" | "Rejected";
 }
 
-const mockData: Record<string, DocItem[]> = {
-  factories: [
-    { id: 1, name: "Factory License.pdf", uploadedAt: "2023-10-01", status: "Pending" },
-  ],
-  agents: [
-    { id: 2, name: "Agent Permit.pdf", uploadedAt: "2023-09-15", status: "Approved" },
-  ],
-  institutions: [
-    { id: 3, name: "Institution Cert.pdf", uploadedAt: "2023-08-20", status: "Rejected" },
-  ],
-  consumers: [
-    { id: 4, name: "Consumer ID.jpg", uploadedAt: "2023-10-03", status: "Pending" },
-  ],
-};
 
 const statusClasses: Record<DocItem["status"], string> = {
   Pending: "bg-yellow-100 text-yellow-800",
@@ -62,7 +29,8 @@ interface Entity {
   id: number;
   name: string;
   type: "agent" | "factory" | "institution" | "consumer";
-  status: "Pending" | "Approved" | "Rejected";
+  status: "Pending" | "Approved" | "Rejected"; // Super Admin Status (this portal)
+  adminStatus: "Pending" | "Approved" | "Rejected"; // Admin Status (external portal)
   docs: DocItem[];
   form: Record<string, any>;
 }
@@ -151,237 +119,45 @@ const FIELD_TEMPLATES: Record<Entity["type"], { key: string; label: string }[]> 
 
 const ApprovalManagementPage: React.FC = () => {
   const [filter, setFilter] = useState<DocItem["status"] | "All">("All");
+  const [statusFilter, setStatusFilter] = useState<"admin" | "superAdmin">("superAdmin");
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   
-  // Fetch factories data from API
-  const { factories, isLoading: factoriesLoading, error: factoriesError, approveFactory, isApproving } = useFactories();
-    const { agents, isLoading, error, approveAgent } = useAgents();
-const { institutions, isLoading: institutionsLoading, error: institutionsError,  } = useInstitutions();
+  // Fetch real data from APIs
+  const { factories, isLoading: factoriesLoading, error: factoriesError, refetch: refetchFactories } = useFactories();
+  const { agents, isLoading: agentsLoading, error: agentsError, refetch: refetchAgents } = useAgents();
+  const { institutions, isLoading: institutionsLoading, error: institutionsError, refetch: refetchInstitutions } = useInstitutions();
 
+  // Combine all entities for real-time data
   const entities: Record<string, Entity[]> = {
-    factories: factories,
-        institutions: institutions,
-    // agents: [
-    //   {
-    //     id: 4,
-    //     name: "Prime Agents",
-    //     type: "agent",
-    //     status: "Approved",
-    //     docs: mockData.agents,
-    //     form: { fullName:"Prime Agents", licenseNo: "AG-123", phone: "+123456789" },
-    //   },
-    //   {
-    //     id: 5,
-    //     name: "Sunrise Traders",
-    //     type: "agent",
-    //     status: "Pending",
-    //     docs: mockData.agents,
-    //     form: { fullName:"Sunrise Traders", licenseNo: "AG-456", phone: "+987654321" },
-    //   },
-    //   {
-    //     id: 6,
-    //     name: "MegaMart Sellers",
-    //     type: "agent",
-    //     status: "Rejected",
-    //     docs: mockData.agents,
-    //     form: { fullName:"MegaMart Sellers", licenseNo: "AG-789", phone: "+112233445" },
-    //   },
-    // ],
-    agents: agents,
-    // institutions: [
-    //   {
-    //     id: 101,
-    //     name: "Ethiopian Airlines",
-    //     type: "institution",
-    //     status: "Approved",
-    //     docs: mockData.institutions,
-    //     form: {
-    //       id: 101,
-    //       fullLegalName: "Ethiopian Airlines",
-    //       yearOfEstablishment: 1945,
-    //       businessSector: "Aviation",
-    //       tin: "0001112223",
-    //       vatRegistrationCertificate: "VAT-ET-AL-123",
-    //       currentCapital: "500000000",
-    //       permanentEmployees: 14000,
-    //       contractualEmployees: 1200,
-    //       totalBranches: 35,
-    //       totalAssetValuation: "2300000000",
-    //       organizationalStructure: "Hierarchical corporate structure",
-    //       contactEmail: "contact@ethiopianairlines.com",
-    //       contactPhone: "+251-111-234567",
-    //       mainOfficeAddress: "Addis Ababa, Ethiopia",
-    //       institutionType: "PUBLIC",
-    //       businessLicenseNumber: "BL-001-2020",
-    //       establishmentProclamation: "Proclamation No. 123/2010",
-    //       employeeConsentProvided: true,
-    //       monthlyPayrollCommitment: true,
-    //       employeeTerminationNotificationAgreement: true,
-    //       outstandingReceivablesPriorityAgreement: true,
-    //       loanRepaymentDeductionAgreement: true,
-    //       digitalChannelUsageAgreement: true,
-    //       onboardingStatus: "Approved",
-    //       onboardedBy: 1,
-    //       createdAt: "2024-01-01T10:00:00",
-    //       approvedAt: "2024-01-10T10:00:00",
-    //       approvedBy: 2,
-    //       rejectionReason: "",
-    //     },
-    //   },
-    //   {
-    //     id: 102,
-    //     name: "Hawassa University",
-    //     type: "institution",
-    //     status: "Pending",
-    //     docs: mockData.institutions,
-    //     form: {
-    //       id: 102,
-    //       fullLegalName: "Hawassa University",
-    //       yearOfEstablishment: 1999,
-    //       businessSector: "Education",
-    //       tin: "2003004005",
-    //       vatRegistrationCertificate: "",
-    //       currentCapital: "30000000",
-    //       permanentEmployees: 5000,
-    //       contractualEmployees: 400,
-    //       totalBranches: 7,
-    //       totalAssetValuation: "350000000",
-    //       organizationalStructure: "University governance",
-    //       contactEmail: "info@hu.edu.et",
-    //       contactPhone: "+251-462-220000",
-    //       mainOfficeAddress: "Hawassa, Ethiopia",
-    //       institutionType: "PUBLIC",
-    //       businessLicenseNumber: "",
-    //       establishmentProclamation: "Proclamation No. 456/2005",
-    //       employeeConsentProvided: false,
-    //       monthlyPayrollCommitment: false,
-    //       employeeTerminationNotificationAgreement: false,
-    //       outstandingReceivablesPriorityAgreement: false,
-    //       loanRepaymentDeductionAgreement: false,
-    //       digitalChannelUsageAgreement: false,
-    //       onboardingStatus: "Pending",
-    //       onboardedBy: 3,
-    //       createdAt: "2024-02-01T09:00:00",
-    //       approvedAt: "",
-    //       approvedBy: "",
-    //       rejectionReason: "",
-    //     },
-    //   },
-    //   {
-    //     id: 103,
-    //     name: "Bahir Dar University",
-    //     type: "institution",
-    //     status: "Rejected",
-    //     docs: mockData.institutions,
-    //     form: {
-    //       id: 103,
-    //       fullLegalName: "Bahir Dar University",
-    //       yearOfEstablishment: 2000,
-    //       businessSector: "Education",
-    //       tin: "3004005006",
-    //       vatRegistrationCertificate: "VAT-ET-BDU-456",
-    //       currentCapital: "25000000",
-    //       permanentEmployees: 4200,
-    //       contractualEmployees: 350,
-    //       totalBranches: 6,
-    //       totalAssetValuation: "280000000",
-    //       organizationalStructure: "University governance",
-    //       contactEmail: "info@bdu.edu.et",
-    //       contactPhone: "+251-582-200000",
-    //       mainOfficeAddress: "Bahir Dar, Ethiopia",
-    //       institutionType: "PUBLIC",
-    //       businessLicenseNumber: "",
-    //       establishmentProclamation: "Proclamation No. 789/2006",
-    //       employeeConsentProvided: false,
-    //       monthlyPayrollCommitment: false,
-    //       employeeTerminationNotificationAgreement: false,
-    //       outstandingReceivablesPriorityAgreement: false,
-    //       loanRepaymentDeductionAgreement: false,
-    //       digitalChannelUsageAgreement: false,
-    //       onboardingStatus: "Rejected",
-    //       onboardedBy: 4,
-    //       createdAt: "2024-03-01T11:30:00",
-    //       approvedAt: "",
-    //       approvedBy: "",
-    //       rejectionReason: "Insufficient documentation",
-    //     },
-    //   },
-    // ],
-    consumers: [
-      {
-        id: 10,
-        name: "Teina Tesfaye",
-        type: "consumer",
-        status: "Pending",
-        docs: mockData.consumers,
-        form: { fullName: "Teina Tesfaye", idNumber: "1234567890", mobile: "+987654321" },
-      },
-      {
-        id: 11,
-        name: "Samuel Kebede",
-        type: "consumer",
-        status: "Approved",
-        docs: mockData.consumers,
-        form: { fullName: "Samuel Kebede", idNumber: "9876543210", mobile: "+251901234567" },
-      },
-      {
-        id: 12,
-        name: "Lulit Bekele",
-        type: "consumer",
-        status: "Rejected",
-        docs: mockData.consumers,
-        form: { fullName: "Lulit Bekele", idNumber: "555666777", mobile: "+251911223344" },
-      },
-    ],
-  };
-  
-  const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
-  const [actionLoading, setActionLoading] = useState<null | "approve" | "decline">(null);
-  const [declineReason, setDeclineReason] = useState<string>("");
-  const [selectedDeclineReason, setSelectedDeclineReason] = useState<string>("");
-  
-  const handleApprove = () => {
-    if (!selectedEntity) return;
-    
-    // Handle factory approval specifically
-    if (selectedEntity.type === "factory") {
-      // Check if factory is already approved
-      if (selectedEntity.status === "Approved") {
-        toast.error("This factory is already approved.");
-        return;
-      }
-      
-      approveFactory(selectedEntity.id);
-      setSelectedEntity(null);
-      setDeclineReason("");
-      return;
-    }
-    
-    // For other entity types, keep the existing behavior for now
-    setActionLoading("approve");
-    // TODO: integrate API for other entity types
-    setTimeout(() => {
-      selectedEntity.status = "Approved";
-      setActionLoading(null);
-      setSelectedEntity(null);
-      setDeclineReason("");
-    }, 800);
-  };
-
-  const handleDecline = () => {
-    if (!selectedEntity) return;
-    setActionLoading("decline");
-    // TODO: integrate API
-    console.log("Declining entity with reason:", declineReason);
-    setTimeout(() => {
-      selectedEntity.status = "Rejected";
-      setActionLoading(null);
-      setSelectedEntity(null);
-      setDeclineReason(""); // Clear decline reason after action
-      setSelectedDeclineReason(""); // Clear selected radio reason
-    }, 800);
+    factories: factories || [],
+    institutions: institutions || [],
+    agents: agents || [],
   };
   
   const navigate = useNavigate();
+
+  // Refresh all data
+  const handleRefresh = async () => {
+    try {
+      await Promise.all([
+        refetchFactories(),
+        refetchAgents(),
+        refetchInstitutions()
+      ]);
+      setLastRefresh(new Date());
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    }
+  };
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      handleRefresh();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
   
   const renderEntitiesTable = (list: Entity[], isLoading?: boolean, error?: any) => {
     if (isLoading) {
@@ -408,18 +184,20 @@ const { institutions, isLoading: institutionsLoading, error: institutionsError, 
       );
     }
 
-    const visible = filter === "All" ? list : list.filter((e) => e.status === filter);
+    const visible = filter === "All" ? list : list.filter((e) => {
+      const statusToCheck = statusFilter === "admin" ? e.adminStatus : e.status;
+      return statusToCheck === filter;
+    });
 
     const handleViewClick = (evt: React.MouseEvent, entity: Entity) => {
       evt.stopPropagation();
-      if (entity.type === "institution") {
-        if (entity.status === "Approved") {
+      // Navigate to detail pages instead of showing modals
+      if (entity.type === "factory") {
+        navigate(`/coop/approval/factories/${entity.id}`);
+      } else if (entity.type === "agent") {
+        navigate(`/coop/approval/agents/${entity.id}`);
+      } else if (entity.type === "institution") {
           navigate(`/coop/approval/institutions/${entity.id}`);
-        } else {
-          setSelectedEntity(entity);
-        }
-      } else {
-        setSelectedEntity(entity);
       }
     };
 
@@ -428,39 +206,39 @@ const { institutions, isLoading: institutionsLoading, error: institutionsError, 
         <thead className="bg-gray-50 dark:bg-slate-700">
           <tr>
             <th className="px-4 py-2 text-left font-medium">Name</th>
-            <th className="px-4 py-2 text-left font-medium">Status</th>
+            <th className="px-4 py-2 text-left font-medium">Admin Status</th>
+            <th className="px-4 py-2 text-left font-medium">Super Admin Status</th>
             <th className="px-4 py-2 text-left font-medium">Action</th>
           </tr>
         </thead>
         <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-gray-600">
           {visible.map((e) => (
-            <tr key={e.id} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700" onClick={() => setSelectedEntity(e)}>
+            <tr key={e.id} className="hover:bg-gray-50 dark:hover:bg-slate-700">
               <td className="px-4 py-2 whitespace-nowrap">{e.name}</td>
+              <td className="px-4 py-2 whitespace-nowrap">
+                <span className={`px-2 py-1 rounded text-xs ${statusClasses[e.adminStatus]}`}>{e.adminStatus}</span>
+              </td>
               <td className="px-4 py-2 whitespace-nowrap">
                 <span className={`px-2 py-1 rounded text-xs ${statusClasses[e.status]}`}>{e.status}</span>
               </td>
               <td className="px-4 py-2 whitespace-nowrap">
-                {e.type === "institution" ? (
-                  <div className="flex items-center gap-2">
+                <div className="flex space-x-2">
+                  <Button size="sm" variant="outline" onClick={(evt)=>handleViewClick(evt, e)}>
+                    View Details
+                  </Button>
+                  {e.type === "institution" && e.status === "Approved" && (
                     <Button
                       size="sm"
-                      variant="outline"
-                      onClick={(evt)=>{evt.stopPropagation(); setSelectedEntity(e);}}
+                      variant="secondary" 
+                      onClick={(evt) => {
+                        evt.stopPropagation();
+                        navigate(`/coop/approval/institutions/${e.id}/consumers`);
+                      }}
                     >
-                      Preview
-                    </Button>
-                    {e.status === "Approved" && (
-                      <Button
-                        size="sm"
-                        onClick={(evt)=>{evt.stopPropagation(); navigate(`/coop/approval/institutions/${e.id}`); }}
-                      >
-                        View
+                      Consumer List
                       </Button>
                     )}
                   </div>
-                ) : (
-                  <Button size="sm" variant="outline" onClick={(evt)=>handleViewClick(evt, e)}>View</Button>
-                )}
               </td>
             </tr>
           ))}
@@ -469,65 +247,6 @@ const { institutions, isLoading: institutionsLoading, error: institutionsError, 
     );
   };
   
-  const renderEntityDetails = (entity: Entity) => {
-    return (
-      <Card className="mt-6 border-blue-200 dark:border-slate-600">
-        <CardHeader>
-          <CardTitle>{entity.name} – Details</CardTitle>
-          
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Simple form field list */}
-          <div>
-            <h4 className="font-semibold mb-2">Form Data</h4>
-            <table className="w-full text-sm divide-y divide-gray-200 dark:divide-gray-700 rounded-md overflow-hidden">
-              <tbody>
-                {FIELD_TEMPLATES[entity.type].map(({ key, label }) => (
-                  <tr
-                    key={key}
-                    className="odd:bg-gray-50 even:bg-white dark:odd:bg-slate-800 dark:even:bg-slate-900"
-                  >
-                    <td className="py-2 px-3 font-medium text-gray-700 dark:text-slate-200 w-1/3">{label}</td>
-                    <td className="py-2 px-3 text-gray-900 dark:text-slate-100 w-2/3">{entity.form[key] ?? "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Documents */}
-          <div>
-            <h4 className="font-semibold mb-2">Uploaded Documents</h4>
-            <table className="min-w-full text-sm divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-slate-700">
-                <tr>
-                  <th className="px-4 py-2 text-left font-medium">Name</th>
-                  <th className="px-4 py-2 text-left font-medium">Uploaded</th>
-                  <th className="px-4 py-2 text-left font-medium">Action</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-gray-600">
-                {entity.docs.map((d) => {
-                  const isPdf = d.name.toLowerCase().endsWith('.pdf');
-                  return (
-                    <tr key={d.id}>
-                      <td className="px-4 py-1 whitespace-nowrap">{d.name}</td>
-                      <td className="px-4 py-1 whitespace-nowrap">{d.uploadedAt}</td>
-                      <td className="px-4 py-1 whitespace-nowrap">
-                        <Button size="sm" variant="outline" disabled={!isPdf} onClick={() => alert('Pretend opening ' + d.name)}>
-                          View
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
   
   // Replace renderTable calls with renderEntitiesTable and add details panel after TabsContent
   
@@ -535,21 +254,59 @@ const { institutions, isLoading: institutionsLoading, error: institutionsError, 
     <div className="space-y-4 p-4">
       <Card>
         <CardHeader>
-          <CardTitle>Approval Management</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Approval Management</CardTitle>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                Last updated: {lastRefresh.toLocaleTimeString()}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={factoriesLoading || agentsLoading || institutionsLoading}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${(factoriesLoading || agentsLoading || institutionsLoading) ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {/* Status filter */}
-          <div className="flex gap-2 mb-4">
-            {["All", "Pending", "Approved", "Rejected"].map((s) => (
+          <div className="flex flex-col gap-4 mb-4">
+            {/* Status Type Filter */}
+            <div className="flex gap-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by:</span>
               <Button
-                key={s}
                 size="sm"
-                variant={filter === s ? "default" : "outline"}
-                onClick={() => setFilter(s as any)}
+                variant={statusFilter === "superAdmin" ? "default" : "outline"}
+                onClick={() => setStatusFilter("superAdmin")}
               >
-                {s}
+                Status_by_Super_Admin
               </Button>
-            ))}
+              <Button
+                size="sm"
+                variant={statusFilter === "admin" ? "default" : "outline"}
+                onClick={() => setStatusFilter("admin")}
+              >
+                Status_by_Admin
+              </Button>
+            </div>
+            
+            {/* Status Value Filter */}
+            <div className="flex gap-2">
+              {["All", "Pending", "Approved", "Rejected"].map((s) => (
+                <Button
+                  key={s}
+                  size="sm"
+                  variant={filter === s ? "default" : "outline"}
+                  onClick={() => setFilter(s as any)}
+                >
+                  {s}
+                </Button>
+              ))}
+            </div>
           </div>
 
           <Tabs defaultValue="dashboard" className="w-full">
@@ -566,79 +323,13 @@ const { institutions, isLoading: institutionsLoading, error: institutionsError, 
               {renderEntitiesTable(entities.factories, factoriesLoading, factoriesError)}
             </TabsContent>
             <TabsContent value="agents" className="mt-4">
-              {renderEntitiesTable(entities.agents)}
+              {renderEntitiesTable(entities.agents, agentsLoading, agentsError)}
             </TabsContent>
             <TabsContent value="institutions" className="mt-4">
-              {renderEntitiesTable(entities.institutions)}
+              {renderEntitiesTable(entities.institutions, institutionsLoading, institutionsError)}
             </TabsContent>
           </Tabs>
 
-          {/* Details dialog */}
-          <Dialog open={!!selectedEntity} onOpenChange={(open)=>{if(!open) setSelectedEntity(null);}}>
-            <DialogContent className="w-[90vw] max-w-3xl flex flex-col max-h-[90vh]">
-              {selectedEntity && (
-                <>
-                  <DialogHeader className="pb-4">
-                    <DialogTitle>{selectedEntity.name} – Details</DialogTitle>
-                  </DialogHeader>
-                  <div className="flex-grow overflow-auto pr-2">
-                    {renderEntityDetails(selectedEntity)}
-
-                    {/* Decline reason section */}
-                    <div className="mt-4 space-y-2">
-                      <label htmlFor="declineReason" className="text-sm font-medium">Reason for Decline</label>
-                      <div className="space-y-2">
-                        {PREDEFINED_DECLINE_REASONS.map((reason) => (
-                          <div key={reason} className="flex items-center">
-                            <Input
-                              type="radio"
-                              id={reason}
-                              value={reason}
-                              checked={selectedDeclineReason === reason}
-                              onChange={() => {
-                                setSelectedDeclineReason(reason);
-                                if (reason !== "Other (please specify)") {
-                                  setDeclineReason(reason);
-                                } else {
-                                  setDeclineReason(""); // Clear custom reason if "Other" is deselected
-                                }
-                              }}
-                              className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-                            />
-                            <Label htmlFor={reason} className="ml-2 text-sm text-gray-700 dark:text-gray-200">
-                              {reason}
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                      {selectedDeclineReason === "Other (please specify)" && (
-                        <Textarea
-                          id="customDeclineReason"
-                          placeholder="Please specify your reason..."
-                          value={declineReason}
-                          onChange={(e) => setDeclineReason(e.target.value)}
-                          className="w-full mt-2"
-                          rows={3}
-                        />
-                      )}
-                    </div>
-                  </div>
-
-                  <DialogFooter className="gap-2 pt-4">
-                    <Button variant="destructive" disabled={actionLoading==="decline"} onClick={handleDecline}>
-                      {actionLoading==="decline"?"Declining...":"Decline"}
-                    </Button>
-                    <Button disabled={actionLoading==="approve" || (selectedEntity?.type === "factory" && isApproving)} onClick={handleApprove}>
-                      {actionLoading==="approve" || (selectedEntity?.type === "factory" && isApproving) ? "Approving..." : "Approve"}
-                    </Button>
-                    <DialogClose asChild>
-                      <Button variant="outline">Close</Button>
-                    </DialogClose>
-                  </DialogFooter>
-                </>
-              )}
-            </DialogContent>
-          </Dialog>
 
         </CardContent>
       </Card>

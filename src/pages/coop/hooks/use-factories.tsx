@@ -13,7 +13,8 @@ interface Factory {
   id: number;
   name: string;
   type: "factory";
-  status: "Pending" | "Approved" | "Rejected";
+  status: "Pending" | "Approved" | "Rejected"; // Super Admin Status (this portal)
+  adminStatus: "Pending" | "Approved" | "Rejected"; // Admin Status (external portal)
   docs: FactoryDoc[];
   form: Record<string, any>;
 }
@@ -38,12 +39,21 @@ const fetchFactories = async (): Promise<Factory[]> => {
       return [];
     }
     
+    // Status mapping for consistent display
+    const statusMap: Record<string, EntityStatus> = {
+      APPROVED: "Approved",
+      PENDING: "Pending", 
+      REJECTED_BY_ADMIN: "Rejected",
+      REJECTED: "Rejected",
+    };
+
     // Transform the API response to match our expected structure
     return factoriesData.map((factory: any) => ({
       id: factory.id || factory.factoryId,
       name: factory.name || factory.factoryName || factory.businessName,
       type: "factory" as const,
-      status: factory.status || factory.approvalStatus || "Pending",
+      status: statusMap[factory.superAdminApprovalStatus] || statusMap[factory.superAdminStatus] || "Pending", // Super Admin Status (this portal)
+      adminStatus: statusMap[factory.adminApprovalStatus] || statusMap[factory.adminStatus] || "Pending", // Admin Status (external portal)
       docs: factory.docs || factory.documents || [],
       form: {
         factoryName: String(factory.name || factory.factoryName || factory.businessName || ""),

@@ -5,7 +5,7 @@ import { Label } from "../../../../common/ui/label";
 import { Button } from "../../../../common/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../common/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../../common/ui/card";
-import { X, Eye, EyeOff, RefreshCw } from "lucide-react";
+import { Eye, EyeOff, RefreshCw } from "lucide-react";
 
 type UserRole = "Agent" | "Institution" | "Factory" | "Consumer" | "Admin";
 type UserPortal = "Coop" | "Partner";
@@ -19,6 +19,7 @@ interface CreateUserModalProps {
     email: string;
     phone: string;
     role: UserRole;
+    roleId?: string;
     portal: UserPortal;
     password: string;
     status: UserStatus;
@@ -31,6 +32,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onSu
     email: "",
     phone: "",
     role: "Consumer" as UserRole,
+    roleId: "",
     portal: "Coop" as UserPortal,
     password: "",
     status: "Active" as UserStatus,
@@ -63,6 +65,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onSu
         email: "",
         phone: "",
         role: "Consumer",
+        roleId: "",
         portal: "Coop",
         password: "",
         status: "Active",
@@ -82,6 +85,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onSu
       email: "",
       phone: "",
       role: "Consumer",
+      roleId: "",
       portal: "Coop",
       password: "",
       status: "Active",
@@ -154,13 +158,23 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onSu
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Consumer">Consumer</SelectItem>
-                    <SelectItem value="Agent">Agent</SelectItem>
-                    <SelectItem value="Institution">Institution</SelectItem>
-                    <SelectItem value="Factory">Factory</SelectItem>
-                    <SelectItem value="Admin">Admin</SelectItem>
+                    <SelectItem value="Agent">Partner</SelectItem>
+                
+                    <SelectItem value="Admin">SuperAdmin</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Role ID (required for Create) */}
+              <div className="space-y-2">
+                <Label htmlFor="roleId">Role ID *</Label>
+                <Input
+                  id="roleId"
+                  value={formData.roleId}
+                  onChange={(e) => handleInputChange("roleId", e.target.value)}
+                  placeholder="Enter backend role ID"
+                  required
+                />
               </div>
 
               {/* Portal Field */}

@@ -90,11 +90,9 @@ const UserForm: React.FC<UserFormProps> = ({ initialData, onSubmit, onCancel }) 
                   <SelectValue placeholder="Select Role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Agent">Agent</SelectItem>
-                  <SelectItem value="Institution">Institution</SelectItem>
-                  <SelectItem value="Factory">Factory</SelectItem>
-                  <SelectItem value="Consumer">Consumer</SelectItem>
-                  <SelectItem value="Admin">Admin</SelectItem>
+                  <SelectItem value="Partner">Agent</SelectItem>
+                
+                  <SelectItem value="Super Admin">Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>
