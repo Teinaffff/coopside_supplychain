@@ -78,5 +78,5 @@ export function useAgents() {
     }
   };
 
-  return { agents, isLoading, error, approveAgent, rejectAgent, refetch };
+  return { agents, isLoading, error, approveAgent, rejectAgent, refetch, isApproving };
 }

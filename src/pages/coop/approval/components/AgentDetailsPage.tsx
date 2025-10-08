@@ -120,6 +120,7 @@ const AgentDetailsPage: React.FC = () => {
     approveAgent,
     rejectAgent,
     refetch,
+    isApproving,
   } = useAgents();
   
   const agent = agents?.find((agent: any) => agent?.id?.toString() === id);
@@ -197,7 +198,6 @@ const AgentDetailsPage: React.FC = () => {
           loading={false}
           title="Approve Agent"
           description="Are you sure you want to approve this agent?"
-          variant="success"
         />
 
         {/* Reject Modal */}
@@ -294,7 +294,9 @@ const AgentDetailsPage: React.FC = () => {
                 />
                 <InfoField 
                   label="Address" 
-                  value={agent.form.address?.street || agent.form.address || "N/A"} 
+                  value={agent.form.address ? 
+                    `${agent.form.address.street || ''} ${agent.form.address.city || ''} ${agent.form.address.state || ''} ${agent.form.address.postalCode || ''} ${agent.form.address.country || ''}`.trim() || "N/A" 
+                    : "N/A"} 
                   icon={<MapPin className="w-4 h-4" />}
                 />
                 <InfoField 
@@ -323,11 +325,11 @@ const AgentDetailsPage: React.FC = () => {
           </Button>
           <Button
             onClick={() => setOpenApprove(true)}
-            disabled={agent.status === "APPROVED" || agent.adminApprovalStatus === "APPROVED" || isApproveAgentLoading || agent.adminStatus !== "Approved"}
+            disabled={agent.status === "APPROVED" || agent.adminApprovalStatus === "APPROVED" || isApproving || agent.adminStatus !== "Approved"}
             className="bg-green-600 hover:bg-green-700"
           >
             <CheckCircle className="w-4 h-4 mr-2" />
-            {isApproveAgentLoading ? "Approving..." : "Approve"}
+            {isApproving ? "Approving..." : "Approve"}
           </Button>
         </div>
 
