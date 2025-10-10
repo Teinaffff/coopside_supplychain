@@ -15,7 +15,8 @@ interface CreateUserModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (userData: {
-    name: string;
+    firstName: string;
+    lastName: string;
     email: string;
     phone: string;
     role: UserRole;
@@ -28,7 +29,8 @@ interface CreateUserModalProps {
 
 const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
     role: "Consumer" as UserRole,
@@ -61,7 +63,8 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onSu
       await onSubmit(formData);
       // Reset form
       setFormData({
-        name: "",
+        firstName: "",
+        lastName: "",
         email: "",
         phone: "",
         role: "Consumer",
@@ -81,7 +84,8 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onSu
   const handleClose = () => {
     // Reset form when closing
     setFormData({
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
       phone: "",
       role: "Consumer",
@@ -112,12 +116,23 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onSu
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Name Field */}
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name *</Label>
+                <Label htmlFor="firstName">First Name *</Label>
                 <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                  placeholder="Enter full name"
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={(e) => handleInputChange("firstName", e.target.value)}
+                  placeholder="Enter first name"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name *</Label>
+                <Input
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={(e) => handleInputChange("lastName", e.target.value)}
+                  placeholder="Enter last name"
                   required
                 />
               </div>
@@ -266,7 +281,7 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose, onSu
               </Button>
               <Button
                 type="submit"
-                disabled={isLoading || !formData.name || !formData.email || !formData.password}
+                disabled={isLoading || !formData.firstName || !formData.lastName || !formData.email || !formData.password}
                 className="min-w-[100px]"
               >
                 {isLoading ? (

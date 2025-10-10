@@ -347,9 +347,7 @@ const UserManagementPage = () => {
 
   const handleCreateUser = async (userData: any) => {
     try {
-      const names = userData.name.trim().split(" ");
-      const firstName = names.slice(0, -1).join(" ") || names[0] || "";
-      const lastName = names.length > 1 ? names.slice(-1).join(" ") : "";
+      const { firstName, lastName } = userData;
 
       const base = {
         email: userData.email,
