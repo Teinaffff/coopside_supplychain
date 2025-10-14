@@ -318,14 +318,14 @@ const AgentDetailsPage: React.FC = () => {
           <Button
             variant="destructive"
             onClick={() => setOpenReject(true)}
-            disabled={agent.status === "REJECTED" || agent.adminApprovalStatus === "REJECTED" || agent.adminStatus !== "Approved"}
+            disabled={!(agent.superAdminApprovalStatus === "PENDING" && agent.adminApprovalStatus === "APPROVED")}
           >
             <XCircle className="w-4 h-4 mr-2" />
             Reject
           </Button>
           <Button
             onClick={() => setOpenApprove(true)}
-            disabled={agent.status === "APPROVED" || agent.adminApprovalStatus === "APPROVED" || isApproving || agent.adminStatus !== "Approved"}
+            disabled={!(agent.superAdminApprovalStatus === "PENDING" && agent.adminApprovalStatus === "APPROVED")}
             className="bg-green-600 hover:bg-green-700"
           >
             <CheckCircle className="w-4 h-4 mr-2" />

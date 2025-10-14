@@ -319,14 +319,14 @@ const InstitutionDetailsPage: React.FC = () => {
           <Button
             variant="destructive"
             onClick={() => setOpenReject(true)}
-            disabled={institution.status === "REJECTED" || institution.onboardingStatus === "REJECTED" || institution.adminStatus !== "Approved"}
+            disabled={!(institution.superAdminApprovalStatus === "PENDING" && institution.adminApprovalStatus === "APPROVED")}
           >
             <XCircle className="w-4 h-4 mr-2" />
             Reject
           </Button>
           <Button
             onClick={() => setOpenApprove(true)}
-            disabled={institution.status === "APPROVED" || institution.onboardingStatus === "APPROVED" || institution.adminStatus !== "Approved"}
+            disabled={!(institution.superAdminApprovalStatus === "PENDING" && institution.adminApprovalStatus === "APPROVED")}
             className="bg-green-600 hover:bg-green-700"
           >
             <CheckCircle className="w-4 h-4 mr-2" />
