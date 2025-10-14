@@ -302,14 +302,14 @@ const FactoryDetailsPage: React.FC = () => {
           <Button
             variant="destructive"
             onClick={() => setOpenReject(true)}
-            disabled={!(factory.superAdminApprovalStatus === "PENDING" && factory.adminApprovalStatus === "APPROVED")}
+            disabled={!(factory.status === "Pending" && factory.adminStatus === "Approved")}
           >
             <XCircle className="w-4 h-4 mr-2" />
             Reject
           </Button>
           <Button
             onClick={() => setOpenApprove(true)}
-            disabled={!(factory.superAdminApprovalStatus === "PENDING" && factory.adminApprovalStatus === "APPROVED")}
+            disabled={!(factory.status === "Pending" && factory.adminStatus === "Approved")}
             className="bg-green-600 hover:bg-green-700"
           >
             <CheckCircle className="w-4 h-4 mr-2" />
