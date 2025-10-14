@@ -172,17 +172,10 @@ const ConsumerDetailsPage: React.FC = () => {
       return;
     }
     try {
-      await API.post(`/v1/consumers/${id}/reject`, {
-        reason: rejectReason
-      });
+      await API.post(`/v1/consumers/${id}/reject?reason=${rejectReason}`);
       setOpenReject(false);
       setRejectReason("");
       toast.success("Consumer rejected successfully!");
-      
-      // Update consumer status locally
-      if (consumer) {
-        setConsumer({ ...consumer, status: "Inactive" });
-      }
     } catch (error: any) {
       console.error("Error rejecting consumer:", error);
       toast.error(error?.response?.data?.message || "Failed to reject consumer");
@@ -424,7 +417,7 @@ const ConsumerDetailsPage: React.FC = () => {
             disabled={consumer.status === "Inactive"}
           >
             <XCircle className="w-4 h-4 mr-2" />
-            Reject
+            Reject {`${consumer.superAdminApprovalStatus} ${consumer.adminApproval}`}
           </Button>
           <Button
             onClick={() => setOpenApprove(true)}
