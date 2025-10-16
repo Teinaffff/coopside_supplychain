@@ -112,11 +112,9 @@ const Sidebar = ({
         <nav className="mt-5 py-4 px-4 lg:mt-9 lg:px-6">
           {/* <!-- Menu Group --> */}
           <div>
-            <h3 className="mb-4 ml-4 text-sm font-semibold text-gray-200 dark:text-slate-300">
-              MENU
-            </h3>
+           
 
-            <ul className="mb-6 flex flex-col gap-1.5">
+            <ul className="mb-6 flex flex-col gap-0.5">
               {menuItems.map((item) => (
                 <li key={item.to}>
                   <SidebarItem
@@ -164,31 +162,37 @@ const SidebarItem = ({
   <div>
     <NavLink
       to={to}
-      className={`group relative flex items-center gap-2.5 rounded-sm py-2 px-4 font-medium duration-300 ease-in-out hover:text-cyan-500 hover:bg-white dark:hover:bg-slate-700 dark:hover:text-slate-200 ${
+      className={`group relative flex items-center gap-3 py-3 px-4 font-medium duration-300 ease-in-out ${
         isActive
-          ? "bg-white dark:bg-slate-700 text-cyan-500 dark:text-slate-200"
-          : "text-white dark:text-slate-300"
+          ? "bg-cyan-300 text-white border-l-4 border-white"
+          : "text-cyan-200 hover:text-cyan-100 hover:bg-cyan-600/20"
       }`}
       onClick={subMenu ? toggleSubMenu : undefined}
     >
-      {icon}
-      {label}
+      <div className="text-white">
+        {icon}
+      </div>
+      <span className="flex-1">{label}</span>
       {subMenu && (
-        <span className="ml-auto">
+        <span className="text-white">
           {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </span>
       )}
     </NavLink>
     {subMenu && isOpen && (
-      <ul className="ml-6 mt-2 flex flex-col gap-2">
+      <ul className="ml-6 mt-1 flex flex-col gap-1">
         {subMenu.map((subItem) => (
           <li key={subItem.to}>
             <NavLink
               to={subItem.to}
-              className={`flex items-center gap-2 rounded-sm py-2 px-4 font-medium duration-300 ease-in-out text-white dark:text-slate-300 hover:text-cyan-500 hover:bg-white dark:hover:bg-slate-700 dark:hover:text-slate-200`}
+              className={`flex items-center gap-3 py-2 px-4 font-medium duration-300 ease-in-out text-cyan-200 hover:text-cyan-100 hover:bg-cyan-600/20 ${
+                isActive ? "bg-cyan-300 text-white border-l-4 border-white" : ""
+              }`}
             >
-              {subItem.icon}
-              {subItem.label}
+              <div className="text-white">
+                {subItem.icon}
+              </div>
+              <span className="flex-1">{subItem.label}</span>
             </NavLink>
           </li>
         ))}

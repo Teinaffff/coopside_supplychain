@@ -6,30 +6,22 @@ import Loan from "../../pages/coop/loan/page";
 import ApprovalManagementPage from "../../pages/coop/approval/page";
 import InstitutionDetailsPage from "../../pages/coop/approval/InstitutionDetailsPage";
 import ConsumerProfilePage from "../../pages/coop/approval/ConsumerProfilePage";
-import CreditProductManagement from "../../pages/coop/credit-products/page";
-import TermsConditionsPage from "../../pages/coop/terms-conditions/page";
 import UserManagementPage from "../../pages/coop/users/page";
 import FactoryDetailsPage from "../../pages/coop/approval/components/FactoryDetailsPage";
 import AgentDetailsPage from "../../pages/coop/approval/components/AgentDetailsPage";
 import InstitutionDetailsPageNew from "../../pages/coop/approval/components/InstitutionDetailsPage";
 import ConsumerListPage from "../../pages/coop/approval/components/ConsumerListPage";
 import ConsumerDetailsPage from "../../pages/coop/approval/components/ConsumerDetailsPage";
+import LoanMonitoringPage from "../../pages/coop/loan-monitoring/page";
+import LoanDetailPage from "../../pages/coop/loan-monitoring/LoanDetailPage";
+import DisbursementPage from "../../pages/coop/loan-monitoring/DisbursementPage";
+import SettingsPage from "../../pages/coop/settings/page";
 
 export const ROUTES = [
   {
     path: "/",
     title: "Home",
     element: <Dashboard />,
-  },
-  {
-    path: "credit-products",
-    title: "Product Management",
-    element: <CreditProductManagement />,
-  },
-  {
-    path: "terms-conditions",
-    title: "Terms and Conditions",
-    element: <TermsConditionsPage />,
   },
   {
     path: "users",
@@ -90,5 +82,25 @@ export const ROUTES = [
     path: "approval/consumers/:id",
     title: "Consumer Details",
     element: <ConsumerDetailsPage />,
+  },
+  {
+    path: "loan-monitoring",
+    title: "Loan Monitoring",
+    element: <LoanMonitoringPage />,
+  },
+  {
+    path: "loan-monitoring/:id",
+    title: "Loan Details",
+    element: <LoanDetailPage />,
+  },
+  {
+    path: "loan-monitoring/disbursement",
+    title: "Disbursement",
+    element: <DisbursementPage />,
+  },
+  {
+    path: "settings",
+    title: "Settings",
+    element: <SettingsPage />,
   }
 ];

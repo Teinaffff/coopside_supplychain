@@ -1,4 +1,4 @@
-import { LucideHome, ClipboardPlus, MonitorSmartphoneIcon, Banknote, FileText, Users2} from "lucide-react";
+import { LucideHome, ClipboardPlus, MonitorSmartphoneIcon, Banknote, FileText, Users2, Settings} from "lucide-react";
 
 export const menuItems = [
 
@@ -24,9 +24,23 @@ export const menuItems = [
   
   {
     label: "Loan Monitoring",
-    to: "/coop/loan",
-    pathname: "/coop/loan",
+    to: "/coop/loan-monitoring",
+    pathname: "/coop/loan-monitoring",
     icon: <MonitorSmartphoneIcon width={18} height={18} />,
+    subMenu: [
+      {
+        label: "Loan Requests",
+        to: "/coop/loan-monitoring",
+        pathname: "/coop/loan-monitoring",
+        icon: <FileText width={18} height={18} />,
+      },
+      {
+        label: "Disbursement",
+        to: "/coop/loan-monitoring/disbursement",
+        pathname: "/coop/loan-monitoring/disbursement",
+        icon: <Banknote width={18} height={18} />,
+      },
+    ],
   },
   // {
   //   label: "Transation Flow",
@@ -41,22 +55,16 @@ export const menuItems = [
   //   icon: <CreditCard width={18} height={18} />,
   // },
   {
-    label: "Product Management",
-    to: "/coop/credit-products",
-    pathname: "/coop/credit-products",
-    icon: <Banknote width={18} height={18} />,
-  },
-  {
-    label: "Terms and Conditions",
-    to: "/coop/terms-conditions",
-    pathname: "/coop/terms-conditions",
-    icon: <FileText width={18} height={18} />,
-  },
-  {
     label: "User Management",
     to: "/coop/users",
     pathname: "/coop/users",
     icon: <Users2 width={18} height={18} />,
+  },
+  {
+    label: "Settings",
+    to: "/coop/settings",
+    pathname: "/coop/settings",
+    icon: <Settings width={18} height={18} />,
   },
  
   // {

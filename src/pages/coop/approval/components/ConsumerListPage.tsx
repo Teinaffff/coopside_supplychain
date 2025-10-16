@@ -59,7 +59,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({ onBack }) => (
       </p>
       <Button onClick={onBack} variant="outline">
         <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Approval Management
+        Back to Institution List
       </Button>
     </div>
   </div>
@@ -77,7 +77,7 @@ const ConsumerListPage: React.FC = () => {
 
   // Handler functions
   const handleBack = () => {
-    navigate("/coop/approval");
+    navigate("/coop/approval?tab=institutions");
   };
 
   const handleViewConsumer = (consumerId: number) => {
@@ -171,7 +171,7 @@ const ConsumerListPage: React.FC = () => {
           className="mb-6 text-gray-600 hover:text-gray-900 dark:text-slate-300 dark:hover:text-slate-100"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Approval Management
+          Back to Institution List
         </Button>
 
         {/* Header */}

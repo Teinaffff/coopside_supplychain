@@ -18,6 +18,7 @@ import Loader from "../../../../common/Loader";
 import { AlertModal } from "../../../../common/modals/alert-modal";
 import { Badge } from "../../../../common/ui/badge";
 import { Button } from "../../../../common/ui/button";
+import DocumentPreview from "./DocumentPreview";
 import {
   Card,
   CardContent,
@@ -33,6 +34,8 @@ import {
 import { Textarea } from "../../../../common/ui/textarea";
 import { useFactories } from "../../hooks/use-factories";
 import { toast } from "react-hot-toast";
+import { Label } from "../../../../common/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../common/ui/select";
 
 // Reusable Error State Component
 interface ErrorStateProps {
@@ -53,7 +56,7 @@ const ErrorState: React.FC<ErrorStateProps> = ({ onBack }) => (
       </p>
       <Button onClick={onBack} variant="outline">
         <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Factories
+        Back to Manufacturies
       </Button>
     </div>
   </div>
@@ -112,24 +115,72 @@ const FactoryDetailsPage: React.FC = () => {
   const [openApprove, setOpenApprove] = useState(false);
   const [openReject, setOpenReject] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+  const [selectedRejectReason, setSelectedRejectReason] = useState("");
+  const [customReason, setCustomReason] = useState("");
+
+  // Predefined rejection reasons
+  const rejectionReasons = [
+    "The tin number doesn't match.",
+    "Insufficient or invalid documentation provided for verification.",
+    "Trade License not renewed",
+    "Invalid ID card",
+    "Other"
+  ];
 
   const {
     factories,
     isLoading,
     approveFactory,
+    rejectFactory,
     isApproving,
+    isRejecting,
   } = useFactories();
   
-  const factory = factories?.find((factory: any) => factory?.id?.toString() === id);
+  // Parse the ID from URL params
+  const numId = id ? parseInt(id, 10) : null;
+  console.log("[FACTORY DETAILS] URL ID:", id, "Parsed as number:", numId);
+  
+  // Find the factory by matching both string and number IDs
+  const factory = factories?.find((factory: any) => {
+    const factoryNumId = typeof factory?.id === 'number' ? factory.id : parseInt(factory?.id, 10);
+    console.log("[FACTORY DETAILS] Comparing:", { factoryId: factoryNumId, urlId: numId });
+    return factoryNumId === numId;
+  });
+  
+  // Debug logging
+  console.log("[FACTORY DETAILS] All factories:", factories);
+  console.log("[FACTORY DETAILS] URL ID from params:", id, "Type:", typeof id);
+  console.log("[FACTORY DETAILS] Parsed numeric ID:", numId);
+  console.log("[FACTORY DETAILS] Available factories with IDs:", factories?.map(f => ({ id: f.id, numericId: parseInt(f?.id, 10), name: f.name })));
+  console.log("[FACTORY DETAILS] Found factory:", factory);
+  console.log("[FACTORY DETAILS] Factory ID from data:", factory?.id, "Type:", typeof factory?.id);
+  console.log("[FACTORY DETAILS] Is loading:", isLoading);
 
   // Handler functions
   const handleBack = () => {
-    navigate("/coop/approval");
+    navigate("/coop/approval?tab=factories");
   };
 
   const onApprove = async () => {
+    if (!factory) {
+      console.error("Factory not found");
+      toast.error("Factory not found");
+      return;
+    }
+    
+    // Use the factory's actual ID from the data
+    const factoryId = factory.id;
+    
+    if (!factoryId || isNaN(Number(factoryId))) {
+      console.error("Invalid factory ID:", { factoryId, factory });
+      toast.error("Invalid factory ID");
+      return;
+    }
+    
+    console.log("Approving factory with ID:", factoryId, "Factory object:", factory);
+    
     try {
-      await approveFactory(id || "");
+      await approveFactory(Number(factoryId));
       setOpenApprove(false);
       toast.success("Factory approved successfully!");
     } catch (error) {
@@ -139,21 +190,53 @@ const FactoryDetailsPage: React.FC = () => {
   };
 
   const onReject = async () => {
-    if (!rejectReason.trim()) {
+    const finalReason = selectedRejectReason === "Other" ? customReason : selectedRejectReason;
+    
+    if (!finalReason.trim()) {
       toast.error("Please provide a reason for rejection");
       return;
     }
+    
+    console.log("[ON REJECT] Starting rejection...");
+    console.log("[ON REJECT] Factory object:", factory);
+    console.log("[ON REJECT] Numeric ID from URL:", numId);
+    
+    // Use factory.id first, fallback to parsed URL ID
+    let factoryId = factory?.id;
+    
+    // If factory ID is undefined, try using the parsed URL ID
+    if (!factoryId && numId) {
+      console.warn("[ON REJECT] Factory ID is undefined, using URL ID:", numId);
+      factoryId = numId;
+    }
+    
+    console.log("[ON REJECT] Factory ID to use:", factoryId, "Type:", typeof factoryId);
+    console.log("[ON REJECT] Final Reason:", finalReason);
+    
+    if (!factoryId || isNaN(Number(factoryId))) {
+      console.error("[ON REJECT] Invalid factory ID:", { factoryId, numId, factory });
+      toast.error("Invalid factory ID - unable to reject");
+      return;
+    }
+    
+    const numFactoryId = Number(factoryId);
+    console.log("[ON REJECT] Converted Factory ID:", numFactoryId, "Type:", typeof numFactoryId);
+    console.log("[ON REJECT] Calling rejectFactory with ID:", numFactoryId, "and reason:", finalReason);
+    
     try {
-      // TODO: Implement reject factory API call
-      console.log("Rejecting factory with reason:", rejectReason);
+      await rejectFactory({ factoryId: numFactoryId, reason: finalReason });
+
       setOpenReject(false);
+      setSelectedRejectReason("");
+      setCustomReason("");
       setRejectReason("");
-      toast.success("Factory rejected successfully!");
     } catch (error) {
-      console.error("Error rejecting factory:", error);
-      toast.error("Failed to reject factory");
+      console.error("[ON REJECT] Error rejecting factory:", error);
     }
   };
+
+  // Check if factory can be approved/rejected (only if partner has approved)
+  const canApproveOrReject = factory?.adminStatus === "Approved" && factory?.status === "Pending";
 
   // Loading state
   if (isLoading) {
@@ -204,21 +287,45 @@ const FactoryDetailsPage: React.FC = () => {
           isOpen={openReject}
           onClose={() => {
             setOpenReject(false);
+            setSelectedRejectReason("");
+            setCustomReason("");
             setRejectReason("");
           }}
           onConfirm={onReject}
-          loading={false}
+          loading={isRejecting}
           title="Reject Factory"
-          description="Please provide a reason for rejecting this factory:"
+          description="Please select a reason for rejecting this factory:"
           content={
-            <div className="mt-4">
-              <Textarea
-                placeholder="Enter rejection reason..."
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                className="w-full"
-                rows={3}
-              />
+            <div className="mt-4 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reject-reason">Select rejection reason:</Label>
+                <Select value={selectedRejectReason} onValueChange={setSelectedRejectReason}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a reason for rejection" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rejectionReasons.map((reason) => (
+                      <SelectItem key={reason} value={reason}>
+                        {reason}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {selectedRejectReason === "Other" && (
+                <div className="space-y-2">
+                  <Label htmlFor="custom-reason">Please specify the reason:</Label>
+                  <Textarea
+                    id="custom-reason"
+                    placeholder="Please specify the reason..."
+                    value={customReason}
+                    onChange={(e) => setCustomReason(e.target.value)}
+                    className="w-full"
+                    rows={3}
+                  />
+                </div>
+              )}
             </div>
           }
         />
@@ -230,7 +337,7 @@ const FactoryDetailsPage: React.FC = () => {
           className="mb-6 text-gray-600 hover:text-gray-900 dark:text-slate-300 dark:hover:text-slate-100"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Factories
+          Back to Manufacturies
         </Button>
 
         {/* Factory Header with Details */}
@@ -302,20 +409,31 @@ const FactoryDetailsPage: React.FC = () => {
           <Button
             variant="destructive"
             onClick={() => setOpenReject(true)}
-            disabled={!(factory.superAdminApprovalStatus === "PENDING" && factory.adminApprovalStatus === "APPROVED")}
+            disabled={!canApproveOrReject || isRejecting}
           >
             <XCircle className="w-4 h-4 mr-2" />
-            Reject
+            {isRejecting ? "Rejecting..." : "Reject"}
           </Button>
           <Button
             onClick={() => setOpenApprove(true)}
-            disabled={!(factory.superAdminApprovalStatus === "PENDING" && factory.adminApprovalStatus === "APPROVED")}
+            disabled={!canApproveOrReject || isApproving}
             className="bg-green-600 hover:bg-green-700"
           >
             <CheckCircle className="w-4 h-4 mr-2" />
             {isApproving ? "Approving..." : "Approve"}
           </Button>
         </div>
+        
+        {!canApproveOrReject && (
+          <div className="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/40 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg shadow-md">
+            <div className="text-sm text-yellow-900 dark:text-yellow-100 font-semibold">
+              {factory?.adminStatus !== "Approved" 
+                ? "This factory must be approved by the partner first before it can be approved/rejected by super admin."
+                : "This factory has already been processed."
+              }
+            </div>
+          </div>
+        )}
 
         {/* Tabbed Sections */}
         <Tabs defaultValue="details" className="w-full">
@@ -373,38 +491,47 @@ const FactoryDetailsPage: React.FC = () => {
 
           {/* Documents Tab */}
           <TabsContent value="documents">
-            <Card className="dark:bg-slate-800 dark:border-slate-700">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
-                  <FileText className="w-5 h-5" />
-                  <span>Documents</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {factory.docs && factory.docs.length > 0 ? (
-                    factory.docs.map((doc: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <FileText className="w-4 h-4 text-gray-500" />
-                          <div>
-                            <div className="text-sm font-medium">{doc.name || `Document ${index + 1}`}</div>
-                            <div className="text-xs text-gray-500">{doc.uploadedAt || "Uploaded recently"}</div>
-                          </div>
-                        </div>
-                        <Button size="sm" variant="outline">
-                          View
-                        </Button>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-gray-500 dark:text-slate-400">
-                      No documents uploaded yet
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <DocumentPreview 
+              documents={factory.docs && factory.docs.length > 0 ? factory.docs.map((doc: any, index: number) => ({
+                id: doc.id || `doc-${index}`,
+                name: doc.name || `Document ${index + 1}`,
+                type: doc.type || 'Document',
+                uploadedAt: doc.uploadedAt || new Date().toISOString(),
+                status: doc.status || 'Pending',
+                url: doc.url,
+                size: doc.size
+              })) : [
+                // Sample documents for demonstration
+                {
+                  id: 'doc-1',
+                  name: 'Business License',
+                  type: 'License Document',
+                  uploadedAt: new Date().toISOString(),
+                  status: 'Approved' as const,
+                  url: '#',
+                  size: '2.5 MB'
+                },
+                {
+                  id: 'doc-2',
+                  name: 'Tax Registration Certificate',
+                  type: 'Tax Document',
+                  uploadedAt: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+                  status: 'Pending' as const,
+                  url: '#',
+                  size: '1.8 MB'
+                },
+                {
+                  id: 'doc-3',
+                  name: 'Factory Registration',
+                  type: 'Registration Document',
+                  uploadedAt: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+                  status: 'Rejected' as const,
+                  url: '#',
+                  size: '3.2 MB'
+                }
+              ]}
+              title="Factory Documents"
+            />
           </TabsContent>
 
           {/* Activity Tab */}

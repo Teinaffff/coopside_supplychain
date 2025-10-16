@@ -47,28 +47,77 @@ const fetchFactories = async (): Promise<Factory[]> => {
       REJECTED: "Rejected",
     };
 
+    // Factory type mapping for better display
+    const formatFactoryType = (factoryType: string): string => {
+      if (!factoryType) return "Manufacturing";
+      
+      const typeMap: Record<string, string> = {
+        'TEXTILE': 'Textile',
+        'TEXTILES': 'Textile',
+        'FOOD_PROCESSING': 'Food Processing',
+        'FOOD_PROCESSING_PLANT': 'Food Processing',
+        'MANUFACTURING': 'Manufacturing',
+        'GARMENT': 'Garment',
+        'GARMENT_FACTORY': 'Garment',
+        'AGRICULTURE': 'Agriculture',
+        'CHEMICAL': 'Chemical',
+        'PHARMACEUTICAL': 'Pharmaceutical',
+        'ELECTRONICS': 'Electronics',
+        'AUTOMOTIVE': 'Automotive',
+        'CONSTRUCTION': 'Construction',
+        'METAL_WORKING': 'Metal Working',
+        'PLASTIC': 'Plastic',
+        'PAPER': 'Paper',
+        'WOOD': 'Wood',
+        'LEATHER': 'Leather',
+        'CERAMICS': 'Ceramics',
+        'GLASS': 'Glass',
+      };
+      
+      const upperType = factoryType.toUpperCase();
+      return typeMap[upperType] || factoryType.charAt(0).toUpperCase() + factoryType.slice(1).toLowerCase();
+    };
+
+    // Debug: Log factory types from API
+    console.log("=== FACTORY TYPES FROM API ===");
+    factoriesData.forEach((factory, index) => {
+      console.log(`Factory ${index + 1}:`, {
+        name: factory.name || factory.factoryName || factory.businessName,
+        factoryType: factory.factoryType,
+        formattedType: formatFactoryType(factory.factoryType || "")
+      });
+    });
+    console.log("=== END FACTORY TYPES ===");
+
     // Transform the API response to match our expected structure
-    return factoriesData.map((factory: any) => ({
-      id: factory.id || factory.factoryId,
-      name: factory.name || factory.factoryName || factory.businessName,
-      type: "factory" as const,
-      status: statusMap[factory.superAdminApprovalStatus] || statusMap[factory.superAdminStatus] || "Pending", // Super Admin Status (this portal)
-      adminStatus: statusMap[factory.adminApprovalStatus] || statusMap[factory.adminStatus] || "Pending", // Admin Status (external portal)
-      docs: factory.docs || factory.documents || [],
-      form: {
-        factoryName: String(factory.name || factory.factoryName || factory.businessName || ""),
-        registrationNo: String(factory.registrationNo || factory.registrationNumber || factory.businessLicense || ""),
-        location: String(factory.location || factory.address || factory.factoryLocation || ""),
-        tin: String(factory.tin || factory.taxId || ""),
-        contact: String(factory.contact || factory.contactPerson || ""),
-        phone: String(factory.phone || factory.phoneNumber || factory.contactPhone || ""),
-        email: String(factory.email || factory.emailAddress || factory.contactEmail || ""),
-        industry: String(factory.industry || factory.industryType || factory.businessSector || ""),
-        bankAccount: String(factory.bankAccount || factory.bankDetails || ""),
-        capacity: String(factory.capacity || factory.productionCapacity || ""),
-        linkedCoops: String(factory.linkedCoops || factory.linkedCooperatives || ""),
-      },
-    }));
+    return factoriesData.map((factory: any) => {
+      const factoryType = factory.factoryType || "";
+      const formattedType = formatFactoryType(factoryType);
+      
+      return {
+        id: factory.id || factory.factoryId,
+        name: factory.name || factory.factoryName || factory.businessName,
+        type: "factory" as const,
+        status: statusMap[factory.superAdminApprovalStatus] || statusMap[factory.superAdminStatus] || "Pending", // Super Admin Status (this portal)
+        adminStatus: statusMap[factory.adminApprovalStatus] || statusMap[factory.adminStatus] || "Pending", // Admin Status (external portal)
+        docs: factory.docs || factory.documents || [],
+        form: {
+          factoryName: String(factory.name || factory.factoryName || factory.businessName || ""),
+          registrationNo: String(factory.registrationNo || factory.registrationNumber || factory.businessLicense || ""),
+          location: String(factory.location || factory.address || factory.factoryLocation || ""),
+          tin: String(factory.tin || factory.taxId || ""),
+          contact: String(factory.contact || factory.contactPerson || ""),
+          phone: String(factory.phone || factory.phoneNumber || factory.contactPhone || ""),
+          email: String(factory.email || factory.emailAddress || factory.contactEmail || ""),
+          industry: String(factory.industry || factory.industryType || factory.businessSector || ""),
+          factoryType: formattedType,
+          type: formattedType,
+          bankAccount: String(factory.bankAccount || factory.bankDetails || ""),
+          capacity: String(factory.capacity || factory.productionCapacity || ""),
+          linkedCoops: String(factory.linkedCoops || factory.linkedCooperatives || ""),
+        },
+      };
+    });
   } catch (error: any) {
     console.error("[FACTORIES API ERROR]", error);
     
@@ -117,6 +166,52 @@ const approveFactory = async (factoryId: number): Promise<void> => {
   }
 };
 
+// Reject factory function
+const rejectFactory = async (factoryId: number, reason: string): Promise<void> => {
+  try {
+    console.log("[REJECT FACTORY] Input - factoryId:", factoryId, "Type:", typeof factoryId, "Reason:", reason);
+    
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      throw new Error("No authentication token found. Please login again.");
+    }
+
+    // Validate factoryId is a number
+    if (typeof factoryId !== 'number' || isNaN(factoryId)) {
+      throw new Error(`Invalid factory ID: ${factoryId} (type: ${typeof factoryId})`);
+    }
+
+    // Encode the reason for URL query parameter
+    const encodedReason = encodeURIComponent(reason);
+    const url = `/v1/factories/${factoryId}/reject?reason=${encodedReason}`;
+    console.log("[REJECT FACTORY] URL:", url);
+    
+    const response = await API.post(url);
+    
+    console.log("[REJECT FACTORY] Response:", response.status, response.data);
+    
+    if (response.status !== 200 && response.status !== 201) {
+      throw new Error("Failed to reject factory");
+    }
+    
+    return response.data;
+  } catch (error: any) {
+    console.error("[REJECT FACTORY ERROR]", error);
+    
+    if (error?.response?.status === 401) {
+      throw new Error("Authentication failed. Please login again.");
+    } else if (error?.response?.status === 403) {
+      throw new Error("You don't have permission to reject factories.");
+    } else if (error?.response?.status === 404) {
+      throw new Error("Factory not found.");
+    } else if (error?.response?.status === 400) {
+      throw new Error(error?.response?.data?.message || "Invalid request. Please check the factory data.");
+    }
+    
+    throw error;
+  }
+};
+
 export const useFactories = (isFetchFactories?: boolean) => {
   const queryClient = useQueryClient();
   
@@ -135,7 +230,7 @@ export const useFactories = (isFetchFactories?: boolean) => {
 
   // Approve factory mutation
   const approveFactoryMutation = useMutation({
-    mutationFn: approveFactory,
+    mutationFn: (factoryId: number) => approveFactory(factoryId),
     onSuccess: () => {
       // Invalidate and refetch factories data
       queryClient.invalidateQueries({ queryKey: ["factories"] });
@@ -147,12 +242,29 @@ export const useFactories = (isFetchFactories?: boolean) => {
     },
   });
 
+  // Reject factory mutation
+  const rejectFactoryMutation = useMutation({
+    mutationFn: ({ factoryId, reason }: { factoryId: number; reason: string }) => 
+      rejectFactory(factoryId, reason),
+    onSuccess: () => {
+      // Invalidate and refetch factories data
+      queryClient.invalidateQueries({ queryKey: ["factories"] });
+      toast.success("Factory rejected successfully!");
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.message || "Failed to reject factory";
+      toast.error(errorMessage);
+    },
+  });
+
   return {
     factories,
     isLoading,
     error,
     refetch,
     approveFactory: approveFactoryMutation.mutate,
+    rejectFactory: rejectFactoryMutation.mutate,
     isApproving: approveFactoryMutation.isPending,
+    isRejecting: rejectFactoryMutation.isPending,
   };
 };
