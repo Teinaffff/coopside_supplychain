@@ -69,7 +69,7 @@ class LoanApplicationService {
       const agentIds = [...new Set(applications
         .map(app => {
           console.log('App agentId:', app.agentId, 'Type:', typeof app.agentId);
-          return app.agentId;
+          return app.agentId?.toString();
         })
         .filter(Boolean)
       )];
@@ -139,7 +139,7 @@ class LoanApplicationService {
       
       // Enrich applications with agent data
       const enrichedApplications = applications.map(app => {
-        const agentData = app.agentId ? agentDataMap.get(app.agentId) : null;
+        const agentData = app.agentId ? agentDataMap.get(app.agentId.toString()) : null;
         console.log(`Processing app ${app.applicationNumber}: agentId=${app.agentId}, agentData=`, agentData);
         
         const enrichedApp = {

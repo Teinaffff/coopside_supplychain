@@ -150,9 +150,12 @@ const DisbursementPage: React.FC = () => {
 
   const loadApprovedLoans = async () => {
     try {
-      // In real app, this would filter for only approved loans
-      const allLoans = await loanApplicationService.getAllLoanApplications();
+      // Use the enriched data function that includes agent names
+      console.log('Loading approved loans with agent data...');
+      const allLoans = await loanApplicationService.getAllLoanApplicationsWithAgentData();
+      console.log('All loans with agent data:', allLoans);
       const approved = allLoans.filter(loan => loan.status === "APPROVED");
+      console.log('Approved loans:', approved);
       setApprovedLoans(approved.length > 0 ? approved.map(loan => ({ ...loan, disbursement_status: "pending" as DisbursementStatus })) : mockApprovedLoans);
     } catch (error) {
       console.error('Error loading approved loans:', error);

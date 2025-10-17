@@ -30,8 +30,8 @@ export const menuItems = [
     subMenu: [
       {
         label: "Loan Requests",
-        to: "/coop/loan-monitoring",
-        pathname: "/coop/loan-monitoring",
+        to: "/coop/loan-monitoring/requests",
+        pathname: "/coop/loan-monitoring/requests",
         icon: <FileText width={18} height={18} />,
       },
       {
@@ -39,6 +39,12 @@ export const menuItems = [
         to: "/coop/loan-monitoring/disbursement",
         pathname: "/coop/loan-monitoring/disbursement",
         icon: <Banknote width={18} height={18} />,
+      },
+      {
+        label: "Loan Settings",
+        to: "/coop/loan-monitoring/settings",
+        pathname: "/coop/loan-monitoring/settings",
+        icon: <Settings width={18} height={18} />,
       },
     ],
   },
@@ -59,12 +65,6 @@ export const menuItems = [
     to: "/coop/users",
     pathname: "/coop/users",
     icon: <Users2 width={18} height={18} />,
-  },
-  {
-    label: "Settings",
-    to: "/coop/settings",
-    pathname: "/coop/settings",
-    icon: <Settings width={18} height={18} />,
   },
  
   // {

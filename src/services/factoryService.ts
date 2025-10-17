@@ -1,5 +1,16 @@
 import API from '../config/axios-config';
 
+export interface BankAccount {
+  id?: number;
+  accountNumber?: string;
+  accountName?: string;
+  bankName?: string;
+  branchName?: string;
+  swiftCode?: string;
+  iban?: string;
+  isPrimary?: boolean;
+}
+
 export interface Factory {
   id: number;
   name?: string;
@@ -8,10 +19,14 @@ export interface Factory {
   registrationNo?: string;
   registrationNumber?: string;
   businessLicense?: string;
+  licenseNumber?: string;
+  licenseExpirationDate?: string;
+  licenseExpiryDate?: string;
   location?: string;
   address?: string;
   factoryLocation?: string;
   tin?: string;
+  tinNumber?: string;
   taxId?: string;
   contact?: string;
   contactPerson?: string;
@@ -24,8 +39,15 @@ export interface Factory {
   industry?: string;
   industryType?: string;
   businessSector?: string;
+  factoryType?: string;
   bankAccount?: string;
   bankDetails?: string;
+  bankAccountNumber?: string;
+  bankName?: string;
+  bankAccounts?: BankAccount[];
+  bankAccountInfo?: BankAccount[];
+  accountName?: string;
+  bankBranch?: string;
   capacity?: string;
   productionCapacity?: string;
   linkedCoops?: string;

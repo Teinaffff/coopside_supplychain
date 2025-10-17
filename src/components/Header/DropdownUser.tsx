@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { Settings, User } from "lucide-react";
+import { Settings, User, Users } from "lucide-react";
 import { IMAGES } from "../../assets";
 import { useAppDispatch } from "../../store";
 import { logoutUser } from "../../store/auth/auth-extra";
@@ -77,6 +77,15 @@ const DropdownUser = () => {
             >
               <User />
               My Profile
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/coop/system/user-roles"
+              className="flex items-center gap-3.5 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
+            >
+              <Users />
+              User and Roles
             </Link>
           </li>
           <li>

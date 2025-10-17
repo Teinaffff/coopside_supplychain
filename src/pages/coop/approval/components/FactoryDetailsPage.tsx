@@ -12,6 +12,8 @@ import {
   Calendar,
   CheckCircle,
   XCircle,
+  User,
+  Hash,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import Loader from "../../../../common/Loader";
@@ -255,42 +257,46 @@ const FactoryDetailsPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <InfoField 
-                  label="Contact Person" 
-                  value={factory.form.contact || "N/A"} 
-                  icon={<Phone className="w-4 h-4" />}
+                  label="Factory Type" 
+                  value={factory.form.factoryType || factory.form.industry || "N/A"} 
+                  icon={<Building2 className="w-4 h-4" />}
+                />
+                <InfoField 
+                  label="TIN Number" 
+                  value={factory.form.tin || "N/A"} 
+                  icon={<Hash className="w-4 h-4" />}
+                />
+                <InfoField 
+                  label="License Number" 
+                  value={factory.form.licenseNumber || factory.form.registrationNo || "N/A"} 
+                  icon={<FileText className="w-4 h-4" />}
+                />
+                <InfoField 
+                  label="License Expiration Date" 
+                  value={factory.form.licenseExpirationDate || "N/A"} 
+                  icon={<Calendar className="w-4 h-4" />}
                 />
                 <InfoField 
                   label="Phone" 
                   value={factory.form.phone || "N/A"} 
                   icon={<Phone className="w-4 h-4" />}
                 />
+              </div>
+              <div className="space-y-4">
                 <InfoField 
                   label="Email" 
                   value={factory.form.email || "N/A"} 
                   icon={<Mail className="w-4 h-4" />}
                 />
                 <InfoField 
-                  label="TIN Number" 
-                  value={factory.form.tin || "N/A"} 
-                />
-              </div>
-              <div className="space-y-4">
-                <InfoField 
-                  label="Registration Number" 
-                  value={factory.form.registrationNo || "N/A"} 
-                />
-                <InfoField 
                   label="Industry Type" 
-                  value={factory.form.industry || "N/A"} 
+                  value={factory.form.factoryType || factory.form.industry || "N/A"} 
+                  icon={<Building2 className="w-4 h-4" />}
                 />
                 <InfoField 
                   label="Production Capacity" 
                   value={factory.form.capacity || "N/A"} 
-                />
-                <InfoField 
-                  label="Location" 
-                  value={factory.form.location || "N/A"} 
-                  icon={<MapPin className="w-4 h-4" />}
+                  icon={<Building2 className="w-4 h-4" />}
                 />
               </div>
             </div>
@@ -352,8 +358,78 @@ const FactoryDetailsPage: React.FC = () => {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
-                    <InfoField label="Bank Account" value={factory.form.bankAccount || "N/A"} />
-                    <InfoField label="Linked Cooperatives" value={factory.form.linkedCoops || "N/A"} />
+                    <InfoField 
+                      label="Address" 
+                      value={factory.form.address || factory.form.location || "N/A"} 
+                      icon={<MapPin className="w-4 h-4" />}
+                    />
+                    {/* Bank Info Section */}
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-2 mb-3">
+                        <CreditCard className="w-5 h-5 text-blue-600" />
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Bank Information</h4>
+                      </div>
+                      
+                      {factory.form.bankAccounts && factory.form.bankAccounts.length > 0 ? (
+                        <div className="space-y-3">
+                          {factory.form.bankAccounts.map((bank: any, index: number) => (
+                            <div key={bank.id || index} className="bg-blue-50 dark:bg-slate-700 p-4 rounded-lg border border-blue-200 dark:border-slate-600">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                  <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Bank Name</p>
+                                  <p className="text-sm text-gray-900 dark:text-slate-100">{bank.bankName || "N/A"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Account Number</p>
+                                  <p className="text-sm text-gray-900 dark:text-slate-100">{bank.accountNumber || "N/A"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Account Name</p>
+                                  <p className="text-sm text-gray-900 dark:text-slate-100">{bank.accountName || "N/A"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Branch</p>
+                                  <p className="text-sm text-gray-900 dark:text-slate-100">{bank.bankBranch || "N/A"}</p>
+                                </div>
+                              </div>
+                              {bank.isPrimary && (
+                                <div className="mt-2">
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                    Primary Account
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg border border-gray-200 dark:border-slate-600">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Bank Name</p>
+                              <p className="text-sm text-gray-900 dark:text-slate-100">{factory.form.bankName || "N/A"}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Account Number</p>
+                              <p className="text-sm text-gray-900 dark:text-slate-100">{factory.form.bankAccountNumber || factory.form.bankAccount || "N/A"}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Account Name</p>
+                              <p className="text-sm text-gray-900 dark:text-slate-100">{factory.form.accountName || "N/A"}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Branch</p>
+                              <p className="text-sm text-gray-900 dark:text-slate-100">{factory.form.bankBranch || "N/A"}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <InfoField 
+                      label="Linked Cooperatives" 
+                      value={factory.form.linkedCoops || "N/A"} 
+                      icon={<Building2 className="w-4 h-4" />}
+                    />
                   </div>
                   <div className="space-y-4">
                     <InfoField 
@@ -364,6 +440,20 @@ const FactoryDetailsPage: React.FC = () => {
                         day: "numeric",
                       }) : "N/A"} 
                       icon={<Calendar className="w-4 h-4" />}
+                    />
+                    <InfoField 
+                      label="Last Updated" 
+                      value={factory.updatedAt ? new Date(factory.updatedAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }) : "N/A"} 
+                      icon={<Calendar className="w-4 h-4" />}
+                    />
+                    <InfoField 
+                      label="Status" 
+                      value={factory.status || factory.approvalStatus || "N/A"} 
+                      icon={<CheckCircle className="w-4 h-4" />}
                     />
                   </div>
                 </div>

@@ -40,10 +40,15 @@ export const formatTime = (dateString: string) => {
   };
 };
 
-export const isActivePath = (pathname: string, base: string, target: string) =>
-  target === base
-    ? pathname === target
-    : pathname.startsWith(base) && pathname.startsWith(target);
+export const isActivePath = (pathname: string, base: string, target: string) => {
+  // If target is the base path, only match exact path
+  if (target === base) {
+    return pathname === target;
+  }
+  
+  // For nested paths, match exactly or with trailing slash
+  return pathname === target || pathname === target + '/';
+};
 
 export function getInitials(fullName: string): string {
   const words = fullName?.trim().split(/\s+/); // Split on whitespace (one or more spaces)

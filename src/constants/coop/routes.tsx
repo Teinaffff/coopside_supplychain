@@ -16,6 +16,8 @@ import LoanMonitoringPage from "../../pages/coop/loan-monitoring/page";
 import LoanDetailPage from "../../pages/coop/loan-monitoring/LoanDetailPage";
 import DisbursementPage from "../../pages/coop/loan-monitoring/DisbursementPage";
 import SettingsPage from "../../pages/coop/settings/page";
+import LoanSettingsPage from "../../pages/coop/loan-monitoring/LoanSettingsPage";
+import SystemUserRolesPage from "../../pages/coop/system/SystemUserRolesPage";
 
 export const ROUTES = [
   {
@@ -89,6 +91,11 @@ export const ROUTES = [
     element: <LoanMonitoringPage />,
   },
   {
+    path: "loan-monitoring/requests",
+    title: "Loan Requests",
+    element: <LoanMonitoringPage />,
+  },
+  {
     path: "loan-monitoring/:id",
     title: "Loan Details",
     element: <LoanDetailPage />,
@@ -99,8 +106,18 @@ export const ROUTES = [
     element: <DisbursementPage />,
   },
   {
+    path: "loan-monitoring/settings",
+    title: "Loan Settings",
+    element: <LoanSettingsPage />,
+  },
+  {
     path: "settings",
     title: "Settings",
     element: <SettingsPage />,
+  },
+  {
+    path: "system/user-roles",
+    title: "System User & Roles",
+    element: <SystemUserRolesPage />,
   }
 ];

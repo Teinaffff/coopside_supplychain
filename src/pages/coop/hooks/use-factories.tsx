@@ -89,12 +89,15 @@ const fetchFactories = async (): Promise<Factory[]> => {
     });
     console.log("=== END FACTORY TYPES ===");
 
-    // Transform the API response to match our expected structure
-    return factoriesData.map((factory: any) => {
-      const factoryType = factory.factoryType || "";
-      const formattedType = formatFactoryType(factoryType);
-      
-      return {
+      // Transform the API response to match our expected structure
+      return factoriesData.map((factory: any) => {
+        const factoryType = factory.factoryType || "";
+        const formattedType = formatFactoryType(factoryType);
+        
+        // Find primary bank account or use first one
+        const primaryBankAccount = factory.bankAccountInfo?.find((bank: any) => bank.isPrimary) || factory.bankAccountInfo?.[0];
+        
+        return {
         id: factory.id || factory.factoryId,
         name: factory.name || factory.factoryName || factory.businessName,
         type: "factory" as const,
@@ -104,15 +107,40 @@ const fetchFactories = async (): Promise<Factory[]> => {
         form: {
           factoryName: String(factory.name || factory.factoryName || factory.businessName || ""),
           registrationNo: String(factory.registrationNo || factory.registrationNumber || factory.businessLicense || ""),
+          licenseNumber: String(factory.licenseNumber || factory.businessLicense || factory.registrationNumber || ""),
+          licenseExpirationDate: String(factory.licenseExpiryDate || factory.licenseExpirationDate || factory.licenseExpiry || ""),
           location: String(factory.location || factory.address || factory.factoryLocation || ""),
-          tin: String(factory.tin || factory.taxId || ""),
+          address: String(factory.factoryAddresses || factory.address || factory.location || factory.factoryLocation || ""),
+          tin: String(factory.tinNumber || factory.tin || factory.taxId || ""),
           contact: String(factory.contact || factory.contactPerson || ""),
           phone: String(factory.phone || factory.phoneNumber || factory.contactPhone || ""),
           email: String(factory.email || factory.emailAddress || factory.contactEmail || ""),
-          industry: String(factory.industry || factory.industryType || factory.businessSector || ""),
+          industry: String(factory.factoryType || factory.industry || factory.industryType || factory.businessSector || ""),
           factoryType: formattedType,
           type: formattedType,
           bankAccount: String(factory.bankAccount || factory.bankDetails || ""),
+          bankAccountNumber: String(
+            primaryBankAccount?.accountNumber || 
+            factory.bankAccountNumber || 
+            factory.bankAccount || 
+            ""
+          ),
+          bankName: String(
+            primaryBankAccount?.bankName || 
+            factory.bankName || 
+            ""
+          ),
+          bankAccounts: factory.bankAccountInfo || factory.bankAccounts || [],
+          accountName: String(
+            primaryBankAccount?.accountName || 
+            factory.accountName || 
+            ""
+          ),
+          bankBranch: String(
+            primaryBankAccount?.branchName || 
+            factory.bankBranch || 
+            ""
+          ),
           capacity: String(factory.capacity || factory.productionCapacity || ""),
           linkedCoops: String(factory.linkedCoops || factory.linkedCooperatives || ""),
         },

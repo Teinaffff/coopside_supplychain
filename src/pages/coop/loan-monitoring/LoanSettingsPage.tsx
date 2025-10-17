@@ -3,18 +3,18 @@ import { Card } from "../../../common/ui/card";
 import { Button } from "../../../common/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../common/ui/tabs";
 import { Settings, CreditCard, FileText } from "lucide-react";
-import LoanProductManagement from "./components/LoanProductManagement";
-import TermsTemplates from "./components/TermsTemplates";
+import LoanProductManagement from "../settings/components/LoanProductManagement";
+import TermsTemplates from "../settings/components/TermsTemplates";
 
-const SettingsPage = () => {
+const LoanSettingsPage = () => {
   const [activeTab, setActiveTab] = useState("loan-products");
 
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Loan Settings</h1>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Configure system settings, loan products, and terms
+          Configure loan products and terms for the loan monitoring system
         </p>
       </div>
 
@@ -42,4 +42,4 @@ const SettingsPage = () => {
   );
 };
 
-export default SettingsPage;
+export default LoanSettingsPage;

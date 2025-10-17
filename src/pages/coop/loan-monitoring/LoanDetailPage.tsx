@@ -245,13 +245,12 @@ const LoanDetailPage: React.FC = () => {
         'Agent Approval Status': agentData?.superAdminApprovalStatus || agentData?.status || 'N/A',
         'Factory Name': factoryData?.factoryName || factoryData?.businessName || factoryData?.name || 'N/A',
         'Factory Registration': factoryData?.registrationNumber || factoryData?.registrationNo || 'N/A',
-        'Factory TIN': factoryData?.tin || factoryData?.taxId || 'N/A',
+        'Factory TIN': factoryData?.tinNumber || factoryData?.tin || factoryData?.taxId || 'N/A',
         'Factory Email': factoryData?.email || factoryData?.emailAddress || 'N/A',
         'Factory Phone': factoryData?.phone || factoryData?.phoneNumber || 'N/A',
         'Factory Address': factoryData?.address || factoryData?.factoryLocation || 'N/A',
-        'Factory Industry': factoryData?.industry || factoryData?.industryType || 'N/A',
-        'Factory Contact Person': factoryData?.contactPerson || factoryData?.contact || 'N/A',
-        'Factory Bank Account': factoryData?.bankAccount || factoryData?.bankDetails || 'N/A',
+        'Factory Industry': factoryData?.factoryType || factoryData?.industry || factoryData?.industryType || 'N/A',
+        'Factory Bank Account': factoryData?.bankAccountInfo?.[0]?.accountNumber || factoryData?.bankAccount || factoryData?.bankDetails || 'N/A',
         'Factory Production Capacity': factoryData?.productionCapacity || factoryData?.capacity || 'N/A',
         'Factory Approval Status': factoryData?.adminApprovalStatus || factoryData?.status || 'N/A'
       };
@@ -624,15 +623,27 @@ const LoanDetailPage: React.FC = () => {
                   </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">Registration Number</p>
+                  <p className="text-sm font-semibold text-gray-700 mb-1">Factory Type</p>
                   <p className="text-lg font-medium text-gray-900">
-                    {factoryData.registrationNumber || factoryData.registrationNo || factoryData.businessLicense || 'N/A'}
+                    {factoryData.factoryType || factoryData.industry || factoryData.industryType || factoryData.businessSector || 'N/A'}
+                  </p>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm font-semibold text-gray-700 mb-1">License Number</p>
+                  <p className="text-lg font-medium text-gray-900">
+                    {factoryData.licenseNumber || factoryData.businessLicense || 'N/A'}
+                  </p>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <p className="text-sm font-semibold text-gray-700 mb-1">License Expiration</p>
+                  <p className="text-lg font-medium text-gray-900">
+                    {factoryData.licenseExpiryDate || factoryData.licenseExpirationDate || 'N/A'}
                   </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm font-semibold text-gray-700 mb-1">TIN</p>
                   <p className="text-lg font-medium text-gray-900">
-                    {factoryData.tin || factoryData.taxId || 'N/A'}
+                    {factoryData.tinNumber || factoryData.tin || factoryData.taxId || 'N/A'}
                   </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">
@@ -649,13 +660,6 @@ const LoanDetailPage: React.FC = () => {
                     {factoryData.phone || factoryData.phoneNumber || factoryData.contactPhone || 'N/A'}
                   </p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">Address</p>
-                  <p className="text-lg font-medium text-gray-900 flex items-center">
-                    <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                    {factoryData.address || factoryData.factoryLocation || factoryData.location || 'N/A'}
-                  </p>
-                </div>
               </div>
               <div className="space-y-4">
                 <div className="bg-gray-50 p-4 rounded-lg">
@@ -665,19 +669,7 @@ const LoanDetailPage: React.FC = () => {
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm font-semibold text-gray-700 mb-1">Industry</p>
                   <p className="text-lg font-medium text-gray-900">
-                    {factoryData.industry || factoryData.industryType || factoryData.businessSector || 'N/A'}
-                  </p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">Contact Person</p>
-                  <p className="text-lg font-medium text-gray-900">
-                    {factoryData.contactPerson || factoryData.contact || 'N/A'}
-                  </p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">Bank Account</p>
-                  <p className="text-lg font-medium text-gray-900">
-                    {factoryData.bankAccount || factoryData.bankDetails || 'N/A'}
+                    {factoryData.factoryType || factoryData.industry || factoryData.industryType || factoryData.businessSector || 'N/A'}
                   </p>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-lg">

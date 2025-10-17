@@ -25,7 +25,7 @@ const Sidebar = ({
   const sidebar = useRef<any>(null);
 
   const storedSidebarExpanded = localStorage.getItem("sidebar-expanded");
-  const [sidebarExpanded, setSidebarExpanded] = useState(
+  const [sidebarExpanded] = useState(
     storedSidebarExpanded === null ? false : storedSidebarExpanded === "true"
   );
 
@@ -75,7 +75,7 @@ const Sidebar = ({
   return (
     <aside
       ref={sidebar}
-      className={`absolute left-0 top-0 z-[50] flex h-screen w-72 flex-col overflow-y-hidden bg-cyan-500 dark:bg-slate-800 duration-300 ease-linear lg:static lg:translate-x-0 ${
+      className={`absolute left-0 top-0 z-[50] flex h-screen w-72 flex-col overflow-y-hidden bg-gradient-to-b from-cyan-600 to-cyan-700 dark:bg-slate-800 duration-300 ease-linear lg:static lg:translate-x-0 ${
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
@@ -109,12 +109,10 @@ const Sidebar = ({
 
       <div className="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
         {/* <!-- Sidebar Menu --> */}
-        <nav className="mt-5 py-4 px-4 lg:mt-9 lg:px-6">
+        <nav className="mt-5 py-4 px-2 lg:mt-9 lg:px-4">
           {/* <!-- Menu Group --> */}
           <div>
-           
-
-            <ul className="mb-6 flex flex-col gap-0.5">
+            <ul className="flex flex-col space-y-1">
               {menuItems.map((item) => (
                 <li key={item.to}>
                   <SidebarItem
@@ -123,12 +121,14 @@ const Sidebar = ({
                     icon={item.icon}
                     isActive={
                       item.subMenu
-                        ? pathname.startsWith(item.pathname)
+                        ? false // Parent items with submenus are never highlighted
                         : isActivePath(pathname, rootPath, item.pathname)
                     }
                     subMenu={item.subMenu}
                     isOpen={openSubMenu === item.label}
                     toggleSubMenu={() => toggleSubMenu(item.label)}
+                    pathname={pathname}
+                    rootPath={rootPath}
                   />
                 </li>
               ))}
@@ -150,6 +150,8 @@ const SidebarItem = ({
   subMenu,
   isOpen,
   toggleSubMenu,
+  pathname,
+  rootPath,
 }: {
   to: string;
   icon: JSX.Element;
@@ -158,45 +160,51 @@ const SidebarItem = ({
   subMenu?: NavigationItem[];
   isOpen: boolean;
   toggleSubMenu: () => void;
+  pathname: string;
+  rootPath: string;
 }) => (
-  <div>
+  <div className="mb-1">
     <NavLink
       to={to}
-      className={`group relative flex items-center gap-3 py-3 px-4 font-medium duration-300 ease-in-out ${
+      className={`group relative flex items-center gap-3 py-3 px-4 font-medium duration-300 ease-in-out rounded-lg mx-2 ${
         isActive
-          ? "bg-cyan-300 text-white border-l-4 border-white"
-          : "text-cyan-200 hover:text-cyan-100 hover:bg-cyan-600/20"
+          ? "bg-white/20 text-white shadow-sm"
+          : "text-cyan-100 hover:text-white hover:bg-white/10"
       }`}
       onClick={subMenu ? toggleSubMenu : undefined}
     >
-      <div className="text-white">
+      <div className={`${isActive ? "text-white" : "text-cyan-200 group-hover:text-white"}`}>
         {icon}
       </div>
-      <span className="flex-1">{label}</span>
+      <span className="flex-1 text-sm">{label}</span>
       {subMenu && (
-        <span className="text-white">
+        <span className={`${isActive ? "text-white" : "text-cyan-200 group-hover:text-white"}`}>
           {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </span>
       )}
     </NavLink>
     {subMenu && isOpen && (
-      <ul className="ml-6 mt-1 flex flex-col gap-1">
-        {subMenu.map((subItem) => (
-          <li key={subItem.to}>
+      <div className="ml-4 mt-2 space-y-1">
+        {subMenu.map((subItem) => {
+          const isSubActive = isActivePath(pathname, rootPath, subItem.pathname);
+          return (
             <NavLink
+              key={subItem.to}
               to={subItem.to}
-              className={`flex items-center gap-3 py-2 px-4 font-medium duration-300 ease-in-out text-cyan-200 hover:text-cyan-100 hover:bg-cyan-600/20 ${
-                isActive ? "bg-cyan-300 text-white border-l-4 border-white" : ""
+              className={`flex items-center gap-3 py-2.5 px-4 font-medium duration-300 ease-in-out rounded-lg mx-2 text-sm ${
+                isSubActive 
+                  ? "bg-white/20 text-white shadow-sm" 
+                  : "text-cyan-200 hover:text-white hover:bg-white/10"
               }`}
             >
-              <div className="text-white">
+              <div className={`${isSubActive ? "text-white" : "text-cyan-300"}`}>
                 {subItem.icon}
               </div>
               <span className="flex-1">{subItem.label}</span>
             </NavLink>
-          </li>
-        ))}
-      </ul>
+          );
+        })}
+      </div>
     )}
   </div>
 );
