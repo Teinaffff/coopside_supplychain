@@ -35,7 +35,7 @@ export const menuItems = [
         icon: <FileText width={18} height={18} />,
       },
       {
-        label: "Disbursement",
+        label: "Loan Status Tracking",
         to: "/coop/loan-monitoring/disbursement",
         pathname: "/coop/loan-monitoring/disbursement",
         icon: <Banknote width={18} height={18} />,

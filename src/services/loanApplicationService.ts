@@ -1,4 +1,5 @@
 import API from "../config/axios-config";
+import agentService from "./agentService";
 
 export interface LoanApplication {
   applicationNumber: string;
@@ -17,6 +18,11 @@ export interface LoanApplication {
   purpose?: string;
   documents?: any[];
   riskScore?: number;
+  // Additional fields for enhanced display
+  loanTypeCode?: string;
+  loanTypeName?: string;
+  requestDate?: string;
+  submissionDate?: string;
 }
 
 export interface LoanApplicationFilters {
@@ -49,6 +55,106 @@ class LoanApplicationService {
       return response.data;
     } catch (error) {
       console.error('Error fetching all loan applications:', error);
+      throw error;
+    }
+  }
+
+  // Get all loan applications with enriched agent data
+  async getAllLoanApplicationsWithAgentData(): Promise<LoanApplication[]> {
+    try {
+      const applications = await this.getAllLoanApplications();
+      console.log('Raw applications from API:', applications);
+      
+      // Get unique agent IDs from all applications
+      const agentIds = [...new Set(applications
+        .map(app => {
+          console.log('App agentId:', app.agentId, 'Type:', typeof app.agentId);
+          return app.agentId;
+        })
+        .filter(Boolean)
+      )];
+      
+      console.log('Unique agent IDs found:', agentIds);
+      
+      // Try to fetch all agents first, then match by ID
+      let agentDataMap = new Map();
+      
+      try {
+        console.log('Attempting to fetch all agents...');
+        const allAgents = await agentService.getAllAgents();
+        console.log('All agents fetched:', allAgents);
+        
+        // Create a map of agents by ID
+        allAgents.forEach(agent => {
+          const agentId = agent.id?.toString() || agent.agentId?.toString();
+          if (agentId) {
+            agentDataMap.set(agentId, agent);
+            console.log(`Mapped agent ID ${agentId} to agent:`, agent);
+          }
+        });
+        
+        // For any agent IDs not found in the all agents list, try individual fetch
+        const missingAgentIds = agentIds.filter(id => !agentDataMap.has(id));
+        console.log('Missing agent IDs:', missingAgentIds);
+        
+        if (missingAgentIds.length > 0) {
+          await Promise.all(
+            missingAgentIds.map(async (agentId) => {
+              try {
+                console.log(`Attempting individual fetch for agent ID: ${agentId}`);
+                const agent = await agentService.getAgentById(agentId);
+                console.log(`Successfully fetched agent data for ID ${agentId}:`, agent);
+                agentDataMap.set(agentId, agent);
+              } catch (error) {
+                console.warn(`Failed to fetch agent data for ID ${agentId}:`, error);
+                console.warn(`Error details:`, error.response?.data || error.message);
+                // Set a fallback object for failed agent fetches
+                agentDataMap.set(agentId, { id: agentId, fullName: 'Unknown Agent' });
+              }
+            })
+          );
+        }
+      } catch (error) {
+        console.warn('Failed to fetch all agents, trying individual fetches:', error);
+        
+        // Fallback to individual fetches
+        await Promise.all(
+          agentIds.map(async (agentId) => {
+            try {
+              console.log(`Attempting to fetch agent data for ID: ${agentId}`);
+              const agent = await agentService.getAgentById(agentId);
+              console.log(`Successfully fetched agent data for ID ${agentId}:`, agent);
+              agentDataMap.set(agentId, agent);
+            } catch (error) {
+              console.warn(`Failed to fetch agent data for ID ${agentId}:`, error);
+              console.warn(`Error details:`, error.response?.data || error.message);
+              // Set a fallback object for failed agent fetches
+              agentDataMap.set(agentId, { id: agentId, fullName: 'Unknown Agent' });
+            }
+          })
+        );
+      }
+      
+      console.log('Agent data map:', agentDataMap);
+      
+      // Enrich applications with agent data
+      const enrichedApplications = applications.map(app => {
+        const agentData = app.agentId ? agentDataMap.get(app.agentId) : null;
+        console.log(`Processing app ${app.applicationNumber}: agentId=${app.agentId}, agentData=`, agentData);
+        
+        const enrichedApp = {
+          ...app,
+          borrowerName: agentData 
+            ? agentData.fullName || agentData.fullLegalName || agentData.name || app.borrowerName || 'N/A'
+            : app.borrowerName || 'N/A'
+        };
+        console.log(`Enriched app ${app.applicationNumber}: agentId=${app.agentId}, borrowerName=${enrichedApp.borrowerName}`);
+        return enrichedApp;
+      });
+      
+      return enrichedApplications;
+    } catch (error) {
+      console.error('Error fetching loan applications with agent data:', error);
       throw error;
     }
   }

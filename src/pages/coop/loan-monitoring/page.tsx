@@ -153,14 +153,15 @@ const LoanMonitoringPage: React.FC = () => {
 
   const loadLoanApplications = async () => {
     try {
-      const applications = await loanApplicationService.getAllLoanApplications();
+      // Use the new enriched data function that includes agent names
+      const applications = await loanApplicationService.getAllLoanApplicationsWithAgentData();
       
       // Transform API data to match our expected format
       const transformedApplications = applications.map((app: any) => ({
         applicationNumber: app.applicationNumber || app.id || 'N/A',
         loanType: app.loanType || app.type || 'Goods Purchase Financing',
         status: app.status || 'PENDING',
-        requestedAmount: app.requestedAmount || app.amount || 0,
+        requestedAmount: app.requestedAmount || app.amount || app.loanAmount || app.request_amount || app.requestAmount || app.principalAmount || app.principal_amount || app.totalAmount || app.total_amount || app.loanDetails?.amount || app.financialDetails?.amount || app.applicationDetails?.amount || 0,
         approvedAmount: app.approvedAmount || app.approved_amount || undefined,
         tenure: app.tenure || app.duration || 12,
         products: app.products || app.productCount || 0,
@@ -175,7 +176,7 @@ const LoanMonitoringPage: React.FC = () => {
       }));
       
       setLoanApplications(transformedApplications);
-      toast.success(`Loaded ${transformedApplications.length} loan applications`);
+      toast.success(`Loaded ${transformedApplications.length} loan applications with agent data`);
     } catch (error) {
       console.error('Error loading loan applications from API:', error);
       toast.error('Failed to load loan applications from API. Using mock data for demonstration.');
