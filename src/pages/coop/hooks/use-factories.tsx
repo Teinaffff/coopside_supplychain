@@ -104,6 +104,10 @@ const fetchFactories = async (): Promise<Factory[]> => {
         status: statusMap[factory.superAdminApprovalStatus] || statusMap[factory.superAdminStatus] || "Pending", // Super Admin Status (this portal)
         adminStatus: statusMap[factory.adminApprovalStatus] || statusMap[factory.adminStatus] || "Pending", // Admin Status (external portal)
         docs: factory.docs || factory.documents || [],
+        createdAt: factory.createdAt,
+        updatedAt: factory.updatedAt,
+        adminApprovedBy: factory.adminApprovedBy,
+        adminApprovedAt: factory.adminApprovedAt,
         form: {
           factoryName: String(factory.name || factory.factoryName || factory.businessName || ""),
           registrationNo: String(factory.registrationNo || factory.registrationNumber || factory.businessLicense || ""),
@@ -113,6 +117,7 @@ const fetchFactories = async (): Promise<Factory[]> => {
           address: String(factory.factoryAddresses || factory.address || factory.location || factory.factoryLocation || ""),
           tin: String(factory.tinNumber || factory.tin || factory.taxId || ""),
           contact: String(factory.contact || factory.contactPerson || ""),
+          alternateContactPerson: String(factory.alternateContactPerson || ""),
           phone: String(factory.phone || factory.phoneNumber || factory.contactPhone || ""),
           email: String(factory.email || factory.emailAddress || factory.contactEmail || ""),
           industry: String(factory.factoryType || factory.industry || factory.industryType || factory.businessSector || ""),

@@ -30,6 +30,7 @@ export interface Factory {
   taxId?: string;
   contact?: string;
   contactPerson?: string;
+  alternateContactPerson?: string;
   phone?: string;
   phoneNumber?: string;
   contactPhone?: string;
@@ -54,6 +55,8 @@ export interface Factory {
   linkedCooperatives?: string;
   superAdminApprovalStatus?: string;
   adminApprovalStatus?: string;
+  adminApprovedBy?: number;
+  adminApprovedAt?: string;
   documents?: any[];
   [key: string]: any;
 }

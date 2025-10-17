@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -35,6 +35,7 @@ import {
 import { Textarea } from "../../../../common/ui/textarea";
 import { useFactories } from "../../hooks/use-factories";
 import { toast } from "react-hot-toast";
+import userService, { User as UserType } from "../../../../services/userService";
 
 // Reusable Error State Component
 interface ErrorStateProps {
@@ -114,6 +115,8 @@ const FactoryDetailsPage: React.FC = () => {
   const [openApprove, setOpenApprove] = useState(false);
   const [openReject, setOpenReject] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+  const [adminDetails, setAdminDetails] = useState<UserType | null>(null);
+  const [adminLoading, setAdminLoading] = useState(false);
 
   const {
     factories,
@@ -124,9 +127,29 @@ const FactoryDetailsPage: React.FC = () => {
   
   const factory = factories?.find((factory: any) => factory?.id?.toString() === id);
 
+  // Fetch admin details when factory is loaded
+  useEffect(() => {
+    const fetchAdminDetails = async () => {
+      if (factory?.adminApprovedBy) {
+        setAdminLoading(true);
+        try {
+          const admin = await userService.getAdminById(factory.adminApprovedBy);
+          setAdminDetails(admin);
+        } catch (error) {
+          console.error('Error fetching admin details:', error);
+          setAdminDetails(null);
+        } finally {
+          setAdminLoading(false);
+        }
+      }
+    };
+
+    fetchAdminDetails();
+  }, [factory?.adminApprovedBy]);
+
   // Handler functions
   const handleBack = () => {
-    navigate("/coop/approval");
+    navigate("/coop/approval?tab=factories");
   };
 
   const onApprove = async () => {
@@ -426,9 +449,9 @@ const FactoryDetailsPage: React.FC = () => {
                       )}
                     </div>
                     <InfoField 
-                      label="Linked Cooperatives" 
-                      value={factory.form.linkedCoops || "N/A"} 
-                      icon={<Building2 className="w-4 h-4" />}
+                      label="Second Contact Person" 
+                      value={factory.form.alternateContactPerson || "N/A"} 
+                      icon={<User className="w-4 h-4" />}
                     />
                   </div>
                   <div className="space-y-4">
@@ -438,6 +461,8 @@ const FactoryDetailsPage: React.FC = () => {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
                       }) : "N/A"} 
                       icon={<Calendar className="w-4 h-4" />}
                     />
@@ -447,6 +472,8 @@ const FactoryDetailsPage: React.FC = () => {
                         year: "numeric",
                         month: "long",
                         day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
                       }) : "N/A"} 
                       icon={<Calendar className="w-4 h-4" />}
                     />
@@ -454,6 +481,31 @@ const FactoryDetailsPage: React.FC = () => {
                       label="Status" 
                       value={factory.status || factory.approvalStatus || "N/A"} 
                       icon={<CheckCircle className="w-4 h-4" />}
+                    />
+                    <InfoField 
+                      label="Approved By" 
+                      value={
+                        adminLoading ? "Loading..." : 
+                        adminDetails ? 
+                          `${adminDetails.name || adminDetails.firstName || ""} ${adminDetails.lastName || ""}`.trim() || 
+                          `Admin ID: ${factory.adminApprovedBy}` : 
+                          factory.adminApprovedBy ? `Admin ID: ${factory.adminApprovedBy}` : "N/A"
+                      } 
+                      icon={<User className="w-4 h-4" />}
+                    />
+                    <InfoField 
+                      label="Approved At" 
+                      value={
+                        factory.adminApprovedAt ? 
+                          new Date(factory.adminApprovedAt).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          }) : "N/A"
+                      } 
+                      icon={<Calendar className="w-4 h-4" />}
                     />
                   </div>
                 </div>
