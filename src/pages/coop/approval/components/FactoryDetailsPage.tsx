@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
-  Clock,
   CreditCard,
   FileText,
   Building2,
@@ -89,25 +88,6 @@ const InfoField: React.FC<InfoFieldProps> = ({
   </div>
 );
 
-// Reusable Activity Item Component
-interface ActivityItemProps {
-  action: string;
-  timestamp: string;
-}
-
-const ActivityItem: React.FC<ActivityItemProps> = ({ action, timestamp }) => (
-  <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
-    <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
-    <div className="flex-1">
-      <div className="text-sm font-medium text-gray-900 dark:text-slate-100">
-        {action}
-      </div>
-      <div className="text-xs text-gray-500 dark:text-slate-400">
-        {timestamp}
-      </div>
-    </div>
-  </div>
-);
 
 const FactoryDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -190,12 +170,6 @@ const FactoryDetailsPage: React.FC = () => {
     return <ErrorState onBack={handleBack} />;
   }
 
-  // Mock data for demonstration
-  const recentActivities = [
-    { action: "Factory registration submitted", timestamp: "2 hours ago" },
-    { action: "Documents uploaded", timestamp: "1 day ago" },
-    { action: "Application created", timestamp: "5 days ago" },
-  ];
 
   const getStatusBadge = (status: string) => {
     const statusUpper = status?.toUpperCase();
@@ -348,26 +322,20 @@ const FactoryDetailsPage: React.FC = () => {
 
         {/* Tabbed Sections */}
         <Tabs defaultValue="details" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 dark:bg-slate-700 mb-5">
-            <TabsTrigger
-              value="details"
-              className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
-            >
-              Details
-            </TabsTrigger>
-            <TabsTrigger
-              value="documents"
-              className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
-            >
-              Documents
-            </TabsTrigger>
-            <TabsTrigger
-              value="activity"
-              className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
-            >
-              Activity
-            </TabsTrigger>
-          </TabsList>
+           <TabsList className="grid w-full grid-cols-2 dark:bg-slate-700 mb-5">
+             <TabsTrigger
+               value="details"
+               className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
+             >
+               Details
+             </TabsTrigger>
+             <TabsTrigger
+               value="documents"
+               className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
+             >
+               Documents
+             </TabsTrigger>
+           </TabsList>
 
           {/* Details Tab */}
           <TabsContent value="details">
@@ -414,6 +382,14 @@ const FactoryDetailsPage: React.FC = () => {
                                   <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Branch</p>
                                   <p className="text-sm text-gray-900 dark:text-slate-100">{bank.bankBranch || "N/A"}</p>
                                 </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Swift Code</p>
+                                  <p className="text-sm text-gray-900 dark:text-slate-100">{bank.swiftCode || "N/A"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-600 dark:text-slate-400">IBAN</p>
+                                  <p className="text-sm text-gray-900 dark:text-slate-100">{bank.iban || "N/A"}</p>
+                                </div>
                               </div>
                               {bank.isPrimary && (
                                 <div className="mt-2">
@@ -427,23 +403,8 @@ const FactoryDetailsPage: React.FC = () => {
                         </div>
                       ) : (
                         <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg border border-gray-200 dark:border-slate-600">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div>
-                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Bank Name</p>
-                              <p className="text-sm text-gray-900 dark:text-slate-100">{factory.form.bankName || "N/A"}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Account Number</p>
-                              <p className="text-sm text-gray-900 dark:text-slate-100">{factory.form.bankAccountNumber || factory.form.bankAccount || "N/A"}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Account Name</p>
-                              <p className="text-sm text-gray-900 dark:text-slate-100">{factory.form.accountName || "N/A"}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Branch</p>
-                              <p className="text-sm text-gray-900 dark:text-slate-100">{factory.form.bankBranch || "N/A"}</p>
-                            </div>
+                          <div className="text-center py-4 text-gray-500 dark:text-slate-400">
+                            No bank account information available
                           </div>
                         </div>
                       )}
@@ -483,7 +444,7 @@ const FactoryDetailsPage: React.FC = () => {
                       icon={<CheckCircle className="w-4 h-4" />}
                     />
                     <InfoField 
-                      label="Approved By" 
+                      label="Approve/Rejected By" 
                       value={
                         adminLoading ? "Loading..." : 
                         adminDetails ? 
@@ -494,7 +455,7 @@ const FactoryDetailsPage: React.FC = () => {
                       icon={<User className="w-4 h-4" />}
                     />
                     <InfoField 
-                      label="Approved At" 
+                      label="Approved/Rejected At" 
                       value={
                         factory.adminApprovedAt ? 
                           new Date(factory.adminApprovedAt).toLocaleDateString("en-US", {
@@ -549,28 +510,6 @@ const FactoryDetailsPage: React.FC = () => {
             </Card>
           </TabsContent>
 
-          {/* Activity Tab */}
-          <TabsContent value="activity">
-            <Card className="dark:bg-slate-800 dark:border-slate-700">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
-                  <Clock className="w-5 h-5" />
-                  <span>Recent Activity</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentActivities.map((activity, index) => (
-                    <ActivityItem
-                      key={index}
-                      action={activity.action}
-                      timestamp={activity.timestamp}
-                    />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </Card>
     </div>

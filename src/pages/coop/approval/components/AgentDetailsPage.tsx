@@ -2,9 +2,6 @@ import React, { useState } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
-  Clock,
-  CreditCard,
-  FileText,
   User,
   MapPin,
   Phone,
@@ -12,7 +9,7 @@ import {
   Calendar,
   CheckCircle,
   XCircle,
-  ShoppingCart,
+  CreditCard,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import Loader from "../../../../common/Loader";
@@ -24,7 +21,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
 } from "../../../../common/ui/card";
 import {
   Tabs,
@@ -90,32 +86,12 @@ const InfoField: React.FC<InfoFieldProps> = ({
   </div>
 );
 
-// Reusable Activity Item Component
-interface ActivityItemProps {
-  action: string;
-  timestamp: string;
-}
-
-const ActivityItem: React.FC<ActivityItemProps> = ({ action, timestamp }) => (
-  <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
-    <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
-    <div className="flex-1">
-      <div className="text-sm font-medium text-gray-900 dark:text-slate-100">
-        {action}
-      </div>
-      <div className="text-xs text-gray-500 dark:text-slate-400">
-        {timestamp}
-      </div>
-    </div>
-  </div>
-);
 
 const AgentDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [openApprove, setOpenApprove] = useState(false);
   const [openReject, setOpenReject] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
   const [selectedRejectReason, setSelectedRejectReason] = useState("");
   const [customReason, setCustomReason] = useState("");
 
@@ -133,7 +109,6 @@ const AgentDetailsPage: React.FC = () => {
     isLoading,
     approveAgent,
     rejectAgent,
-    refetch,
     isApproving,
     isRejecting,
   } = useAgents();
@@ -153,7 +128,7 @@ const AgentDetailsPage: React.FC = () => {
   console.log("[AGENT DETAILS] All agents:", agents);
   console.log("[AGENT DETAILS] URL ID from params:", id, "Type:", typeof id);
   console.log("[AGENT DETAILS] Parsed numeric ID:", numId);
-  console.log("[AGENT DETAILS] Available agents with IDs:", agents?.map(a => ({ id: a.id, numericId: parseInt(a?.id, 10), name: a.name })));
+  console.log("[AGENT DETAILS] Available agents with IDs:", agents?.map(a => ({ id: a.id, numericId: typeof a?.id === 'string' ? parseInt(a.id, 10) : a.id, name: a.name })));
   console.log("[AGENT DETAILS] Found agent:", agent);
   console.log("[AGENT DETAILS] Agent ID from data:", agent?.id, "Type:", typeof agent?.id);
   console.log("[AGENT DETAILS] Is loading:", isLoading);
@@ -236,7 +211,6 @@ const AgentDetailsPage: React.FC = () => {
       setOpenReject(false);
       setSelectedRejectReason("");
       setCustomReason("");
-      setRejectReason("");
     } catch (error) {
       console.error("[ON REJECT] Error rejecting agent:", error);
     }
@@ -255,12 +229,6 @@ const AgentDetailsPage: React.FC = () => {
     return <ErrorState onBack={handleBack} />;
   }
 
-  // Mock data for demonstration
-  const recentActivities = [
-    { action: "Agent registration submitted", timestamp: "2 hours ago" },
-    { action: "Documents uploaded", timestamp: "1 day ago" },
-    { action: "Application created", timestamp: "5 days ago" },
-  ];
 
   const getStatusBadge = (status: string) => {
     const statusUpper = status?.toUpperCase();
@@ -295,7 +263,6 @@ const AgentDetailsPage: React.FC = () => {
             setOpenReject(false);
             setSelectedRejectReason("");
             setCustomReason("");
-            setRejectReason("");
           }}
           onConfirm={onReject}
           loading={isRejecting}
@@ -356,11 +323,11 @@ const AgentDetailsPage: React.FC = () => {
                   {agent.form.fullName || agent.form.fullLegalName || agent.name}
                 </h1>
                 <p className="text-gray-600 dark:text-slate-400">
-                  {agent.form.agentType || "Agent"} • ID: {agent.form.agentId || agent.id}
+                   {agent.form.agentType || "Agent"} • Registration: {agent.form.registrationNumber || "N/A"}
                 </p>
               </div>
               <div className="flex items-center space-x-2">
-                {getStatusBadge(agent.status || agent.adminApprovalStatus)}
+                {getStatusBadge(agent.status || agent.adminStatus)}
               </div>
             </div>
           </CardHeader>
@@ -378,32 +345,15 @@ const AgentDetailsPage: React.FC = () => {
                   icon={<Phone className="w-4 h-4" />}
                 />
                 <InfoField 
-                  label="National ID" 
+                  label="ID NUMBER" 
                   value={agent.form.nationalId || agent.form.idNumber || "N/A"} 
                 />
                 <InfoField 
                   label="TIN Number" 
-                  value={agent.form.tin || "N/A"} 
-                />
-                <InfoField 
-                  label="License Number" 
-                  value={agent.form.licenseNo || agent.form.businessLicenseNumber || "N/A"} 
+                  value={agent.form.taxIdentificationNumber || agent.form.tin || "N/A"} 
                 />
               </div>
               <div className="space-y-4">
-                <InfoField 
-                  label="Goods Type" 
-                  value={agent.form.goodsType || agent.form.typeOfGoodsSold || "N/A"} 
-                  icon={<ShoppingCart className="w-4 h-4" />}
-                />
-                <InfoField 
-                  label="Linked Organization" 
-                  value={agent.form.linkedOrg || agent.form.linkedCoop || "N/A"} 
-                />
-                <InfoField 
-                  label="Commission Rate" 
-                  value={agent.form.commissionRate ? `${agent.form.commissionRate}%` : "N/A"} 
-                />
                 <InfoField 
                   label="Address" 
                   value={agent.form.address ? 
@@ -412,8 +362,12 @@ const AgentDetailsPage: React.FC = () => {
                   icon={<MapPin className="w-4 h-4" />}
                 />
                 <InfoField 
-                  label="Created Date" 
-                  value={agent.createdAt ? new Date(agent.createdAt).toLocaleDateString("en-US", {
+                  label="License Number" 
+                  value={agent.form.licenseNumber || agent.form.licenseNo || agent.form.businessLicenseNumber || "N/A"} 
+                />
+                <InfoField 
+                  label="License Expiry Date" 
+                  value={agent.form.licenseExpiryDate ? new Date(agent.form.licenseExpiryDate).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
@@ -458,7 +412,7 @@ const AgentDetailsPage: React.FC = () => {
 
         {/* Tabbed Sections */}
         <Tabs defaultValue="details" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 dark:bg-slate-700 mb-5">
+           <TabsList className="grid w-full grid-cols-2 dark:bg-slate-700 mb-5">
             <TabsTrigger
               value="details"
               className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
@@ -471,43 +425,95 @@ const AgentDetailsPage: React.FC = () => {
             >
               Documents
             </TabsTrigger>
-            <TabsTrigger
-              value="activity"
-              className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
-            >
-              Activity
-            </TabsTrigger>
           </TabsList>
 
           {/* Details Tab */}
           <TabsContent value="details">
-            <Card className="dark:bg-slate-800 dark:border-slate-700">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
-                  <User className="w-5 h-5" />
-                  <span>Agent Information</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <InfoField label="Bank Account" value={agent.form.bankAccount || agent.form.bankAccountNumber || "N/A"} />
-                    <InfoField label="Username" value={agent.form.username || "N/A"} />
+            {/* Bank Information and Approval Details Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              {/* Bank Information Column */}
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2 mb-3">
+                  <CreditCard className="w-5 h-5 text-blue-600" />
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Bank Information</h4>
+                </div>
+                
+                {agent.form.bankAccountInfos && agent.form.bankAccountInfos.length > 0 ? (
+                  <div className="space-y-3">
+                    {agent.form.bankAccountInfos.map((bank: any, index: number) => (
+                      <div key={bank.id || index} className="bg-blue-50 dark:bg-slate-700 p-3 rounded-lg border border-blue-200 dark:border-slate-600">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Bank Name</p>
+                              <p className="text-sm text-gray-900 dark:text-slate-100">{bank.bankName || "N/A"}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Account Number</p>
+                              <p className="text-sm text-gray-900 dark:text-slate-100">{bank.accountNumber || "N/A"}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Account Name</p>
+                              <p className="text-sm text-gray-900 dark:text-slate-100">{bank.accountName || "N/A"}</p>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Branch Name</p>
+                              <p className="text-sm text-gray-900 dark:text-slate-100">{bank.branchName || "N/A"}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Swift Code</p>
+                              <p className="text-sm text-gray-900 dark:text-slate-100">{bank.swiftCode || "N/A"}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">IBAN</p>
+                              <p className="text-sm text-gray-900 dark:text-slate-100">{bank.iban || "N/A"}</p>
+                            </div>
+                          </div>
+                        </div>
+                        {bank.isPrimary && (
+                          <div className="mt-2">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                              Primary Account
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
+                ) : (
+                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg border border-gray-200 dark:border-slate-600">
+                    <div className="text-center py-4 text-gray-500 dark:text-slate-400">
+                      No bank account information available
+                    </div>
+                  </div>
+                )}
+                  </div>
+
+              {/* Approval Details Column */}
                   <div className="space-y-4">
-                    <InfoField 
-                      label="Approved Date" 
-                      value={agent.form.approvedAt ? new Date(agent.form.approvedAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      }) : "N/A"} 
-                      icon={<Calendar className="w-4 h-4" />}
+                     <InfoField 
+                       label="Approved/Rejected By" 
+                       value={agent.form.approvedBy || agent.form.rejectedBy || "N/A"} 
+                       icon={<User className="w-4 h-4" />}
+                     />
+                <InfoField 
+                  label="Approved/Rejected At" 
+                  value={agent.form.approvedAt || agent.form.rejectedAt ? new Date(agent.form.approvedAt || agent.form.rejectedAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  }) : "N/A"} 
+                  icon={<Calendar className="w-4 h-4" />}
+                />
+                <InfoField 
+                  label="Status" 
+                  value={agent.status || "N/A"} 
+                  icon={<CheckCircle className="w-4 h-4" />}
                     />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
           </TabsContent>
 
           {/* Documents Tab */}
@@ -546,28 +552,6 @@ const AgentDetailsPage: React.FC = () => {
             />
           </TabsContent>
 
-          {/* Activity Tab */}
-          <TabsContent value="activity">
-            <Card className="dark:bg-slate-800 dark:border-slate-700">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
-                  <Clock className="w-5 h-5" />
-                  <span>Recent Activity</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentActivities.map((activity, index) => (
-                    <ActivityItem
-                      key={index}
-                      action={activity.action}
-                      timestamp={activity.timestamp}
-                    />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </Card>
     </div>
