@@ -120,12 +120,17 @@ const rejectAgent = async (agentId: number, reason: string): Promise<void> => {
       throw new Error(`Invalid agent ID: ${agentId} (type: ${typeof agentId})`);
     }
 
-    // Encode the reason for URL query parameter
-    const encodedReason = encodeURIComponent(reason);
-    const url = `/v1/agents/${agentId}/reject?reason=${encodedReason}`;
-    console.log("[REJECT AGENT] URL:", url);
+    // Validate reason is not empty
+    if (!reason || reason.trim() === '') {
+      throw new Error("Rejection reason is required");
+    }
+
+    // Send reason in request body (backend expects @RequestBody)
+    const url = `/v1/agents/${agentId}/reject`;
+    const requestData = { reason: reason.trim() };
+    console.log("[REJECT AGENT] URL:", url, "Data:", requestData);
     
-    const response = await API.post(url);
+    const response = await API.post(url, requestData);
     
     console.log("[REJECT AGENT] Response:", response.status, response.data);
     
@@ -145,6 +150,8 @@ const rejectAgent = async (agentId: number, reason: string): Promise<void> => {
       throw new Error("Agent not found.");
     } else if (error?.response?.status === 400) {
       throw new Error(error?.response?.data?.message || "Invalid request. Please check the agent data.");
+    } else if (error?.response?.status === 500) {
+      throw new Error(error?.response?.data?.message || "Server error occurred while rejecting agent. Please try again.");
     }
     
     throw error;

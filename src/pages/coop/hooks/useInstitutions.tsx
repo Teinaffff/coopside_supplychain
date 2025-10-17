@@ -17,8 +17,16 @@ interface Institution {
   type: "institution";
   status: "Pending" | "Approved" | "Rejected"; // Super Admin Status (this portal)
   adminStatus: "Pending" | "Approved" | "Rejected"; // Admin Status (external portal)
+  onboardingStatus?: "Pending" | "Approved" | "Rejected";
   docs: InstitutionDoc[];
   form: Record<string, any>;
+  businessLicenseNumber?: string;
+  vatRegistrationCertificate?: string;
+  establishmentProclamation?: string;
+  organizationalStructure?: string;
+  totalAssetValuation?: number;
+  createdAt?: string;
+  approvedAt?: string;
 }
 
 const fetchInstitutions = async (): Promise<Institution[]> => {
@@ -49,9 +57,33 @@ const fetchInstitutions = async (): Promise<Institution[]> => {
           docs: [],
         form: {
           ...i,
+          // Required fields mapping
           phone: i.contactPhone || i.phone || i.phoneNumber || "",
           email: i.contactEmail || i.email || i.emailAddress || "",
+          yearOfEstablishment: i.yearOfEstablishment || i.establishmentYear || "",
+          businessSector: i.businessSector || i.sector || "",
           tin: i.tin || i.taxId || "",
+          currentCapital: i.currentCapital || i.capital || "",
+          permanentEmployees: i.permanentEmployees || i.permanentStaff || "",
+          contractualEmployees: i.contractualEmployees || i.contractualStaff || "",
+          licenceNumber: i.licenceNumber || i.licenseNumber || i.businessLicenseNumber || "",
+          licenceExpiryDate: i.licenceExpiryDate || i.licenseExpiryDate || i.businessLicenseExpiryDate || "",
+          mainOfficeAddress: i.mainOfficeAddress || i.address || i.officeAddress || "",
+          registrationNumber: i.registrationNumber || i.businessRegistrationNumber || i.registrationId || i.regNumber || "",
+          // Bank information fields
+          totalBranches: i.totalBranches || i.branches || i.totalBranchCount || i.branchCount || i.numberOfBranches || "",
+          totalAssetValuation: i.totalAssetValuation || i.assetValuation || i.totalAssets || i.assetValue || i.capitalValue || "",
+          approvedBy: i.approvedBy || i.approvedByUser || "",
+          rejectedBy: i.rejectedBy || i.rejectedByUser || "",
+          approvedAt: i.approvedAt || i.approvedDate || "",
+          rejectedAt: i.rejectedAt || i.rejectedDate || "",
+          createdAt: i.createdAt || i.createdDate || "",
+          // Bank accounts information
+          bankAccounts: i.bankAccounts || i.bankAccountInfos || i.bankDetails || [],
+          // Status flags mapping
+          isActive: i.isActive !== undefined ? i.isActive : true,
+          isDeleted: i.isDeleted !== undefined ? i.isDeleted : false,
+          role: i.role || null,
         },
       }));
     }
@@ -107,49 +139,18 @@ const approveInstitution = async (institutionId: number): Promise<void> => {
 
 // Reject institution function
 const rejectInstitution = async (institutionId: number, reason: string): Promise<void> => {
-  try {
-    console.log("[REJECT INSTITUTION] Input - institutionId:", institutionId, "Type:", typeof institutionId, "Reason:", reason);
-    
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) {
-      throw new Error("No authentication token found. Please login again.");
-    }
+  const accessToken = localStorage.getItem("accessToken");
+  if (!accessToken) throw new Error("No authentication token found. Please login again.");
 
-    // Validate institutionId is a number
-    if (typeof institutionId !== 'number' || isNaN(institutionId)) {
-      throw new Error(`Invalid institution ID: ${institutionId} (type: ${typeof institutionId})`);
-    }
+  const response = await API.post(`/v1/institutions/${institutionId}/reject?reason=${encodeURIComponent(reason)}`);
 
-    // Encode the reason for URL query parameter
-    const encodedReason = encodeURIComponent(reason);
-    const url = `/v1/institutions/${institutionId}/reject?reason=${encodedReason}`;
-    console.log("[REJECT INSTITUTION] URL:", url);
-    
-    const response = await API.post(url);
-    
-    console.log("[REJECT INSTITUTION] Response:", response.status, response.data);
-    
-    if (response.status !== 200 && response.status !== 201) {
-      throw new Error("Failed to reject institution");
-    }
-    
-    return response.data;
-  } catch (error: any) {
-    console.error("[REJECT INSTITUTION ERROR]", error);
-    
-    if (error?.response?.status === 401) {
-      throw new Error("Authentication failed. Please login again.");
-    } else if (error?.response?.status === 403) {
-      throw new Error("You don't have permission to reject institutions.");
-    } else if (error?.response?.status === 404) {
-      throw new Error("Institution not found.");
-    } else if (error?.response?.status === 400) {
-      throw new Error(error?.response?.data?.message || "Invalid request. Please check the institution data.");
-    }
-    
-    throw error;
-  }
+
+
+  
+
+  return response.data;
 };
+
 
 export const useInstitutions = (isFetchInstitutions?: boolean) => {
   const queryClient = useQueryClient();

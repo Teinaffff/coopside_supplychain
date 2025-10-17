@@ -136,10 +136,9 @@ const FactoryDetailsPage: React.FC = () => {
     try {
       await approveFactory(id || "");
       setOpenApprove(false);
-      toast.success("Factory approved successfully!");
     } catch (error) {
       console.error("Error approving factory:", error);
-      toast.error("Failed to approve factory");
+      // Error message is already handled by the mutation
     }
   };
 

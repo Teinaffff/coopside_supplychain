@@ -164,10 +164,9 @@ const AgentDetailsPage: React.FC = () => {
     try {
       await approveAgent(numAgentId);
       setOpenApprove(false);
-      toast.success("Agent approved successfully!");
     } catch (error) {
       console.error("[ON APPROVE] Error approving agent:", error);
-      toast.error("Failed to approve agent");
+      // Error message is already handled by the mutation
     }
   };
 

@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   Clock,
   CreditCard,
-  FileText,
   Building,
   MapPin,
   Phone,
@@ -182,7 +181,7 @@ const InstitutionDetailsPage: React.FC = () => {
   console.log("[INSTITUTION DETAILS] All institutions:", institutions);
   console.log("[INSTITUTION DETAILS] URL ID from params:", id, "Type:", typeof id);
   console.log("[INSTITUTION DETAILS] Parsed numeric ID:", numId);
-  console.log("[INSTITUTION DETAILS] Available institutions with IDs:", institutions?.map(i => ({ id: i.id, numericId: parseInt(i?.id, 10), name: i.name })));
+  console.log("[INSTITUTION DETAILS] Available institutions with IDs:", institutions?.map(i => ({ id: i.id, numericId: typeof i.id === 'string' ? parseInt(i.id, 10) : i.id, name: i.name })));
   console.log("[INSTITUTION DETAILS] Found institution:", institution);
   console.log("[INSTITUTION DETAILS] Institution ID from data:", institution?.id, "Type:", typeof institution?.id);
   console.log("[INSTITUTION DETAILS] Is loading:", isLoading);
@@ -376,10 +375,9 @@ const InstitutionDetailsPage: React.FC = () => {
     try {
       await approveInstitution(numInstitutionId);
       setOpenApprove(false);
-      toast.success("Institution approved successfully!");
     } catch (error) {
       console.error("[ON APPROVE] Error approving institution:", error);
-      toast.error("Failed to approve institution");
+      // Error message is already handled by the mutation
     }
   };
 
@@ -458,7 +456,6 @@ const InstitutionDetailsPage: React.FC = () => {
           loading={false}
           title="Approve Institution"
           description="Are you sure you want to approve this institution?"
-          variant="success"
         />
 
         {/* Reject Modal */}
@@ -528,7 +525,7 @@ const InstitutionDetailsPage: React.FC = () => {
                   {institution.form.fullLegalName || institution.name}
                 </h1>
                 <p className="text-gray-600 dark:text-slate-400">
-                  {institution.form.institutionType || "Institution"} • ID: {institution.id}
+                  {institution.form.institutionType || "Institution"} • Registration: {institution.form.registrationNumber || institution.form.businessRegistrationNumber || institution.form.registrationId || "N/A"}
                 </p>
               </div>
               <div className="flex items-center space-x-2">
@@ -540,8 +537,14 @@ const InstitutionDetailsPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <InfoField 
-                  label="Business Sector" 
-                  value={institution.form.businessSector || "N/A"} 
+                  label="Phone" 
+                  value={institution.form.phone || institution.form.contactPhone || "N/A"} 
+                  icon={<Phone className="w-4 h-4" />}
+                />
+                <InfoField 
+                  label="Email" 
+                  value={institution.form.email || institution.form.contactEmail || "N/A"} 
+                  icon={<Mail className="w-4 h-4" />}
                 />
                 <InfoField 
                   label="Year of Establishment" 
@@ -549,26 +552,20 @@ const InstitutionDetailsPage: React.FC = () => {
                   icon={<Calendar className="w-4 h-4" />}
                 />
                 <InfoField 
-                  label="TIN Number" 
+                  label="Business Sector" 
+                  value={institution.form.businessSector || "N/A"} 
+                />
+                <InfoField 
+                  label="TIN" 
                   value={institution.form.tin || "N/A"} 
                 />
-                <InfoField 
-                  label="Contact Email" 
-                  value={institution.form.contactEmail || "N/A"} 
-                  icon={<Mail className="w-4 h-4" />}
-                />
-                <InfoField 
-                  label="Contact Phone" 
-                  value={institution.form.contactPhone || "N/A"} 
-                  icon={<Phone className="w-4 h-4" />}
-                />
-              </div>
-              <div className="space-y-4">
                 <InfoField 
                   label="Current Capital" 
                   value={institution.form.currentCapital ? `$${institution.form.currentCapital.toLocaleString()}` : "N/A"} 
                   icon={<CreditCard className="w-4 h-4" />}
                 />
+              </div>
+              <div className="space-y-4">
                 <InfoField 
                   label="Permanent Employees" 
                   value={institution.form.permanentEmployees || "N/A"} 
@@ -580,8 +577,18 @@ const InstitutionDetailsPage: React.FC = () => {
                   icon={<Users className="w-4 h-4" />}
                 />
                 <InfoField 
-                  label="Total Branches" 
-                  value={institution.form.totalBranches || "N/A"} 
+                  label="Licence Number" 
+                  value={institution.form.licenceNumber || institution.form.licenseNumber || institution.form.businessLicenseNumber || "N/A"} 
+                />
+                <InfoField 
+                  label="Licence Expiry Date" 
+                  value={institution.form.licenceExpiryDate || institution.form.licenseExpiryDate || institution.form.businessLicenseExpiryDate ? 
+                    new Date(institution.form.licenceExpiryDate || institution.form.licenseExpiryDate || institution.form.businessLicenseExpiryDate).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    }) : "N/A"} 
+                  icon={<Calendar className="w-4 h-4" />}
                 />
                 <InfoField 
                   label="Main Office Address" 
@@ -655,48 +662,114 @@ const InstitutionDetailsPage: React.FC = () => {
 
           {/* Details Tab */}
           <TabsContent value="details">
-            <Card className="dark:bg-slate-800 dark:border-slate-700">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
-                  <Building className="w-5 h-5" />
-                  <span>Institution Information</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <InfoField label="Business License Number" value={institution.businessLicenseNumber || "N/A"} />
-                    <InfoField label="VAT Registration Certificate" value={institution.vatRegistrationCertificate || "N/A"} />
-                    <InfoField label="Establishment Proclamation" value={institution.establishmentProclamation || "N/A"} />
-                    <InfoField label="Organizational Structure" value={institution.organizationalStructure || "N/A"} />
-                  </div>
-                  <div className="space-y-4">
-                    <InfoField 
-                      label="Total Asset Valuation" 
-                      value={institution.totalAssetValuation ? `$${institution.totalAssetValuation.toLocaleString()}` : "N/A"} 
-                    />
-                    <InfoField 
-                      label="Created Date" 
-                      value={institution.createdAt ? new Date(institution.createdAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      }) : "N/A"} 
-                      icon={<Calendar className="w-4 h-4" />}
-                    />
-                    <InfoField 
-                      label="Approved Date" 
-                      value={institution.approvedAt ? new Date(institution.approvedAt).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      }) : "N/A"} 
-                      icon={<Calendar className="w-4 h-4" />}
-                    />
-                  </div>
+            {/* Bank Information and Approval Details Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              {/* Bank Information Column */}
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2 mb-3">
+                  <CreditCard className="w-5 h-5 text-blue-600" />
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Bank Information</h4>
                 </div>
-              </CardContent>
-            </Card>
+                
+                {institution.form.bankAccounts && institution.form.bankAccounts.length > 0 ? (
+                  <div className="space-y-3">
+                    {institution.form.bankAccounts.map((bank: any, index: number) => (
+                      <div key={bank.id || index} className="bg-blue-50 dark:bg-slate-700 p-4 rounded-lg border border-blue-200 dark:border-slate-600">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Bank Name</p>
+                              <p className="text-sm text-gray-900 dark:text-slate-100">{bank.bankName || "N/A"}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Account Number</p>
+                              <p className="text-sm text-gray-900 dark:text-slate-100">{bank.accountNumber || "N/A"}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Account Name</p>
+                              <p className="text-sm text-gray-900 dark:text-slate-100">{bank.accountName || "N/A"}</p>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Branch</p>
+                              <p className="text-sm text-gray-900 dark:text-slate-100">{bank.branch || "N/A"}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Swift Code</p>
+                              <p className="text-sm text-gray-900 dark:text-slate-100">{bank.swiftCode || "N/A"}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-600 dark:text-slate-400">IBAN</p>
+                              <p className="text-sm text-gray-900 dark:text-slate-100">{bank.iban || "N/A"}</p>
+                            </div>
+                          </div>
+                        </div>
+                        {bank.isPrimary && (
+                          <div className="mt-3">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                              Primary Account
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg border border-gray-200 dark:border-slate-600">
+                    <div className="text-center py-4 text-gray-500 dark:text-slate-400">
+                      No bank account information available
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Created Fields Column */}
+              <div className="space-y-3">
+                
+                
+                <div className="space-y-4">
+                  <InfoField 
+                    label="Total Branches" 
+                    value={institution.form.totalBranches || "N/A"} 
+                  />
+                  <InfoField 
+                    label="Total Asset Valuation" 
+                    value={institution.form.totalAssetValuation ? `$${institution.form.totalAssetValuation.toLocaleString()}` : "N/A"} 
+                    icon={<CreditCard className="w-4 h-4" />}
+                  />
+                  <InfoField 
+                    label="Status" 
+                    value={institution.status || "N/A"} 
+                    icon={<CheckCircle className="w-4 h-4" />}
+                  />
+                  <InfoField 
+                    label="Approved/Rejected By" 
+                    value={institution.form.approvedBy || institution.form.rejectedBy || "N/A"} 
+                    icon={<Users className="w-4 h-4" />}
+                  />
+                  <InfoField 
+                    label="Approved/Rejected At" 
+                    value={institution.form.approvedAt || institution.form.rejectedAt ? 
+                      new Date(institution.form.approvedAt || institution.form.rejectedAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }) : "N/A"} 
+                    icon={<Calendar className="w-4 h-4" />}
+                  />
+                  <InfoField 
+                    label="Created Date" 
+                    value={institution.form.createdAt ? new Date(institution.form.createdAt).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    }) : "N/A"} 
+                    icon={<Calendar className="w-4 h-4" />}
+                  />
+                </div>
+              </div>
+            </div>
           </TabsContent>
 
           {/* Documents Tab */}

@@ -214,12 +214,17 @@ const rejectFactory = async (factoryId: number, reason: string): Promise<void> =
       throw new Error(`Invalid factory ID: ${factoryId} (type: ${typeof factoryId})`);
     }
 
-    // Encode the reason for URL query parameter
-    const encodedReason = encodeURIComponent(reason);
-    const url = `/v1/factories/${factoryId}/reject?reason=${encodedReason}`;
-    console.log("[REJECT FACTORY] URL:", url);
+    // Validate reason is not empty
+    if (!reason || reason.trim() === '') {
+      throw new Error("Rejection reason is required");
+    }
+
+    // Send reason in request body (backend expects @RequestBody)
+    const url = `/v1/factories/${factoryId}/reject`;
+    const requestData = { reason: reason.trim() };
+    console.log("[REJECT FACTORY] URL:", url, "Data:", requestData);
     
-    const response = await API.post(url);
+    const response = await API.post(url, requestData);
     
     console.log("[REJECT FACTORY] Response:", response.status, response.data);
     
@@ -239,6 +244,8 @@ const rejectFactory = async (factoryId: number, reason: string): Promise<void> =
       throw new Error("Factory not found.");
     } else if (error?.response?.status === 400) {
       throw new Error(error?.response?.data?.message || "Invalid request. Please check the factory data.");
+    } else if (error?.response?.status === 500) {
+      throw new Error(error?.response?.data?.message || "Server error occurred while rejecting factory. Please try again.");
     }
     
     throw error;
