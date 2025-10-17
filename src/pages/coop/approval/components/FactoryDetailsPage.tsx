@@ -175,7 +175,7 @@ const FactoryDetailsPage: React.FC = () => {
     const statusUpper = status?.toUpperCase();
     const isApproved = statusUpper === "APPROVED";
     const badgeLabel = isApproved ? "Approved" : statusUpper === "REJECTED" ? "Rejected" : "Pending";
-    const badgeClass = isApproved ? "bg-green-500" : statusUpper === "REJECTED" ? "bg-red-500" : "bg-yellow-500";
+    const badgeClass = isApproved ? "bg-cyan-500" : statusUpper === "REJECTED" ? "bg-red-500 text-white" : "bg-yellow-500";
     
     return (
       <Badge variant={isApproved ? "default" : "secondary"} className={badgeClass}>
@@ -313,7 +313,7 @@ const FactoryDetailsPage: React.FC = () => {
           <Button
             onClick={() => setOpenApprove(true)}
             disabled={!(factory.status === "Pending" && factory.adminStatus === "Approved")}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-cyan-600 hover:bg-cyan-700"
           >
             <CheckCircle className="w-4 h-4 mr-2" />
             {isApproving ? "Approving..." : "Approve"}
@@ -393,7 +393,7 @@ const FactoryDetailsPage: React.FC = () => {
                               </div>
                               {bank.isPrimary && (
                                 <div className="mt-2">
-                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200">
                                     Primary Account
                                   </span>
                                 </div>

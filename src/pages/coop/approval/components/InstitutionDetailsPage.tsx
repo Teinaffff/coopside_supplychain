@@ -338,7 +338,7 @@ const InstitutionDetailsPage: React.FC = () => {
 
   const getConsumerStatusBadge = (status: string) => {
     const statusClasses = {
-      Approved: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+      Approved: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
       Rejected: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
       Pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
     };
@@ -438,7 +438,7 @@ const InstitutionDetailsPage: React.FC = () => {
     const statusUpper = status?.toUpperCase();
     const isApproved = statusUpper === "APPROVED";
     const badgeLabel = isApproved ? "Approved" : statusUpper === "REJECTED" ? "Rejected" : "Pending";
-    const badgeClass = isApproved ? "bg-green-500" : statusUpper === "REJECTED" ? "bg-red-500" : "bg-yellow-500";
+    const badgeClass = isApproved ? "bg-cyan-500" : statusUpper === "REJECTED" ? "bg-red-500 text-white" : "bg-yellow-500";
     
     return (
       <Badge variant={isApproved ? "default" : "secondary"} className={badgeClass}>
@@ -606,7 +606,7 @@ const InstitutionDetailsPage: React.FC = () => {
           <Button
             onClick={() => setOpenApprove(true)}
             disabled={!canApproveOrReject || isApproving}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-cyan-600 hover:bg-cyan-700"
           >
             <CheckCircle className="w-4 h-4 mr-2" />
             {isApproving ? "Approving..." : "Approve"}

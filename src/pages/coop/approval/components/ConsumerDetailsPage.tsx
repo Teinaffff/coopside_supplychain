@@ -268,7 +268,7 @@ const ConsumerDetailsPage: React.FC = () => {
     const statusUpper = status?.toUpperCase();
     const isActive = statusUpper === "ACTIVE";
     const badgeLabel = isActive ? "Active" : statusUpper === "INACTIVE" ? "Inactive" : "Pending";
-    const badgeClass = isActive ? "bg-green-500" : statusUpper === "INACTIVE" ? "bg-red-500" : "bg-yellow-500";
+    const badgeClass = isActive ? "bg-cyan-500" : statusUpper === "INACTIVE" ? "bg-red-500 text-white" : "bg-yellow-500";
     
     return (
       <Badge variant={isActive ? "default" : "secondary"} className={badgeClass}>
@@ -422,7 +422,7 @@ const ConsumerDetailsPage: React.FC = () => {
           <Button
             onClick={() => setOpenApprove(true)}
             disabled={consumer.status === "Active"}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-cyan-600 hover:bg-cyan-700"
           >
             <CheckCircle className="w-4 h-4 mr-2" />
             Approve

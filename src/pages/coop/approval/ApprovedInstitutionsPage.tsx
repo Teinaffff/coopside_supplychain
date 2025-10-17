@@ -6,7 +6,7 @@ import { Button } from "../../../common/ui/button";
 import { ArrowLeft } from "lucide-react";
 
 const statusClasses: Record<string, string> = {
-  approved: "bg-green-100 text-green-800",
+  approved: "bg-cyan-100 text-cyan-800",
   pending: "bg-yellow-100 text-yellow-800",
   rejected: "bg-red-100 text-red-800",
 };

@@ -149,7 +149,7 @@ const ConsumerListPage: React.FC = () => {
 
   const getStatusBadge = (status: string) => {
     const statusClasses = {
-      Active: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+      Active: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
       Inactive: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
       Pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
     };

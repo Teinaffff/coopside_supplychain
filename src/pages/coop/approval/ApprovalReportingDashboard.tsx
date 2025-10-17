@@ -308,18 +308,18 @@ const ApprovalReportingDashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+        <Card className="bg-gradient-to-br from-cyan-50 to-cyan-100 dark:from-cyan-900/20 dark:to-cyan-800/20 border-cyan-200 dark:border-cyan-700 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-700 dark:text-green-300">
+            <CardTitle className="text-sm font-medium text-cyan-700 dark:text-cyan-300">
               Super Admin Approved
             </CardTitle>
-            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-              <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <div className="p-2 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg">
+              <CheckCircle className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-900 dark:text-green-100">{stats.approved}</div>
-            <p className="text-xs text-green-600 dark:text-green-400 flex items-center mt-2">
+            <div className="text-3xl font-bold text-cyan-900 dark:text-cyan-100">{stats.approved}</div>
+            <p className="text-xs text-cyan-600 dark:text-cyan-400 flex items-center mt-2">
               <TrendingUp className="h-3 w-3 mr-1" />
               {stats.approvalRate}% approval rate
             </p>
