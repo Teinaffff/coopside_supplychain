@@ -4,15 +4,15 @@ import { Card } from "../../../../common/ui/card";
 import { Button } from "../../../../common/ui/button";
 import { Input } from "../../../../common/ui/input";
 import { Badge } from "../../../../common/ui/badge";
-import { Plus, Search, Edit, Trash2, Eye, ToggleLeft, ToggleRight, Filter, X } from "lucide-react";
+import { Plus, Search, Edit, Trash2, ToggleLeft, ToggleRight, Filter, X, MoreHorizontal } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../../../common/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../common/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../../common/ui/dropdown-menu";
 import { LoanProduct } from "../../../../constants/interface/coop/loan-product";
 import LoanProductFormNew from "./LoanProductFormNew";
 import { 
   useLoanProducts, 
   useCreateLoanProduct, 
-  useUpdateLoanProduct, 
   useDeleteLoanProduct,
   useActivateLoanProduct,
   useDeactivateLoanProduct,
@@ -327,7 +327,11 @@ const LoanProductManagementNew = () => {
                 </tr>
               ) : (
                 filteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <tr 
+                    key={product.id} 
+                    className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                    onClick={() => openViewPage(product)}
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900 dark:text-white">
@@ -386,7 +390,10 @@ const LoanProductManagementNew = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleToggleStatus(product)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleStatus(product);
+                          }}
                           className="p-1"
                           disabled={activateMutation.isPending || deactivateMutation.isPending}
                         >
@@ -399,32 +406,42 @@ const LoanProductManagementNew = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openEditPage(product)}
-                          className="p-1"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openViewPage(product)}
-                          className="p-1"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openDeleteModal(product)}
-                          className="p-1 text-red-600 hover:text-red-700"
-                          disabled={deleteMutation.isPending}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                      <div className="flex items-center justify-end">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="p-1"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditPage(product);
+                              }}
+                              className="flex items-center gap-2"
+                            >
+                              <Edit className="w-4 h-4" />
+                              Update
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDeleteModal(product);
+                              }}
+                              className="flex items-center gap-2 text-red-600 focus:text-red-600"
+                              disabled={deleteMutation.isPending}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </td>
                   </tr>
