@@ -27,21 +27,27 @@ import {
 import { useNavigate } from "react-router-dom";
 import loanApplicationService, { LoanApplication } from "../../../services/loanApplicationService";
 import { toast } from "react-hot-toast";
+import { processLoanApplications, ProcessedLoanApplication, getStatusBadgeConfig } from "../../../lib/loan-status-utils";
+import API from "../../../config/axios-config";
 
 type FilterState = {
-  status: string;
   loanType: string;
   tenure: string;
+  partnerStatus: string;
+  superAdminStatus: string;
 };
 
 const LoanMonitoringPage: React.FC = () => {
   const navigate = useNavigate();
   const [loanApplications, setLoanApplications] = useState<LoanApplication[]>([]);
+  const [processedApplications, setProcessedApplications] = useState<ProcessedLoanApplication[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loanTypes, setLoanTypes] = useState<string[]>([]);
   const [filters, setFilters] = useState<FilterState>({
-    status: "all",
     loanType: "all",
     tenure: "all",
+    partnerStatus: "all",
+    superAdminStatus: "all",
   });
 
   // Mock data for development
@@ -149,7 +155,21 @@ const LoanMonitoringPage: React.FC = () => {
 
   useEffect(() => {
     loadLoanApplications();
+    loadLoanTypes();
   }, [filters, searchTerm]);
+
+  const loadLoanTypes = async () => {
+    try {
+      const response = await API.get('/v1/loan-types');
+      const loanTypesData = response.data?.data || response.data || [];
+      const typeNames = loanTypesData.map((type: any) => type.name).filter(Boolean);
+      setLoanTypes(typeNames);
+    } catch (error) {
+      console.error('Error loading loan types:', error);
+      // Fallback to default loan types if API fails
+      setLoanTypes(['Goods Purchase Financing', 'Equipment Financing', 'Working Capital Loan']);
+    }
+  };
 
   const loadLoanApplications = async () => {
     try {
@@ -161,6 +181,7 @@ const LoanMonitoringPage: React.FC = () => {
         applicationNumber: app.applicationNumber || app.id || 'N/A',
         loanType: app.loanType || app.type || 'Goods Purchase Financing',
         status: app.status || 'PENDING',
+        superAdminStatus: app.superAdminStatus || 'pending',
         requestedAmount: app.requestedAmount || app.amount || app.loanAmount || app.request_amount || app.requestAmount || app.principalAmount || app.principal_amount || app.totalAmount || app.total_amount || app.loanDetails?.amount || app.financialDetails?.amount || app.applicationDetails?.amount || 0,
         approvedAmount: app.approvedAmount || app.approved_amount || undefined,
         tenure: app.tenure || app.duration || 12,
@@ -175,12 +196,30 @@ const LoanMonitoringPage: React.FC = () => {
         riskScore: app.riskScore || app.risk_score || undefined,
       }));
       
+      // Process applications with status logic
+      const processed = processLoanApplications(transformedApplications);
+      
+      // Debug: Log applications that should show in tracking
+      const trackingApps = processed.filter(app => app.shouldShowInTracking);
+      console.log('Applications for tracking:', trackingApps.map(app => ({
+        applicationNumber: app.applicationNumber,
+        status: app.status,
+        superAdminStatus: app.superAdminStatus,
+        displayPartnerStatus: app.displayPartnerStatus,
+        displaySuperAdminStatus: app.displaySuperAdminStatus,
+        shouldShowInTracking: app.shouldShowInTracking,
+        trackingStatus: app.trackingStatus
+      })));
+      
       setLoanApplications(transformedApplications);
+      setProcessedApplications(processed);
       toast.success(`Loaded ${transformedApplications.length} loan applications with agent data`);
     } catch (error) {
       console.error('Error loading loan applications from API:', error);
       toast.error('Failed to load loan applications from API. Using mock data for demonstration.');
+      const processed = processLoanApplications(mockLoanApplications);
       setLoanApplications(mockLoanApplications);
+      setProcessedApplications(processed);
     }
   };
 
@@ -188,7 +227,7 @@ const LoanMonitoringPage: React.FC = () => {
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleViewDetails = (application: LoanApplication) => {
+  const handleViewDetails = (application: ProcessedLoanApplication) => {
     navigate(`/coop/loan-monitoring/${application.applicationNumber}`);
   };
 
@@ -196,7 +235,7 @@ const LoanMonitoringPage: React.FC = () => {
   const exportToExcel = () => {
     try {
       // Filter the data based on current filters
-      let dataToExport = [...loanApplications];
+      let dataToExport = [...processedApplications];
 
       // Apply search filter
       if (searchTerm) {
@@ -207,11 +246,6 @@ const LoanMonitoringPage: React.FC = () => {
           app.borrowerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           app.purpose?.toLowerCase().includes(searchTerm.toLowerCase())
         );
-      }
-
-      // Apply status filter
-      if (filters.status !== "all") {
-        dataToExport = dataToExport.filter(app => app.status === filters.status);
       }
 
       // Apply loan type filter
@@ -225,13 +259,23 @@ const LoanMonitoringPage: React.FC = () => {
         dataToExport = dataToExport.filter(app => app.tenure === tenureValue);
       }
 
+      // Apply partner status filter
+      if (filters.partnerStatus !== "all") {
+        dataToExport = dataToExport.filter(app => app.displayPartnerStatus === filters.partnerStatus);
+      }
+
+      // Apply super admin status filter
+      if (filters.superAdminStatus !== "all") {
+        dataToExport = dataToExport.filter(app => app.displaySuperAdminStatus === filters.superAdminStatus);
+      }
+
       // Prepare data for Excel export
       const excelData = dataToExport.map(app => ({
         'Application Number': app.applicationNumber,
         'Borrower Name': app.borrowerName || 'N/A',
         'Loan Type': app.loanType,
-        'Status by Partner': app.status.replace(/_/g, ' '),
-        'Status by Super Admin': (app.superAdminStatus || 'pending').toUpperCase(),
+        'Status by Partner': app.displayPartnerStatus,
+        'Status by Super Admin': app.displaySuperAdminStatus,
         'Requested Amount': app.requestedAmount,
         'Approved Amount': app.approvedAmount || 'N/A',
         'Interest Rate': app.interestRate || 'N/A',
@@ -239,7 +283,8 @@ const LoanMonitoringPage: React.FC = () => {
         'Products Count': app.products,
         'Created Date': new Date(app.created).toLocaleDateString(),
         'Risk Score': app.riskScore || 'N/A',
-        'Purpose': app.purpose || 'N/A'
+        'Purpose': app.purpose || 'N/A',
+        'Tracking Status': app.trackingStatus || 'N/A'
       }));
 
       // Convert to CSV format
@@ -277,47 +322,19 @@ const LoanMonitoringPage: React.FC = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      DISBURSED: { variant: "default" as const, color: "bg-green-100 text-green-800", icon: CheckCircle },
-      PENDING_PARTNER_APPROVAL: { variant: "secondary" as const, color: "bg-orange-100 text-orange-800", icon: Clock },
-      PENDING_SUPER_ADMIN_APPROVAL: { variant: "secondary" as const, color: "bg-purple-100 text-purple-800", icon: Clock },
-      APPROVED: { variant: "default" as const, color: "bg-blue-100 text-blue-800", icon: CheckCircle },
-      REJECTED: { variant: "destructive" as const, color: "bg-red-100 text-red-800", icon: XCircle },
-      DRAFT: { variant: "outline" as const, color: "bg-gray-100 text-gray-800", icon: Clock },
-      CANCELLED: { variant: "outline" as const, color: "bg-gray-100 text-gray-800", icon: XCircle }
-    };
-
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.DRAFT;
-    const Icon = config.icon;
+  const getDisplayStatusBadge = (status: "PENDING" | "APPROVED" | "REJECTED") => {
+    const config = getStatusBadgeConfig(status);
+    const Icon = config.icon === "Clock" ? Clock : config.icon === "CheckCircle" ? CheckCircle : XCircle;
 
     return (
       <Badge variant={config.variant} className={config.color}>
         <Icon className="h-3 w-3 mr-1" />
-        {status.replace(/_/g, ' ')}
+        {status}
       </Badge>
     );
   };
 
-  const getSuperAdminStatusBadge = (status: string) => {
-    const statusConfig = {
-      pending: { variant: "secondary" as const, color: "bg-yellow-100 text-yellow-800", icon: Clock },
-      approved: { variant: "default" as const, color: "bg-green-100 text-green-800", icon: CheckCircle },
-      rejected: { variant: "destructive" as const, color: "bg-red-100 text-red-800", icon: XCircle }
-    };
-
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
-    const Icon = config.icon;
-
-    return (
-      <Badge variant={config.variant} className={config.color}>
-        <Icon className="h-3 w-3 mr-1" />
-        {status.toUpperCase()}
-      </Badge>
-    );
-  };
-
-  const columns: ColumnDef<LoanApplication>[] = useMemo(
+  const columns: ColumnDef<ProcessedLoanApplication>[] = useMemo(
     () => [
       {
         accessorKey: "applicationNumber",
@@ -365,20 +382,20 @@ const LoanMonitoringPage: React.FC = () => {
         ),
       },
       {
-        accessorKey: "status",
+        accessorKey: "displayPartnerStatus",
         header: "Status by Partner",
         cell: ({ row }) => (
           <div className="py-2">
-            {getStatusBadge(row.getValue("status"))}
+            {getDisplayStatusBadge(row.getValue("displayPartnerStatus"))}
           </div>
         ),
       },
       {
-        accessorKey: "superAdminStatus",
+        accessorKey: "displaySuperAdminStatus",
         header: "Status by Super Admin",
         cell: ({ row }) => (
           <div className="py-2">
-            {getSuperAdminStatusBadge(row.original.superAdminStatus || "pending")}
+            {getDisplayStatusBadge(row.getValue("displaySuperAdminStatus"))}
           </div>
         ),
       },
@@ -395,18 +412,57 @@ const LoanMonitoringPage: React.FC = () => {
     []
   );
 
+  // Filter applications based on current filters
+  const filteredApplications = useMemo(() => {
+    let filtered = [...processedApplications];
+
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(app =>
+        app.applicationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.loanType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.borrowerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.purpose?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply loan type filter
+    if (filters.loanType !== "all") {
+      filtered = filtered.filter(app => app.loanType === filters.loanType);
+    }
+
+    // Apply tenure filter
+    if (filters.tenure !== "all") {
+      const tenureValue = parseInt(filters.tenure);
+      filtered = filtered.filter(app => app.tenure === tenureValue);
+    }
+
+    // Apply partner status filter
+    if (filters.partnerStatus !== "all") {
+      filtered = filtered.filter(app => app.displayPartnerStatus === filters.partnerStatus);
+    }
+
+    // Apply super admin status filter
+    if (filters.superAdminStatus !== "all") {
+      filtered = filtered.filter(app => app.displaySuperAdminStatus === filters.superAdminStatus);
+    }
+
+    return filtered;
+  }, [processedApplications, searchTerm, filters]);
+
   const stats = useMemo(() => {
-    const total = loanApplications.length;
-    const pending = loanApplications.filter(app => 
-      app.status === "PENDING_PARTNER_APPROVAL" || app.status === "PENDING_SUPER_ADMIN_APPROVAL"
+    const total = filteredApplications.length;
+    const pending = filteredApplications.filter(app => 
+      app.displayPartnerStatus === "PENDING" || app.displaySuperAdminStatus === "PENDING"
     ).length;
-    const approved = loanApplications.filter(app => 
-      app.status === "APPROVED" || app.status === "DISBURSED"
+    const approved = filteredApplications.filter(app => 
+      app.displayPartnerStatus === "APPROVED" && app.displaySuperAdminStatus === "APPROVED"
     ).length;
-    const totalValue = loanApplications.reduce((sum, app) => sum + (app.approvedAmount || 0), 0);
+    const totalValue = filteredApplications.reduce((sum, app) => sum + (app.approvedAmount || 0), 0);
 
     return { total, pending, approved, totalValue };
-  }, [loanApplications]);
+  }, [filteredApplications]);
 
   return (
     <div className="space-y-8 p-8">
@@ -491,32 +547,13 @@ const LoanMonitoringPage: React.FC = () => {
             <div className="relative flex-grow max-w-sm">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Search by application number, borrower, or purpose..."
+                placeholder="Search by application number, borrower..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
             </div>
 
-            <Select
-              value={filters.status}
-              onValueChange={(value) => handleFilterChange("status", value)}
-            >
-              <SelectTrigger className="w-[180px]">
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Filter by Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="PENDING_PARTNER_APPROVAL">Pending Partner Approval</SelectItem>
-                <SelectItem value="PENDING_SUPER_ADMIN_APPROVAL">Pending Super Admin Approval</SelectItem>
-                <SelectItem value="APPROVED">Approved</SelectItem>
-                <SelectItem value="DISBURSED">Disbursed</SelectItem>
-                <SelectItem value="REJECTED">Rejected</SelectItem>
-                <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                <SelectItem value="DRAFT">Draft</SelectItem>
-              </SelectContent>
-            </Select>
 
             <Select
               value={filters.loanType}
@@ -528,9 +565,11 @@ const LoanMonitoringPage: React.FC = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Loan Types</SelectItem>
-                <SelectItem value="Goods Purchase Financing">Goods Purchase Financing</SelectItem>
-                <SelectItem value="Equipment Financing">Equipment Financing</SelectItem>
-                <SelectItem value="Working Capital Loan">Working Capital Loan</SelectItem>
+                {loanTypes.map((loanType) => (
+                  <SelectItem key={loanType} value={loanType}>
+                    {loanType}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -551,6 +590,38 @@ const LoanMonitoringPage: React.FC = () => {
                 <SelectItem value="24">24 Months</SelectItem>
               </SelectContent>
             </Select>
+
+            <Select
+              value={filters.partnerStatus}
+              onValueChange={(value) => handleFilterChange("partnerStatus", value)}
+            >
+              <SelectTrigger className="w-[200px]">
+                <Filter className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Filter by Partner Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Partner Status</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="APPROVED">Approved</SelectItem>
+                <SelectItem value="REJECTED">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={filters.superAdminStatus}
+              onValueChange={(value) => handleFilterChange("superAdminStatus", value)}
+            >
+              <SelectTrigger className="w-[220px]">
+                <Filter className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Filter by Super Admin Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Super Admin Status</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="APPROVED">Approved</SelectItem>
+                <SelectItem value="REJECTED">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -563,7 +634,7 @@ const LoanMonitoringPage: React.FC = () => {
         <CardContent className="px-6 pb-6">
           <DataTable
             columns={columns}
-            data={loanApplications}
+            data={filteredApplications}
             searchKey="applicationNumber"
             searchPlaceholder="Search applications..."
             clickable={true}

@@ -15,11 +15,13 @@ import ConsumerDetailsPage from "../../pages/coop/approval/components/ConsumerDe
 import LoanMonitoringPage from "../../pages/coop/loan-monitoring/page";
 import LoanDetailPage from "../../pages/coop/loan-monitoring/LoanDetailPage";
 import DisbursementPage from "../../pages/coop/loan-monitoring/DisbursementPage";
+import LoanStatusTrackingPage from "../../pages/coop/loan-monitoring/LoanStatusTrackingPage";
 import SettingsPage from "../../pages/coop/settings/page";
 import LoanSettingsPage from "../../pages/coop/loan-monitoring/LoanSettingsPage";
 import SystemUserRolesPage from "../../pages/coop/system/SystemUserRolesPage";
 import LoanProductDetailsPage from "../../pages/coop/settings/components/LoanProductDetailsPage";
 import LoanProductEditPage from "../../pages/coop/settings/components/LoanProductEditPage";
+import ProfilePage from "../../pages/coop/profile/ProfilePage";
 
 export const ROUTES = [
   {
@@ -108,6 +110,11 @@ export const ROUTES = [
     element: <DisbursementPage />,
   },
   {
+    path: "loan-monitoring/tracking",
+    title: "Loan Status Tracking",
+    element: <LoanStatusTrackingPage />,
+  },
+  {
     path: "loan-monitoring/settings",
     title: "Loan Settings",
     element: <LoanSettingsPage />,
@@ -131,5 +138,10 @@ export const ROUTES = [
     path: "settings/loan-products/edit/:id",
     title: "Edit Loan Product",
     element: <LoanProductEditPage />,
+  },
+  {
+    path: "profile",
+    title: "My Profile",
+    element: <ProfilePage />,
   }
 ];

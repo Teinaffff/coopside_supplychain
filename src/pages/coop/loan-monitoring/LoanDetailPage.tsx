@@ -2,17 +2,21 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../common/ui/card";
 import { Button } from "../../../common/ui/button";
-import { Download, CheckCircle, XCircle, User, Building2, Phone, Mail, MapPin, AlertCircle, CreditCard, FileText, Calendar, Hash } from "lucide-react";
+import { Input } from "../../../common/ui/input";
+import { Label } from "../../../common/ui/label";
+import { CheckCircle, XCircle, User, Building2, Phone, Mail, MapPin, AlertCircle, CreditCard, FileText, Calendar, Hash } from "lucide-react";
 import agentService, { Agent } from "../../../services/agentService";
 import factoryService, { Factory } from "../../../services/factoryService";
 import loanApplicationService, { LoanApplication } from "../../../services/loanApplicationService";
 import { toast } from "react-hot-toast";
+import { processLoanApplicationStatus, ProcessedLoanApplication } from "../../../lib/loan-status-utils";
 
 const LoanDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [loanData, setLoanData] = useState<LoanApplication | null>(null);
+  const [processedLoanData, setProcessedLoanData] = useState<ProcessedLoanApplication | null>(null);
   const [agentData, setAgentData] = useState<Agent | null>(null);
   const [factoryData, setFactoryData] = useState<Factory | null>(null);
   const [agentLoading, setAgentLoading] = useState(false);
@@ -21,6 +25,13 @@ const LoanDetailPage: React.FC = () => {
   const [isRejectingLoan, setIsRejectingLoan] = useState(false);
   const [loanRejectReason, setLoanRejectReason] = useState("");
   const [showLoanRejectDialog, setShowLoanRejectDialog] = useState(false);
+  const [showLoanApproveDialog, setShowLoanApproveDialog] = useState(false);
+  
+  // Loan approval form fields
+  const [approvedAmount, setApprovedAmount] = useState<number>(0);
+  const [interestRate, setInterestRate] = useState<number>(0);
+  const [processingFeePercentage, setProcessingFeePercentage] = useState<number>(0);
+  const [processingFeeFactor, setProcessingFeeFactor] = useState<number>(0);
 
   // Function to fetch agent data
   const fetchAgentData = async (agentId: string) => {
@@ -79,6 +90,8 @@ const LoanDetailPage: React.FC = () => {
       }
       
       console.log("Found Loan:", loan);
+      console.log("Found loan status:", loan.status);
+      console.log("Found loan superAdminStatus:", loan.superAdminStatus);
       console.log("Loan amount fields:", {
         requestedAmount: (loan as any).requestedAmount,
         amount: (loan as any).amount,
@@ -122,6 +135,20 @@ const LoanDetailPage: React.FC = () => {
       console.log("Transformed Loan Data:", transformedLoan);
       setLoanData(transformedLoan);
       
+      // Process loan data with status logic
+      console.log("Processing loan status - Input:", {
+        status: transformedLoan.status,
+        superAdminStatus: transformedLoan.superAdminStatus
+      });
+      const processedLoan = processLoanApplicationStatus(transformedLoan);
+      setProcessedLoanData(processedLoan);
+      console.log("Processed Loan Data:", processedLoan);
+      console.log("Processed statuses:", {
+        displayPartnerStatus: processedLoan.displayPartnerStatus,
+        displaySuperAdminStatus: processedLoan.displaySuperAdminStatus,
+        shouldShowInTracking: processedLoan.shouldShowInTracking
+      });
+      
       // Fetch agent and factory data
       if (transformedLoan.agentId) {
         console.log("Fetching agent data for ID:", transformedLoan.agentId);
@@ -147,6 +174,7 @@ const LoanDetailPage: React.FC = () => {
         applicationNumber: loanId,
         loanType: 'Goods Purchase Financing',
         status: 'PENDING_PARTNER_APPROVAL',
+        superAdminStatus: 'pending',
         requestedAmount: 0,
         approvedAmount: undefined,
         tenure: 12,
@@ -162,25 +190,66 @@ const LoanDetailPage: React.FC = () => {
       };
       
       setLoanData(fallbackLoan);
+      
+      // Process fallback loan data with status logic
+      const processedFallbackLoan = processLoanApplicationStatus(fallbackLoan);
+      setProcessedLoanData(processedFallbackLoan);
       toast.error(`API failed, showing basic details for ${loanId}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Function to approve loan
-  const handleApproveLoan = async () => {
+  // Function to open approve dialog
+  const handleApproveLoan = () => {
+    setShowLoanApproveDialog(true);
+  };
+
+  // Function to submit loan approval
+  const handleSubmitLoanApproval = async () => {
     if (!loanData) return;
+    
+    // Validate required fields
+    if (approvedAmount <= 0) {
+      toast.error('Please enter a valid approved amount');
+      return;
+    }
+    if (interestRate < 0) {
+      toast.error('Please enter a valid interest rate');
+      return;
+    }
+    if (processingFeePercentage < 0) {
+      toast.error('Please enter a valid processing fee percentage');
+      return;
+    }
+    if (processingFeeFactor < 0) {
+      toast.error('Please enter a valid processing fee factor');
+      return;
+    }
     
     setIsApprovingLoan(true);
     try {
-      await loanApplicationService.approveLoanApplication({
+      const response = await loanApplicationService.approveLoanApplication({
         applicationNumber: loanData.applicationNumber,
-        remarks: 'Approved by bank'
+        approved: true,
+        approvedAmount: approvedAmount,
+        interestRate: interestRate,
+        processingFeePercentage: processingFeePercentage,
+        processingFeeFactor: processingFeeFactor,
+        rejectionReason: ""
       });
+      
+      console.log('Approval API response:', response);
+      console.log('Updated loan status:', response.status);
+      console.log('Updated superAdminStatus:', response.superAdminStatus);
+      
       toast.success('Loan application approved successfully');
-      // Refresh loan data
-      fetchLoanData(loanData.applicationNumber);
+      setShowLoanApproveDialog(false);
+      // Add a small delay before refreshing to ensure API has updated
+      setTimeout(() => {
+        console.log("Refreshing loan data after approval...");
+        fetchLoanData(loanData.applicationNumber);
+      }, 1000);
     } catch (error) {
       console.error('Error approving loan:', error);
       toast.error('Failed to approve loan application');
@@ -213,86 +282,22 @@ const LoanDetailPage: React.FC = () => {
     }
   };
 
-  // Function to export loan details to Excel
-  const exportToExcel = () => {
-    if (!loanData) return;
-    
-    try {
-      const excelData = {
-        'Application Number': loanData.applicationNumber,
-        'Borrower Name': loanData.borrowerName || 'N/A',
-        'Product Code': loanData.loanTypeCode || 'N/A',
-        'Product Name': loanData.loanTypeName || loanData.loanType,
-        'Status': loanData.status.replace(/_/g, ' '),
-        'Requested Amount': loanData.requestedAmount,
-        'Approved Amount': loanData.approvedAmount || 'N/A',
-        'Interest Rate': loanData.interestRate || 'N/A',
-        'Tenure (Months)': loanData.tenure,
-        'Products Count': loanData.products,
-        'Request Date': loanData.requestDate ? new Date(loanData.requestDate).toLocaleDateString() : 'N/A',
-        'Submission Date': loanData.submissionDate ? new Date(loanData.submissionDate).toLocaleDateString() : 'N/A',
-        'Created Date': new Date(loanData.created).toLocaleDateString(),
-        'Risk Score': loanData.riskScore || 'N/A',
-        'Purpose': loanData.purpose || 'N/A',
-        'Agent ID': loanData.agentId || 'N/A',
-        'Factory ID': loanData.factoryId || 'N/A',
-        'Agent Full Name': agentData?.fullName || agentData?.fullLegalName || agentData?.name || 'N/A',
-        'Agent Username': agentData?.username || 'N/A',
-        'Agent Email': agentData?.email || 'N/A',
-        'Agent Phone': agentData?.phone || 'N/A',
-        'Agent Location': agentData?.location || agentData?.address || 'N/A',
-        'Agent Type': agentData?.agentType || 'N/A',
-        'Agent Approval Status': agentData?.superAdminApprovalStatus || agentData?.status || 'N/A',
-        'Factory Name': factoryData?.factoryName || factoryData?.businessName || factoryData?.name || 'N/A',
-        'Factory Registration': factoryData?.registrationNumber || factoryData?.registrationNo || 'N/A',
-        'Factory TIN': factoryData?.tinNumber || factoryData?.tin || factoryData?.taxId || 'N/A',
-        'Factory Email': factoryData?.email || factoryData?.emailAddress || 'N/A',
-        'Factory Phone': factoryData?.phone || factoryData?.phoneNumber || 'N/A',
-        'Factory Address': factoryData?.address || factoryData?.factoryLocation || 'N/A',
-        'Factory Industry': factoryData?.factoryType || factoryData?.industry || factoryData?.industryType || 'N/A',
-        'Factory Bank Account': factoryData?.bankAccountInfo?.[0]?.accountNumber || factoryData?.bankAccount || factoryData?.bankDetails || 'N/A',
-        'Factory Production Capacity': factoryData?.productionCapacity || factoryData?.capacity || 'N/A',
-        'Factory Approval Status': factoryData?.adminApprovalStatus || factoryData?.status || 'N/A'
-      };
-
-      // Convert to CSV format
-      const headers = Object.keys(excelData);
-      const csvContent = [
-        headers.join(','),
-        headers.map(header => {
-          const value = excelData[header as keyof typeof excelData];
-          // Escape commas and quotes in CSV
-          if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
-            return `"${value.replace(/"/g, '""')}"`;
-          }
-          return value;
-        }).join(',')
-      ].join('\n');
-
-      // Create and download file
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', `loan-details-${loanData.applicationNumber}-${new Date().toISOString().split('T')[0]}.csv`);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      toast.success('Loan details exported successfully!');
-    } catch (error) {
-      console.error('Error exporting loan details:', error);
-      toast.error('Failed to export loan details.');
-    }
-  };
 
   useEffect(() => {
     if (id) {
       fetchLoanData(id);
     }
   }, [id]);
+
+  // Initialize form fields when loan data loads
+  useEffect(() => {
+    if (loanData) {
+      setApprovedAmount(loanData.approvedAmount || loanData.requestedAmount || 0);
+      setInterestRate(loanData.interestRate || 0);
+      setProcessingFeePercentage(0); // Default to 0 as this might not be in loan data
+      setProcessingFeeFactor(0); // Default to 0 as this might not be in loan data
+    }
+  }, [loanData]);
 
   if (isLoading) {
     return (
@@ -323,40 +328,91 @@ const LoanDetailPage: React.FC = () => {
           </div>
         </div>
         
+        
         {/* Action Buttons */}
         <div className="flex items-center space-x-3">
-          <Button 
-            variant="outline" 
-            onClick={exportToExcel}
-            className="bg-cyan-500 hover:bg-cyan-600 text-white border-cyan-500 hover:border-cyan-600"
-          >
-            <Download className="mr-2 h-4 w-4" /> Export to Excel
-          </Button>
           
           {/* Loan Action Buttons */}
-          {loanData && (loanData.status === "PENDING_PARTNER_APPROVAL" || loanData.status === "PENDING_SUPER_ADMIN_APPROVAL") && (
-            <div className="flex items-center space-x-2">
-              <Button
-                onClick={handleApproveLoan}
-                disabled={isApprovingLoan}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2"
-              >
-                {isApprovingLoan ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+          {processedLoanData && (
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3">
+                {processedLoanData.displayPartnerStatus === "PENDING" || processedLoanData.displayPartnerStatus === "REJECTED" ? (
+                  <div className="flex items-center space-x-3 w-full">
+                    <Button
+                      disabled={true}
+                      className="bg-cyan-300 text-white px-6 py-2 cursor-not-allowed flex-1 opacity-60"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Approve Loan
+                    </Button>
+                    <Button
+                      disabled={true}
+                      className="bg-red-300 text-white px-6 py-2 cursor-not-allowed flex-1 opacity-60"
+                    >
+                      <XCircle className="w-4 h-4 mr-2" />
+                      Reject Loan
+                    </Button>
+                  </div>
+                ) : processedLoanData.displaySuperAdminStatus === "APPROVED" || processedLoanData.displaySuperAdminStatus === "REJECTED" ? (
+                  <div className="flex items-center space-x-3 w-full">
+                    <Button
+                      disabled={true}
+                      className="bg-cyan-300 text-white px-6 py-2 cursor-not-allowed flex-1 opacity-60"
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Approve Loan
+                    </Button>
+                    <Button
+                      disabled={true}
+                      className="bg-red-300 text-white px-6 py-2 cursor-not-allowed flex-1 opacity-60"
+                    >
+                      <XCircle className="w-4 h-4 mr-2" />
+                      Reject Loan
+                    </Button>
+                  </div>
                 ) : (
-                  <CheckCircle className="w-4 h-4 mr-2" />
+                  <div className="flex items-center space-x-3 w-full">
+                    <Button
+                      onClick={handleApproveLoan}
+                      disabled={isApprovingLoan}
+                      className="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 flex-1"
+                    >
+                      {isApprovingLoan ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      ) : (
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                      )}
+                      {isApprovingLoan ? 'Approving...' : 'Approve Loan'}
+                    </Button>
+                    <Button
+                      onClick={() => setShowLoanRejectDialog(true)}
+                      disabled={isRejectingLoan}
+                      variant="destructive"
+                      className="px-6 py-2 flex-1"
+                    >
+                      <XCircle className="w-4 h-4 mr-2" />
+                      Reject Loan
+                    </Button>
+                  </div>
                 )}
-                {isApprovingLoan ? 'Approving...' : 'Approve Loan'}
-              </Button>
-              <Button
-                onClick={() => setShowLoanRejectDialog(true)}
-                disabled={isRejectingLoan}
-                variant="destructive"
-                className="px-4 py-2"
-              >
-                <XCircle className="w-4 h-4 mr-2" />
-                Reject Loan
-              </Button>
+              </div>
+              
+              {/* Status Message Banner - positioned under buttons */}
+              {(processedLoanData.displayPartnerStatus === "PENDING" || 
+                processedLoanData.displayPartnerStatus === "REJECTED" || 
+                processedLoanData.displaySuperAdminStatus === "APPROVED" || 
+                processedLoanData.displaySuperAdminStatus === "REJECTED") && (
+                <div className="w-full bg-yellow-100 border-t border-b border-yellow-200 text-gray-700 py-2 px-4 text-center text-sm">
+                  {processedLoanData.displayPartnerStatus === "PENDING" 
+                    ? "This loan request is pending partner approval"
+                    : processedLoanData.displayPartnerStatus === "REJECTED"
+                    ? "This loan request has been rejected by partner"
+                    : processedLoanData.displaySuperAdminStatus === "APPROVED"
+                    ? "This loan request has already been processed"
+                    : "This loan request has already been processed"
+                  }
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -734,6 +790,111 @@ const LoanDetailPage: React.FC = () => {
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                   ) : null}
                   {isRejectingLoan ? 'Rejecting...' : 'Reject Loan'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Loan Approval Dialog */}
+      {showLoanApproveDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Approve Loan Application</h3>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="approvedAmount" className="block text-sm font-medium text-gray-700 mb-2">
+                    Approved Amount (ETB) *
+                  </Label>
+                  <Input
+                    id="approvedAmount"
+                    type="number"
+                    value={approvedAmount}
+                    onChange={(e) => setApprovedAmount(Number(e.target.value))}
+                    placeholder="Enter approved amount"
+                    className="w-full"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="interestRate" className="block text-sm font-medium text-gray-700 mb-2">
+                    Interest Rate (%) *
+                  </Label>
+                  <Input
+                    id="interestRate"
+                    type="number"
+                    value={interestRate}
+                    onChange={(e) => setInterestRate(Number(e.target.value))}
+                    placeholder="Enter interest rate"
+                    className="w-full"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="processingFeePercentage" className="block text-sm font-medium text-gray-700 mb-2">
+                    Processing Fee Percentage (%) *
+                  </Label>
+                  <Input
+                    id="processingFeePercentage"
+                    type="number"
+                    value={processingFeePercentage}
+                    onChange={(e) => setProcessingFeePercentage(Number(e.target.value))}
+                    placeholder="Enter processing fee percentage"
+                    className="w-full"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="processingFeeFactor" className="block text-sm font-medium text-gray-700 mb-2">
+                    Processing Fee Factor *
+                  </Label>
+                  <Input
+                    id="processingFeeFactor"
+                    type="number"
+                    value={processingFeeFactor}
+                    onChange={(e) => setProcessingFeeFactor(Number(e.target.value))}
+                    placeholder="Enter processing fee factor"
+                    className="w-full"
+                    min="0"
+                    step="0.01"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowLoanApproveDialog(false);
+                    // Reset form fields
+                    setApprovedAmount(loanData?.approvedAmount || loanData?.requestedAmount || 0);
+                    setInterestRate(loanData?.interestRate || 0);
+                    setProcessingFeePercentage(0);
+                    setProcessingFeeFactor(0);
+                  }}
+                  disabled={isApprovingLoan}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSubmitLoanApproval}
+                  disabled={isApprovingLoan || approvedAmount <= 0 || interestRate < 0 || processingFeePercentage < 0 || processingFeeFactor < 0}
+                  className="bg-cyan-500 hover:bg-cyan-600 text-white"
+                >
+                  {isApprovingLoan ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  ) : (
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                  )}
+                  {isApprovingLoan ? 'Approving...' : 'Approve Loan'}
                 </Button>
               </div>
             </div>

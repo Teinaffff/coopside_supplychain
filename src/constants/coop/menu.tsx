@@ -36,8 +36,8 @@ export const menuItems = [
       },
       {
         label: "Loan Status Tracking",
-        to: "/coop/loan-monitoring/disbursement",
-        pathname: "/coop/loan-monitoring/disbursement",
+        to: "/coop/loan-monitoring/tracking",
+        pathname: "/coop/loan-monitoring/tracking",
         icon: <Banknote width={18} height={18} />,
       },
       {

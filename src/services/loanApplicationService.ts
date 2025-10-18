@@ -36,8 +36,12 @@ export interface LoanApplicationFilters {
 
 export interface ApprovalRequest {
   applicationNumber: string;
-  approvedAmount?: number;
-  interestRate?: number;
+  approved: boolean;
+  approvedAmount: number;
+  interestRate: number;
+  processingFeePercentage: number;
+  processingFeeFactor: number;
+  rejectionReason?: string;
   remarks?: string;
 }
 
@@ -300,11 +304,21 @@ class LoanApplicationService {
   // Approve loan application (bank action)
   async approveLoanApplication(approvalData: ApprovalRequest): Promise<LoanApplication> {
     try {
-      const response = await API.post(`/v1/loan-applications/${approvalData.applicationNumber}/approve`, {
+      const response = await API.post(`/v1/admin/approvals/${approvalData.applicationNumber}/approve`, {
+        approved: true,
         approvedAmount: approvalData.approvedAmount,
         interestRate: approvalData.interestRate,
-        remarks: approvalData.remarks
+        processingFeePercentage: approvalData.processingFeePercentage,
+        processingFeeFactor: approvalData.processingFeeFactor,
+        rejectionReason: approvalData.rejectionReason || ""
       });
+      
+      console.log("=== APPROVAL API RESPONSE ===");
+      console.log("Full response:", response);
+      console.log("Response data:", response.data);
+      console.log("Response status:", response.status);
+      console.log("Response headers:", response.headers);
+      
       return response.data;
     } catch (error) {
       console.error('Error approving loan application:', error);
