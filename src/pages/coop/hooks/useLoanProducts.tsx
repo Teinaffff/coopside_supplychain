@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import loanProductService, { LoanProduct, LoanProductFormData, LoanProductFilters } from '../../../services/loanProductService';
+import loanProductService, { LoanProduct, LoanProductFormData, LoanProductFilters, UpdateLoanProductRequest } from '../../../services/loanProductService';
 import { toast } from 'react-hot-toast';
 
 export const useLoanProducts = (filters?: LoanProductFilters) => {
@@ -63,7 +63,7 @@ export const useUpdateLoanProduct = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<LoanProductFormData> }) => 
+    mutationFn: ({ id, data }: { id: number; data: UpdateLoanProductRequest }) => 
       loanProductService.updateLoanType(id, data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['loanProducts'] });

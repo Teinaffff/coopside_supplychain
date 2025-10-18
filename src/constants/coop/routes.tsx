@@ -18,6 +18,8 @@ import DisbursementPage from "../../pages/coop/loan-monitoring/DisbursementPage"
 import SettingsPage from "../../pages/coop/settings/page";
 import LoanSettingsPage from "../../pages/coop/loan-monitoring/LoanSettingsPage";
 import SystemUserRolesPage from "../../pages/coop/system/SystemUserRolesPage";
+import LoanProductDetailsPage from "../../pages/coop/settings/components/LoanProductDetailsPage";
+import LoanProductEditPage from "../../pages/coop/settings/components/LoanProductEditPage";
 
 export const ROUTES = [
   {
@@ -119,5 +121,15 @@ export const ROUTES = [
     path: "system/user-roles",
     title: "System User & Roles",
     element: <SystemUserRolesPage />,
+  },
+  {
+    path: "settings/loan-products/view/:id",
+    title: "Loan Product Details",
+    element: <LoanProductDetailsPage />,
+  },
+  {
+    path: "settings/loan-products/edit/:id",
+    title: "Edit Loan Product",
+    element: <LoanProductEditPage />,
   }
 ];

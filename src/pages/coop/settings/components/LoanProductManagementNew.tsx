@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "../../../../common/ui/card";
 import { Button } from "../../../../common/ui/button";
 import { Input } from "../../../../common/ui/input";
@@ -6,8 +7,7 @@ import { Badge } from "../../../../common/ui/badge";
 import { Plus, Search, Edit, Trash2, Eye, ToggleLeft, ToggleRight, Filter, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../../../common/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../common/ui/select";
-import { Checkbox } from "../../../../common/ui/checkbox";
-import { LoanProduct, LoanProductFormData } from "../../../../constants/interface/coop/loan-product";
+import { LoanProduct } from "../../../../constants/interface/coop/loan-product";
 import LoanProductFormNew from "./LoanProductFormNew";
 import { 
   useLoanProducts, 
@@ -21,18 +21,17 @@ import {
 import { LoanProductFilters } from "../../../../services/loanProductService";
 
 const LoanProductManagementNew = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<LoanProduct | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<LoanProduct | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<LoanProductFilters>({});
 
   // API hooks
-  const { loanProducts, isLoading, refetch } = useLoanProducts(filters);
+  const { loanProducts, isLoading } = useLoanProducts(filters);
   const createMutation = useCreateLoanProduct();
-  const updateMutation = useUpdateLoanProduct();
   const deleteMutation = useDeleteLoanProduct();
   const activateMutation = useActivateLoanProduct();
   const deactivateMutation = useDeactivateLoanProduct();
@@ -61,33 +60,21 @@ const LoanProductManagementNew = () => {
     }
   };
 
-  const handleEditProduct = async (formData: any) => {
-    if (!selectedProduct) return;
 
-    try {
-      // Check if code already exists (only if code changed)
-      if (formData.code !== selectedProduct.code) {
-        const codeCheck = await checkCodeMutation.mutateAsync(formData.code);
-        if (codeCheck.data.exists) {
-          throw new Error('Product code already exists');
-        }
-      }
-
-      await updateMutation.mutateAsync({ id: selectedProduct.id, data: formData });
-      setIsEditModalOpen(false);
-      setSelectedProduct(null);
-    } catch (error: any) {
-      console.error('Error updating product:', error);
-    }
+  const openDeleteModal = (product: LoanProduct) => {
+    setProductToDelete(product);
+    setIsDeleteModalOpen(true);
   };
 
-  const handleDeleteProduct = async (productId: number) => {
-    if (window.confirm('Are you sure you want to delete this loan product?')) {
-      try {
-        await deleteMutation.mutateAsync(productId);
-      } catch (error) {
-        console.error('Error deleting product:', error);
-      }
+  const handleDeleteProduct = async () => {
+    if (!productToDelete) return;
+    
+    try {
+      await deleteMutation.mutateAsync(productToDelete.id);
+      setIsDeleteModalOpen(false);
+      setProductToDelete(null);
+    } catch (error) {
+      console.error('Error deleting product:', error);
     }
   };
 
@@ -103,14 +90,12 @@ const LoanProductManagementNew = () => {
     }
   };
 
-  const openEditModal = (product: LoanProduct) => {
-    setSelectedProduct(product);
-    setIsEditModalOpen(true);
+  const openViewPage = (product: LoanProduct) => {
+    navigate(`/coop/settings/loan-products/view/${product.id}`);
   };
 
-  const openViewModal = (product: LoanProduct) => {
-    setSelectedProduct(product);
-    setIsViewModalOpen(true);
+  const openEditPage = (product: LoanProduct) => {
+    navigate(`/coop/settings/loan-products/edit/${product.id}`);
   };
 
   const handleFilterChange = (key: keyof LoanProductFilters, value: any) => {
@@ -418,7 +403,7 @@ const LoanProductManagementNew = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => openEditModal(product)}
+                          onClick={() => openEditPage(product)}
                           className="p-1"
                         >
                           <Edit className="w-4 h-4" />
@@ -426,7 +411,7 @@ const LoanProductManagementNew = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => openViewModal(product)}
+                          onClick={() => openViewPage(product)}
                           className="p-1"
                         >
                           <Eye className="w-4 h-4" />
@@ -434,7 +419,7 @@ const LoanProductManagementNew = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleDeleteProduct(product.id)}
+                          onClick={() => openDeleteModal(product)}
                           className="p-1 text-red-600 hover:text-red-700"
                           disabled={deleteMutation.isPending}
                         >
@@ -450,282 +435,70 @@ const LoanProductManagementNew = () => {
         </div>
       </Card>
 
-      {/* Edit Modal */}
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Loan Product</DialogTitle>
-          </DialogHeader>
-          {selectedProduct && (
-            <LoanProductFormNew 
-              onSubmit={handleEditProduct} 
-              initialData={selectedProduct}
-              isLoading={updateMutation.isPending}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
 
-      {/* View Details Modal */}
-      <Dialog open={isViewModalOpen} onOpenChange={(open) => {
-        setIsViewModalOpen(open);
+      {/* Delete Confirmation Modal */}
+      <Dialog open={isDeleteModalOpen} onOpenChange={(open) => {
+        setIsDeleteModalOpen(open);
         if (!open) {
-          setSelectedProduct(null);
+          setProductToDelete(null);
         }
       }}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Loan Product Details</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-red-600" />
+              Delete Loan Product
+            </DialogTitle>
           </DialogHeader>
-          {selectedProduct && (
-            <LoanProductDetailsModal
-              product={selectedProduct}
-            />
-          )}
+          <div className="space-y-4">
+            <p className="text-gray-600 dark:text-gray-400">
+              Are you sure you want to delete this loan product? This action cannot be undone.
+            </p>
+            {productToDelete && (
+              <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                <p className="font-medium text-gray-900 dark:text-white">{productToDelete.name}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{productToDelete.code}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 line-clamp-2">
+                  {productToDelete.description}
+                </p>
+              </div>
+            )}
+            <div className="flex justify-end gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsDeleteModalOpen(false);
+                  setProductToDelete(null);
+                }}
+                disabled={deleteMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteProduct}
+                disabled={deleteMutation.isPending}
+                className="flex items-center gap-2"
+              >
+                {deleteMutation.isPending ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Delete Product
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
   );
 };
 
-interface LoanProductDetailsModalProps {
-  product: LoanProduct;
-}
-
-const LoanProductDetailsModal = ({ product }: LoanProductDetailsModalProps) => {
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-ET', {
-      style: 'currency',
-      currency: 'ETB',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
-
-  const formatPercentage = (value: number) => {
-    return `${value}%`;
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">{product.name}</h2>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">{product.code}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">{product.description}</p>
-        </div>
-      </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Basic Information */}
-          <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Basic Information</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Status:</span>
-                <Badge variant={product.isActive ? "default" : "secondary"}>
-                  {product.isActive ? "Active" : "Inactive"}
-                </Badge>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Display Order:</span>
-                <span>{product.displayOrder}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Created:</span>
-                <span>{product.createdAt ? new Date(product.createdAt).toLocaleDateString() : 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Last Updated:</span>
-                <span>{product.updatedAt ? new Date(product.updatedAt).toLocaleDateString() : 'N/A'}</span>
-              </div>
-            </div>
-          </Card>
-
-          {/* Loan Amount */}
-          <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Loan Amount</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Minimum:</span>
-                <span>{formatCurrency(product.minLoanAmount)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Maximum:</span>
-                <span>{formatCurrency(product.maxLoanAmount)}</span>
-              </div>
-            </div>
-          </Card>
-
-          {/* Interest Rate */}
-          <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Interest Rate</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Default Rate:</span>
-                <span>{formatPercentage(product.defaultInterestRate)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Min Rate:</span>
-                <span>{formatPercentage(product.minInterestRate)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Max Rate:</span>
-                <span>{formatPercentage(product.maxInterestRate)}</span>
-              </div>
-            </div>
-          </Card>
-
-          {/* Repayment Terms */}
-          <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Repayment Terms</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Min Period:</span>
-                <span>{product.minRepaymentPeriodMonths} months</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Max Period:</span>
-                <span>{product.maxRepaymentPeriodMonths} months</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Default Period:</span>
-                <span>{product.defaultRepaymentPeriodMonths} months</span>
-              </div>
-            </div>
-          </Card>
-
-          {/* Processing Fees */}
-          <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Processing Fees</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Type:</span>
-                <span className="capitalize">{product.processingFeeType.toLowerCase()}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Value:</span>
-                <span>{formatPercentage(product.processingFeeValue)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Min Fee:</span>
-                <span>{formatCurrency(product.minProcessingFee)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Max Fee:</span>
-                <span>{formatCurrency(product.maxProcessingFee)}</span>
-              </div>
-            </div>
-          </Card>
-
-          {/* Penalties */}
-          <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Penalties</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Late Payment:</span>
-                <span>{formatPercentage(product.latePaymentPenaltyRate)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Prepayment Allowed:</span>
-                <Badge variant={product.prepaymentAllowed ? "default" : "secondary"}>
-                  {product.prepaymentAllowed ? "Yes" : "No"}
-                </Badge>
-              </div>
-              {product.prepaymentAllowed && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Prepayment Penalty:</span>
-                  <span>{formatPercentage(product.prepaymentPenaltyRate)}</span>
-                </div>
-              )}
-            </div>
-          </Card>
-
-          {/* Requirements */}
-          <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Requirements</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Min Credit Score:</span>
-                <span>{product.minCreditScore}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Collateral Required:</span>
-                <Badge variant={product.collateralRequired ? "default" : "secondary"}>
-                  {product.collateralRequired ? "Yes" : "No"}
-                </Badge>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Guarantor Required:</span>
-                <Badge variant={product.guarantorRequired ? "default" : "secondary"}>
-                  {product.guarantorRequired ? "Yes" : "No"}
-                </Badge>
-              </div>
-            </div>
-            {(() => {
-              let documents: string[] = [];
-              try {
-                if (typeof product.requiredDocuments === 'string') {
-                  documents = JSON.parse(product.requiredDocuments);
-                } else if (Array.isArray(product.requiredDocuments)) {
-                  documents = product.requiredDocuments;
-                }
-              } catch (error) {
-                console.error('Error parsing requiredDocuments:', error);
-                documents = [];
-              }
-              
-              return documents.length > 0 && (
-                <div className="mt-3">
-                  <span className="text-gray-600 dark:text-gray-400 text-sm">Required Documents:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {documents.map((doc, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">{doc}</Badge>
-                    ))}
-                  </div>
-                </div>
-              );
-            })()}
-          </Card>
-
-          {/* Approval Settings */}
-          <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Approval Settings</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Partner Approval:</span>
-                <Badge variant={product.requiresPartnerApproval ? "default" : "secondary"}>
-                  {product.requiresPartnerApproval ? "Required" : "Not Required"}
-                </Badge>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Admin Approval:</span>
-                <Badge variant={product.requiresAdminApproval ? "default" : "secondary"}>
-                  {product.requiresAdminApproval ? "Required" : "Not Required"}
-                </Badge>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Auto Approve Threshold:</span>
-                <span>{formatCurrency(product.autoApproveThreshold)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 dark:text-gray-400">Min Score for Auto Approve:</span>
-                <span>{product.minScoreForAutoApprove}</span>
-              </div>
-            </div>
-          </Card>
-
-          {/* Terms and Conditions */}
-          <Card className="p-4 lg:col-span-2">
-            <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Terms and Conditions</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
-              {product.termsAndConditions}
-            </p>
-          </Card>
-        </div>
-    </div>
-  );
-};
 
 export default LoanProductManagementNew;

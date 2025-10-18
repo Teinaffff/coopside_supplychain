@@ -73,8 +73,35 @@ export interface CreateLoanProductRequest {
   termsAndConditions: string;
 }
 
-export interface UpdateLoanProductRequest extends Partial<CreateLoanProductRequest> {
-  id: number;
+export interface UpdateLoanProductRequest {
+  name: string;
+  description: string;
+  defaultInterestRate: number;
+  minInterestRate: number;
+  maxInterestRate: number;
+  defaultRepaymentPeriodMonths: number;
+  minRepaymentPeriodMonths: number;
+  maxRepaymentPeriodMonths: number;
+  minLoanAmount: number;
+  maxLoanAmount: number;
+  processingFeeType: "PERCENTAGE" | "FIXED";
+  processingFeeValue: number;
+  minProcessingFee: number;
+  maxProcessingFee: number;
+  latePaymentPenaltyRate: number;
+  prepaymentAllowed: boolean;
+  prepaymentPenaltyRate: number;
+  collateralRequired: boolean;
+  guarantorRequired: boolean;
+  minCreditScore: number;
+  requiredDocuments: string; // JSON string for API
+  requiresPartnerApproval: boolean;
+  requiresAdminApproval: boolean;
+  autoApproveThreshold: number;
+  minScoreForAutoApprove: number;
+  displayOrder: number;
+  additionalSettings?: any;
+  termsAndConditions: string;
 }
 
 export interface LoanProductFilters {
@@ -203,7 +230,7 @@ class LoanProductService {
   }
 
   // Update loan type
-  async updateLoanType(loanTypeId: number, loanTypeData: Partial<CreateLoanProductRequest>): Promise<{ success: boolean; data: LoanProduct }> {
+  async updateLoanType(loanTypeId: number, loanTypeData: UpdateLoanProductRequest): Promise<{ success: boolean; data: LoanProduct }> {
     try {
       const response = await API.put(`/v1/loan-types/${loanTypeId}`, loanTypeData);
       return response.data;
