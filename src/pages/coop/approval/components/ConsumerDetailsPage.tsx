@@ -2,28 +2,24 @@ import React, { useState, useEffect } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
-  Clock,
   CreditCard,
-  FileText,
   User,
-  MapPin,
   Phone,
   Mail,
   Calendar,
   CheckCircle,
   XCircle,
-  Building,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import Loader from "../../../../common/Loader";
 import { AlertModal } from "../../../../common/modals/alert-modal";
 import { Badge } from "../../../../common/ui/badge";
 import { Button } from "../../../../common/ui/button";
+import DocumentPreview from "./DocumentPreview";
 import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
 } from "../../../../common/ui/card";
 import {
   Tabs,
@@ -32,8 +28,22 @@ import {
   TabsTrigger,
 } from "../../../../common/ui/tabs";
 import { Textarea } from "../../../../common/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../common/ui/select";
 import API from "../../../../config/axios-config";
 import { toast } from "react-hot-toast";
+import { useConsumers } from "../../hooks/useConsumers";
+
+// Bank Information interface
+interface BankInfo {
+  id: number;
+  accountNumber: string;
+  accountName: string;
+  bankName: string;
+  branchName: string;
+  swiftCode: string;
+  iban: string;
+  isPrimary: boolean;
+}
 
 // Consumer interface
 interface Consumer {
@@ -42,22 +52,23 @@ interface Consumer {
   email: string;
   phoneNumber: string;
   nationalId: string;
-  gender: string;
-  dateOfBirth: string;
+  employeeId: string;
+  tin: string;
+  jobTitle: string;
+  department: string;
+  grossSalary: number;
+  netSalary: number;
+  employmentType: string;
   maritalStatus: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    postalCode: string;
-    country: string;
-  };
-  occupation: string;
-  employer: string;
-  income: number;
-  bankAccount: string;
-  linkedCoop: string;
-  status: "Active" | "Inactive" | "Pending";
+  numberOfDependants: number;
+  approvedBy: string;
+  approvedAt: string;
+  rejectedBy: string;
+  rejectedAt: string;
+  bankInfo: BankInfo[];
+  docs?: any[]; // Documents array
+  status: "Approved" | "Rejected" | "Pending"; // Super Admin Status
+  adminStatus: "Approved" | "Rejected" | "Pending"; // Partner Status
   createdAt: string;
   institutionId: number;
 }
@@ -114,25 +125,6 @@ const InfoField: React.FC<InfoFieldProps> = ({
   </div>
 );
 
-// Reusable Activity Item Component
-interface ActivityItemProps {
-  action: string;
-  timestamp: string;
-}
-
-const ActivityItem: React.FC<ActivityItemProps> = ({ action, timestamp }) => (
-  <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
-    <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
-    <div className="flex-1">
-      <div className="text-sm font-medium text-gray-900 dark:text-slate-100">
-        {action}
-      </div>
-      <div className="text-xs text-gray-500 dark:text-slate-400">
-        {timestamp}
-      </div>
-    </div>
-  </div>
-);
 
 const ConsumerDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -143,42 +135,88 @@ const ConsumerDetailsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [openApprove, setOpenApprove] = useState(false);
   const [openReject, setOpenReject] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
+  const [selectedRejectReason, setSelectedRejectReason] = useState("");
+  const [customReason, setCustomReason] = useState("");
+
+  // Predefined rejection reasons (same as institutions/agents)
+  const rejectionReasons = [
+    "The tin number doesn't match.",
+    "Insufficient or invalid documentation provided for verification.",
+    "Trade License not renewed",
+    "Invalid ID card",
+    "Other"
+  ];
+
+  // Use the consumers hook for approve/reject functionality
+  const {
+    approveConsumer,
+    rejectConsumer,
+    isApproving,
+    isRejecting,
+  } = useConsumers(consumer?.institutionId, false);
 
   // Handler functions
   const handleBack = () => {
-    navigate(-1); // Go back to previous page (consumer list or approval management)
+    // Check if we came from an institution details page
+    const urlParams = new URLSearchParams(window.location.search);
+    const institutionId = urlParams.get('institutionId');
+    
+    if (institutionId) {
+      // If we came from institution details, go back to the consumer list for that institution
+      navigate(`/coop/approval/institutions/${institutionId}/consumers`);
+    } else {
+      // Otherwise, go back to the main approval page
+      navigate('/coop/approval');
+    }
   };
 
   const onApprove = async () => {
+    if (!consumer?.id) {
+      toast.error("Invalid consumer ID");
+      return;
+    }
+    
     try {
-      await API.post(`/v1/consumers/${id}/approve`);
+      await approveConsumer(consumer.id);
       setOpenApprove(false);
-      toast.success("Consumer approved successfully!");
       
       // Update consumer status locally
       if (consumer) {
-        setConsumer({ ...consumer, status: "Active" });
+        setConsumer({ ...consumer, status: "Approved" });
       }
     } catch (error: any) {
       console.error("Error approving consumer:", error);
-      toast.error(error?.response?.data?.message || "Failed to approve consumer");
+      // Error message is already handled by the mutation
     }
   };
 
   const onReject = async () => {
-    if (!rejectReason.trim()) {
+    if (!consumer?.id) {
+      toast.error("Invalid consumer ID");
+      return;
+    }
+
+    // Determine the reason to send
+    const finalReason = selectedRejectReason === "Other" ? customReason : selectedRejectReason;
+    
+    if (!finalReason.trim()) {
       toast.error("Please provide a reason for rejection");
       return;
     }
+    
     try {
-      await API.post(`/v1/consumers/${id}/reject?reason=${rejectReason}`);
+      await rejectConsumer({ consumerId: consumer.id, reason: finalReason });
       setOpenReject(false);
-      setRejectReason("");
-      toast.success("Consumer rejected successfully!");
+      setSelectedRejectReason("");
+      setCustomReason("");
+      
+      // Update consumer status locally
+      if (consumer) {
+        setConsumer({ ...consumer, status: "Rejected" });
+      }
     } catch (error: any) {
       console.error("Error rejecting consumer:", error);
-      toast.error(error?.response?.data?.message || "Failed to reject consumer");
+      // Error message is already handled by the mutation
     }
   };
 
@@ -192,31 +230,79 @@ const ConsumerDetailsPage: React.FC = () => {
         const consumerResponse = await API.get(`/v1/consumers/${id}`);
         const consumerData = consumerResponse.data?.data || consumerResponse.data;
         
+        console.log("[CONSUMER DETAILS] Raw API response:", consumerData);
+        console.log("[CONSUMER DETAILS] National ID fields:", {
+          nationalId: consumerData?.nationalId,
+          idNumber: consumerData?.idNumber,
+          national_id: consumerData?.national_id,
+          id_number: consumerData?.id_number,
+          nationalIdNumber: consumerData?.nationalIdNumber
+        });
+        console.log("[CONSUMER DETAILS] Employee ID fields:", {
+          employeeId: consumerData?.employeeId,
+          employee_id: consumerData?.employee_id,
+          empId: consumerData?.empId,
+          emp_id: consumerData?.emp_id,
+          employeeNumber: consumerData?.employeeNumber
+        });
+        console.log("[CONSUMER DETAILS] Employment Type fields:", {
+          employmentType: consumerData?.employmentType,
+          employeeType: consumerData?.employeeType,
+          empType: consumerData?.empType,
+          employee_type: consumerData?.employee_type
+        });
+        
         if (consumerData) {
+          // Map partner status (adminStatus) - check multiple possible field names
+          let mappedAdminStatus: "Approved" | "Rejected" | "Pending" = "Pending";
+          if (consumerData.approvalStatus) {
+            mappedAdminStatus = consumerData.approvalStatus === "APPROVED" || consumerData.approvalStatus === "Approved" ? "Approved" :
+                               consumerData.approvalStatus === "REJECTED" || consumerData.approvalStatus === "Rejected" ? "Rejected" : "Pending";
+          } else if (consumerData.partnerStatus) {
+            mappedAdminStatus = consumerData.partnerStatus === "APPROVED" || consumerData.partnerStatus === "Approved" ? "Approved" :
+                               consumerData.partnerStatus === "REJECTED" || consumerData.partnerStatus === "Rejected" ? "Rejected" : "Pending";
+          } else if (consumerData.coopAdminStatus) {
+            mappedAdminStatus = consumerData.coopAdminStatus === "APPROVED" || consumerData.coopAdminStatus === "Approved" ? "Approved" :
+                               consumerData.coopAdminStatus === "REJECTED" || consumerData.coopAdminStatus === "Rejected" ? "Rejected" : "Pending";
+          }
+          
+          // Map super admin status - check multiple possible field names
+          let mappedStatus: "Approved" | "Rejected" | "Pending" = "Pending";
+          if (consumerData.superAdminStatus) {
+            mappedStatus = consumerData.superAdminStatus === "APPROVED" || consumerData.superAdminStatus === "Approved" ? "Approved" :
+                          consumerData.superAdminStatus === "REJECTED" || consumerData.superAdminStatus === "Rejected" ? "Rejected" : "Pending";
+          } else if (consumerData.bankApprovalStatus) {
+            mappedStatus = consumerData.bankApprovalStatus === "APPROVED" || consumerData.bankApprovalStatus === "Approved" ? "Approved" :
+                          consumerData.bankApprovalStatus === "REJECTED" || consumerData.bankApprovalStatus === "Rejected" ? "Rejected" : "Pending";
+          } else if (consumerData.status) {
+            mappedStatus = consumerData.status === "APPROVED" || consumerData.status === "Approved" ? "Approved" :
+                          consumerData.status === "REJECTED" || consumerData.status === "Rejected" ? "Rejected" : "Pending";
+          }
+
           // Transform consumer data
           const transformedConsumer: Consumer = {
             id: consumerData.id,
-            fullName: consumerData.fullName || consumerData.name || `Consumer ${consumerData.id}`,
+            fullName: consumerData.fullLegalName || consumerData.fullName || consumerData.name || `Consumer ${consumerData.id}`,
             email: consumerData.email || "",
             phoneNumber: consumerData.phoneNumber || consumerData.phone || "",
-            nationalId: consumerData.nationalId || consumerData.idNumber || "",
-            gender: consumerData.gender || "",
-            dateOfBirth: consumerData.dateOfBirth || consumerData.dob || "",
-            maritalStatus: consumerData.maritalStatus || "",
-            address: {
-              street: consumerData.address?.street || consumerData.address || "",
-              city: consumerData.address?.city || "",
-              state: consumerData.address?.state || "",
-              postalCode: consumerData.address?.postalCode || "",
-              country: consumerData.address?.country || "",
-            },
-            occupation: consumerData.occupation || "",
-            employer: consumerData.employer || "",
-            income: consumerData.income || 0,
-            bankAccount: consumerData.bankAccount || "",
-            linkedCoop: consumerData.linkedCoop || "",
-            status: consumerData.status === "ACTIVE" ? "Active" : 
-                    consumerData.status === "INACTIVE" ? "Inactive" : "Pending",
+            nationalId: consumerData.nationalId || consumerData.idNumber || consumerData.national_id || consumerData.id_number || consumerData.nationalIdNumber || "",
+            employeeId: consumerData.employeeId || consumerData.employee_id || consumerData.empId || consumerData.emp_id || consumerData.employeeNumber || "",
+            tin: consumerData.tin || consumerData.tinNumber || "",
+            jobTitle: consumerData.jobTitle || consumerData.position || consumerData.title || "",
+            department: consumerData.department || "",
+            grossSalary: consumerData.grossSalary || consumerData.grossIncome || 0,
+            netSalary: consumerData.netSalary || consumerData.netIncome || 0,
+            employmentType: consumerData.employmentType || consumerData.employeeType || consumerData.empType || consumerData.employee_type || "",
+            maritalStatus: consumerData.maritalStatus || consumerData.marital_status || "",
+            numberOfDependants: consumerData.numberOfDependants || consumerData.dependants || consumerData.number_of_dependants || 0,
+            approvedBy: consumerData.approvedBy || consumerData.approved_by || "",
+            approvedAt: consumerData.approvedAt || consumerData.approved_at || "",
+            rejectedBy: consumerData.rejectedBy || consumerData.rejected_by || "",
+            rejectedAt: consumerData.rejectedAt || consumerData.rejected_at || "",
+            bankInfo: consumerData.bankInfo || consumerData.bank_info || consumerData.bankAccounts || [],
+            docs: consumerData.docs || consumerData.documents || consumerData.files || [],
+            status: mappedStatus,
+            adminStatus: mappedAdminStatus,
             createdAt: consumerData.createdAt || new Date().toISOString(),
             institutionId: consumerData.institutionId || 0,
           };
@@ -257,21 +343,18 @@ const ConsumerDetailsPage: React.FC = () => {
     return <ErrorState onBack={handleBack} />;
   }
 
-  // Mock data for demonstration
-  const recentActivities = [
-    { action: "Consumer profile updated", timestamp: "2 hours ago" },
-    { action: "Bank account verified", timestamp: "1 day ago" },
-    { action: "Consumer registered", timestamp: "5 days ago" },
-  ];
+
+  // Check if consumer can be approved/rejected (only if partner has approved)
+  const canApproveOrReject = consumer?.adminStatus === "Approved" && consumer?.status === "Pending";
 
   const getStatusBadge = (status: string) => {
     const statusUpper = status?.toUpperCase();
-    const isActive = statusUpper === "ACTIVE";
-    const badgeLabel = isActive ? "Active" : statusUpper === "INACTIVE" ? "Inactive" : "Pending";
-    const badgeClass = isActive ? "bg-cyan-500" : statusUpper === "INACTIVE" ? "bg-red-500 text-white" : "bg-yellow-500";
+    const isApproved = statusUpper === "APPROVED";
+    const badgeLabel = isApproved ? "Approved" : statusUpper === "REJECTED" ? "Rejected" : "Pending";
+    const badgeClass = isApproved ? "bg-cyan-500" : statusUpper === "REJECTED" ? "bg-red-500 text-white" : "bg-yellow-500";
     
     return (
-      <Badge variant={isActive ? "default" : "secondary"} className={badgeClass}>
+      <Badge variant={isApproved ? "default" : "secondary"} className={badgeClass}>
         {badgeLabel}
       </Badge>
     );
@@ -285,10 +368,9 @@ const ConsumerDetailsPage: React.FC = () => {
           isOpen={openApprove}
           onClose={() => setOpenApprove(false)}
           onConfirm={onApprove}
-          loading={false}
+          loading={isApproving}
           title="Approve Consumer"
           description="Are you sure you want to approve this consumer?"
-          variant="success"
         />
 
         {/* Reject Modal */}
@@ -296,21 +378,46 @@ const ConsumerDetailsPage: React.FC = () => {
           isOpen={openReject}
           onClose={() => {
             setOpenReject(false);
-            setRejectReason("");
+            setSelectedRejectReason("");
+            setCustomReason("");
           }}
           onConfirm={onReject}
-          loading={false}
+          loading={isRejecting}
           title="Reject Consumer"
           description="Please provide a reason for rejecting this consumer:"
           content={
-            <div className="mt-4">
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  Select a reason:
+                </label>
+                <Select value={selectedRejectReason} onValueChange={setSelectedRejectReason}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a rejection reason" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rejectionReasons.map((reason) => (
+                      <SelectItem key={reason} value={reason}>
+                        {reason}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {selectedRejectReason === "Other" && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                    Custom reason:
+                  </label>
               <Textarea
-                placeholder="Enter rejection reason..."
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
+                    placeholder="Enter custom rejection reason..."
+                    value={customReason}
+                    onChange={(e) => setCustomReason(e.target.value)}
                 className="w-full"
                 rows={3}
               />
+                </div>
+              )}
             </div>
           }
         />
@@ -335,7 +442,7 @@ const ConsumerDetailsPage: React.FC = () => {
                   {consumer.fullName}
                 </h1>
                 <p className="text-gray-600 dark:text-slate-400">
-                  Consumer • ID: {consumer.nationalId || consumer.id}
+                  Employee ID: {consumer.employeeId || "N/A"}
                 </p>
                 {institution && (
                   <p className="text-sm text-gray-500 dark:text-slate-400">
@@ -344,7 +451,10 @@ const ConsumerDetailsPage: React.FC = () => {
                 )}
               </div>
               <div className="flex items-center space-x-2">
+                <div className="text-right">
+                  <div className="text-sm text-gray-500 dark:text-slate-400 mb-1">Super Admin Status</div>
                 {getStatusBadge(consumer.status)}
+                </div>
               </div>
             </div>
           </CardHeader>
@@ -366,43 +476,28 @@ const ConsumerDetailsPage: React.FC = () => {
                   value={consumer.nationalId || "N/A"} 
                 />
                 <InfoField 
-                  label="Gender" 
-                  value={consumer.gender || "N/A"} 
+                  label="TIN" 
+                  value={consumer.tin || "N/A"} 
                 />
                 <InfoField 
-                  label="Date of Birth" 
-                  value={consumer.dateOfBirth ? new Date(consumer.dateOfBirth).toLocaleDateString() : "N/A"} 
-                  icon={<Calendar className="w-4 h-4" />}
+                  label="Job Title" 
+                  value={consumer.jobTitle || "N/A"} 
                 />
               </div>
               <div className="space-y-4">
                 <InfoField 
-                  label="Marital Status" 
-                  value={consumer.maritalStatus || "N/A"} 
+                  label="Department" 
+                  value={consumer.department || "N/A"} 
                 />
                 <InfoField 
-                  label="Occupation" 
-                  value={consumer.occupation || "N/A"} 
-                />
-                <InfoField 
-                  label="Employer" 
-                  value={consumer.employer || "N/A"} 
-                />
-                <InfoField 
-                  label="Income" 
-                  value={consumer.income ? `$${consumer.income.toLocaleString()}` : "N/A"} 
+                  label="Gross Salary" 
+                  value={consumer.grossSalary ? `$${consumer.grossSalary.toLocaleString()}` : "N/A"} 
                   icon={<CreditCard className="w-4 h-4" />}
                 />
                 <InfoField 
-                  label="Address" 
-                  value={
-                    <div>
-                      <div>{consumer.address.street}</div>
-                      <div>{consumer.address.city}, {consumer.address.state} {consumer.address.postalCode}</div>
-                      <div>{consumer.address.country}</div>
-                    </div>
-                  } 
-                  icon={<MapPin className="w-4 h-4" />}
+                  label="Net Salary" 
+                  value={consumer.netSalary ? `$${consumer.netSalary.toLocaleString()}` : "N/A"} 
+                  icon={<CreditCard className="w-4 h-4" />}
                 />
               </div>
             </div>
@@ -414,24 +509,34 @@ const ConsumerDetailsPage: React.FC = () => {
           <Button
             variant="destructive"
             onClick={() => setOpenReject(true)}
-            disabled={consumer.status === "Inactive"}
+            disabled={!canApproveOrReject || isRejecting}
           >
             <XCircle className="w-4 h-4 mr-2" />
-            Reject {`${consumer.superAdminApprovalStatus} ${consumer.adminApproval}`}
+            {isRejecting ? "Rejecting..." : "Reject"}
           </Button>
           <Button
             onClick={() => setOpenApprove(true)}
-            disabled={consumer.status === "Active"}
+            disabled={!canApproveOrReject || isApproving}
             className="bg-cyan-600 hover:bg-cyan-700"
           >
             <CheckCircle className="w-4 h-4 mr-2" />
-            Approve
+            {isApproving ? "Approving..." : "Approve"}
           </Button>
         </div>
+        
+        {!canApproveOrReject && (
+          <div className="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/40 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg shadow-md">
+            <div className="text-sm text-yellow-900 dark:text-yellow-100 font-semibold">
+              {consumer?.adminStatus !== "Approved" 
+                ? "This consumer must be approved by the partner first before it can be approved/rejected by super admin."
+                : "This consumer has already been processed."}
+            </div>
+          </div>
+        )}
 
         {/* Tabbed Sections */}
         <Tabs defaultValue="details" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 dark:bg-slate-700 mb-5">
+          <TabsList className="grid w-full grid-cols-2 dark:bg-slate-700 mb-5">
             <TabsTrigger
               value="details"
               className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
@@ -444,30 +549,30 @@ const ConsumerDetailsPage: React.FC = () => {
             >
               Documents
             </TabsTrigger>
-            <TabsTrigger
-              value="activity"
-              className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
-            >
-              Activity
-            </TabsTrigger>
           </TabsList>
 
           {/* Details Tab */}
           <TabsContent value="details">
             <Card className="dark:bg-slate-800 dark:border-slate-700">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
-                  <User className="w-5 h-5" />
-                  <span>Consumer Information</span>
-                </CardTitle>
-              </CardHeader>
+              
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <InfoField label="Bank Account" value={consumer.bankAccount || "N/A"} />
-                    <InfoField label="Linked Cooperative" value={consumer.linkedCoop || "N/A"} />
-                  </div>
-                  <div className="space-y-4">
+                <div className="space-y-6">
+                  {/* Employee Information */}
+                  <div>
+                  
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <InfoField 
+                        label="Employment Type" 
+                        value={consumer.employmentType || "N/A"} 
+                      />
+                      <InfoField 
+                        label="Marital Status" 
+                        value={consumer.maritalStatus || "N/A"} 
+                      />
+                      <InfoField 
+                        label="Number of Dependants" 
+                        value={consumer.numberOfDependants?.toString() || "N/A"} 
+                      />
                     <InfoField 
                       label="Created Date" 
                       value={consumer.createdAt ? new Date(consumer.createdAt).toLocaleDateString("en-US", {
@@ -477,6 +582,92 @@ const ConsumerDetailsPage: React.FC = () => {
                       }) : "N/A"} 
                       icon={<Calendar className="w-4 h-4" />}
                     />
+                    </div>
+                  </div>
+
+                  {/* Approval Information */}
+                  <div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <InfoField 
+                        label="Super Admin Status" 
+                        value={consumer.status} 
+                      />
+                      <InfoField 
+                        label="Approved/Rejected By" 
+                        value={consumer.approvedBy || consumer.rejectedBy || "N/A"} 
+                      />
+                      <InfoField 
+                        label="Approved/Rejected At" 
+                        value={consumer.approvedAt ? new Date(consumer.approvedAt).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        }) : consumer.rejectedAt ? new Date(consumer.rejectedAt).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        }) : "N/A"} 
+                        icon={<Calendar className="w-4 h-4" />}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Bank Information */}
+                  <div>
+                    <div className="flex items-center space-x-2 mb-4">
+                      <CreditCard className="w-5 h-5 text-blue-600" />
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Bank Information</h3>
+                    </div>
+                    {consumer.bankInfo && consumer.bankInfo.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {consumer.bankInfo.map((bank, index) => (
+                          <div key={bank.id || index} className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Bank Name</label>
+                                  <p className="text-gray-900 dark:text-slate-100 font-medium">{bank.bankName || "N/A"}</p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Account Number</label>
+                                  <p className="text-gray-900 dark:text-slate-100">{bank.accountNumber || "N/A"}</p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Account Name</label>
+                                  <p className="text-gray-900 dark:text-slate-100">{bank.accountName || "N/A"}</p>
+                                </div>
+                              </div>
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Branch Name</label>
+                                  <p className="text-gray-900 dark:text-slate-100">{bank.branchName || "N/A"}</p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Swift Code</label>
+                                  <p className="text-gray-900 dark:text-slate-100">{bank.swiftCode || "N/A"}</p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">IBAN</label>
+                                  <p className="text-gray-900 dark:text-slate-100">{bank.iban || "N/A"}</p>
+                                </div>
+                              </div>
+                            </div>
+                            {bank.isPrimary && (
+                              <div className="mt-4">
+                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200">
+                                  Primary Account
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500 dark:text-slate-400">
+                        <p>No bank information available</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -485,44 +676,40 @@ const ConsumerDetailsPage: React.FC = () => {
 
           {/* Documents Tab */}
           <TabsContent value="documents">
-            <Card className="dark:bg-slate-800 dark:border-slate-700">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
-                  <FileText className="w-5 h-5" />
-                  <span>Documents</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-gray-500 dark:text-slate-400">
-                  <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No documents uploaded yet</p>
-                </div>
-              </CardContent>
-            </Card>
+            <DocumentPreview 
+              documents={consumer.docs && consumer.docs.length > 0 ? consumer.docs.map((doc: any, index: number) => ({
+                id: doc.id || `doc-${index}`,
+                name: doc.name || `Document ${index + 1}`,
+                type: doc.type || 'Document',
+                uploadedAt: doc.uploadedAt || new Date().toISOString(),
+                status: doc.status || 'Pending',
+                url: doc.url,
+                size: doc.size
+              })) : [
+                // Sample documents for demonstration
+                {
+                  id: 'doc-1',
+                  name: 'Consumer ID Document',
+                  type: 'Identity Document',
+                  uploadedAt: new Date().toISOString(),
+                  status: 'Approved' as const,
+                  url: '#',
+                  size: '1.2 MB'
+                },
+                {
+                  id: 'doc-2',
+                  name: 'Employment Certificate',
+                  type: 'Employment Document',
+                  uploadedAt: new Date(Date.now() - 86400000).toISOString(),
+                  status: 'Pending' as const,
+                  url: '#',
+                  size: '0.8 MB'
+                }
+              ]}
+              title="Consumer Documents"
+            />
           </TabsContent>
 
-          {/* Activity Tab */}
-          <TabsContent value="activity">
-            <Card className="dark:bg-slate-800 dark:border-slate-700">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
-                  <Clock className="w-5 h-5" />
-                  <span>Recent Activity</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentActivities.map((activity, index) => (
-                    <ActivityItem
-                      key={index}
-                      action={activity.action}
-                      timestamp={activity.timestamp}
-                    />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </Card>
     </div>

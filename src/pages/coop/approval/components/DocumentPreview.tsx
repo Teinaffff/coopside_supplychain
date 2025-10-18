@@ -1,8 +1,9 @@
-import React, { useState } from "react";
-import { FileText, Eye, Download, Calendar, File, MoreVertical } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { FileText, Eye, Download, File } from "lucide-react";
 import { Button } from "../../../../common/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../../common/ui/card";
 import { Badge } from "../../../../common/ui/badge";
+import API from "../../../../config/axios-config";
 
 interface Document {
   id: string;
@@ -12,6 +13,7 @@ interface Document {
   status: "Approved" | "Pending" | "Rejected";
   url?: string;
   size?: string;
+  fileType?: string;
 }
 
 interface DocumentPreviewProps {
@@ -26,6 +28,81 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(
     documents.length > 0 ? documents[0] : null
   );
+  const [documentBlobUrls, setDocumentBlobUrls] = useState<Record<string, string>>({});
+  const [loadingDocuments, setLoadingDocuments] = useState<Set<string>>(new Set());
+  const [failedDocuments, setFailedDocuments] = useState<Set<string>>(new Set());
+
+  // Function to fetch document with authentication
+  const fetchDocumentWithAuth = async (document: Document) => {
+    if (!document.url || documentBlobUrls[document.id]) return;
+    
+    setLoadingDocuments(prev => new Set(prev).add(document.id));
+    
+    try {
+      console.log('[FETCH DOCUMENT] Fetching document with auth:', document.url);
+      console.log('[FETCH DOCUMENT] Document details:', {
+        id: document.id,
+        name: document.name,
+        type: document.type,
+        fileType: document.fileType
+      });
+      
+      // Extract the relative path from the URL
+      const url = new URL(document.url);
+      const relativePath = url.pathname;
+      console.log('[FETCH DOCUMENT] Extracted relative path:', relativePath);
+      
+      const response = await API.get(relativePath, {
+        responseType: 'blob',
+        headers: {
+          'Accept': 'application/pdf, image/*, */*'
+        }
+      });
+      
+      console.log('[FETCH DOCUMENT] API response:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+        dataType: typeof response.data,
+        dataSize: response.data?.size
+      });
+      
+      const blob = new Blob([response.data], { type: response.data.type || 'application/pdf' });
+      const blobUrl = URL.createObjectURL(blob);
+      
+      setDocumentBlobUrls(prev => ({
+        ...prev,
+        [document.id]: blobUrl
+      }));
+      
+      console.log('[FETCH DOCUMENT] Successfully created blob URL for:', document.name, 'Blob URL:', blobUrl);
+    } catch (error: any) {
+      console.error('[FETCH DOCUMENT] Error fetching document:', error);
+      console.error('[FETCH DOCUMENT] Error details:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        url: document.url
+      });
+      
+      // Mark document as failed
+      setFailedDocuments(prev => new Set(prev).add(document.id));
+    } finally {
+      setLoadingDocuments(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(document.id);
+        return newSet;
+      });
+    }
+  };
+
+  // Fetch document when selected
+  useEffect(() => {
+    if (selectedDocument && !documentBlobUrls[selectedDocument.id]) {
+      fetchDocumentWithAuth(selectedDocument);
+    }
+  }, [selectedDocument]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -60,9 +137,10 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   };
 
   const handleDownload = (document: Document) => {
-    if (document.url) {
-      const link = document.createElement('a');
-      link.href = document.url;
+    const urlToUse = documentBlobUrls[document.id] || document.url;
+    if (urlToUse) {
+      const link = window.document.createElement('a');
+      link.href = urlToUse;
       link.download = document.name;
       link.click();
     } else {
@@ -107,41 +185,35 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
           <CardContent>
             <div className="space-y-0">
               {/* Table Header */}
-              <div className="grid grid-cols-12 gap-4 py-2 px-3 text-xs font-medium text-gray-500 dark:text-slate-400 border-b border-gray-200 dark:border-slate-600">
-                <div className="col-span-3">Document Type</div>
+              <div className="grid grid-cols-10 gap-4 py-2 px-3 text-xs font-medium text-gray-500 dark:text-slate-400 border-b border-gray-200 dark:border-slate-600">
+                <div className="col-span-4">Document Type</div>
                 <div className="col-span-3">File Name</div>
                 <div className="col-span-2">Status</div>
-                <div className="col-span-2">Uploaded Date</div>
-                <div className="col-span-2">Actions</div>
+                <div className="col-span-1">Uploaded Date</div>
               </div>
               
               {/* Table Rows */}
               {documents.map((doc, index) => (
                 <div 
                   key={doc.id || index}
-                  className={`grid grid-cols-12 gap-4 py-3 px-3 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer transition-colors ${
+                  className={`grid grid-cols-10 gap-4 py-3 px-3 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer transition-colors ${
                     selectedDocument?.id === doc.id || (selectedDocument === null && index === 0)
                       ? 'bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500'
                       : ''
                   }`}
                   onClick={() => setSelectedDocument(doc)}
                 >
-                  <div className="col-span-3 text-sm font-medium text-gray-900 dark:text-slate-100">
+                  <div className="col-span-4 text-sm font-medium text-gray-900 dark:text-slate-100 truncate">
                     {doc.type}
                   </div>
-                  <div className="col-span-3 text-sm text-gray-600 dark:text-slate-300">
+                  <div className="col-span-3 text-sm text-gray-600 dark:text-slate-300 truncate">
                     {doc.name}
                   </div>
                   <div className="col-span-2">
                     {getStatusBadge(doc.status)}
                   </div>
-                  <div className="col-span-2 text-sm text-gray-500 dark:text-slate-400">
+                  <div className="col-span-1 text-sm text-gray-500 dark:text-slate-400">
                     {formatDate(doc.uploadedAt)}
-                  </div>
-                  <div className="col-span-2">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
                   </div>
                 </div>
               ))}
@@ -205,22 +277,151 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                 </div>
 
                 {/* Document Preview Area */}
-                <div className="bg-gray-100 dark:bg-slate-700 rounded-lg p-8 text-center">
-                  <div className="bg-blue-500 rounded-lg h-64 flex items-center justify-center mb-4">
-                    <div className="text-white text-center">
-                      <FileText className="w-16 h-16 mx-auto mb-2 opacity-80" />
-                      <p className="text-lg font-medium">Document Preview</p>
-                      <p className="text-sm opacity-80">PDF or Image content would appear here</p>
+                <div className="bg-gray-100 dark:bg-slate-700 rounded-lg p-4">
+                  {selectedDocument.url ? (
+                    <div className="w-full h-96">
+                      {loadingDocuments.has(selectedDocument.id) ? (
+                        <div className="h-full flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                            <p className="text-sm text-gray-600 dark:text-slate-400">Loading document...</p>
+                          </div>
+                        </div>
+                      ) : selectedDocument.type?.toLowerCase().includes('pdf') || selectedDocument.fileType === 'application/pdf' ? (
+                        <div className="w-full h-full">
+                          {documentBlobUrls[selectedDocument.id] ? (
+                            <iframe
+                              src={documentBlobUrls[selectedDocument.id]}
+                              className="w-full h-full rounded-lg border-0"
+                              title={selectedDocument.name}
+                              onError={() => console.log('PDF iframe failed to load:', documentBlobUrls[selectedDocument.id])}
+                              onLoad={() => console.log('PDF iframe loaded successfully:', documentBlobUrls[selectedDocument.id])}
+                            />
+                          ) : (
+                            <div className="h-full flex items-center justify-center">
+                              <div className="text-center">
+                                <FileText className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                                {failedDocuments.has(selectedDocument.id) ? (
+                                  <>
+                                    <p className="text-lg font-medium text-red-600 dark:text-red-400 mb-2">
+                                      Failed to load document
+                                    </p>
+                                    <p className="text-sm text-gray-500 dark:text-slate-500 mb-4">
+                                      The document could not be loaded. This might be due to authentication or file access issues.
+                                    </p>
+                                    <div className="space-y-2">
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                          setFailedDocuments(prev => {
+                                            const newSet = new Set(prev);
+                                            newSet.delete(selectedDocument.id);
+                                            return newSet;
+                                          });
+                                          fetchDocumentWithAuth(selectedDocument);
+                                        }}
+                                        className="text-xs mr-2"
+                                      >
+                                        <Eye className="w-3 h-3 mr-1" />
+                                        Retry Load
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => window.open(selectedDocument.url, '_blank')}
+                                        className="text-xs"
+                                      >
+                                        <Eye className="w-3 h-3 mr-1" />
+                                        Open Directly
+                                      </Button>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <p className="text-lg font-medium text-gray-600 dark:text-slate-400 mb-2">
+                                      Document not loaded
+                                    </p>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => fetchDocumentWithAuth(selectedDocument)}
+                                      className="text-xs"
+                                    >
+                                      <Eye className="w-3 h-3 mr-1" />
+                                      Load Document
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          <div className="mt-2 text-center">
+                            <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">
+                              If PDF doesn't load, try opening in new tab:
+                            </p>
+                            {/* <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const urlToOpen = documentBlobUrls[selectedDocument.id] || selectedDocument.url;
+                                console.log('Opening PDF in new tab:', urlToOpen);
+                                window.open(urlToOpen, '_blank');
+                              }}
+                              className="text-xs"
+                            >
+                              <Eye className="w-3 h-3 mr-1" />
+                              Open PDF
+                            </Button> */}
+                          </div>
+                        </div>
+                      ) : selectedDocument.type?.toLowerCase().includes('image') || selectedDocument.fileType?.startsWith('image/') ? (
+                        <img
+                          src={documentBlobUrls[selectedDocument.id] || selectedDocument.url}
+                          alt={selectedDocument.name}
+                          className="w-full h-full object-contain rounded-lg"
+                          onError={() => {
+                            if (!documentBlobUrls[selectedDocument.id]) {
+                              fetchDocumentWithAuth(selectedDocument);
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="h-full flex items-center justify-center">
+                          <div className="text-center">
+                            <FileText className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                            <p className="text-lg font-medium text-gray-600 dark:text-slate-400 mb-2">
+                              Document Preview
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-slate-500 mb-4">
+                              This file type cannot be previewed directly
+                            </p>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleView(selectedDocument)}
+                              className="border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-900/30"
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              Open in New Tab
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  
-                  {/* 404-style placeholder */}
-                  <div className="text-center">
-                    <div className="text-6xl font-bold text-blue-500 mb-2">404</div>
-                    <p className="text-gray-600 dark:text-slate-400">
-                      Document preview not available
-                    </p>
-                  </div>
+                  ) : (
+                    <div className="h-96 flex items-center justify-center">
+                      <div className="text-center">
+                        <FileText className="w-16 h-16 mx-auto mb-4 text-gray-400" />
+                        <p className="text-lg font-medium text-gray-600 dark:text-slate-400 mb-2">
+                          Document Preview
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-slate-500">
+                          No document URL available
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* All Documents Thumbnails */}

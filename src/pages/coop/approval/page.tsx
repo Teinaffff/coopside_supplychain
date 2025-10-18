@@ -12,6 +12,10 @@ import ApprovalReportingDashboard from "./ApprovalReportingDashboard";
 import { useFactories } from "../hooks/use-factories";
 import { useAgents } from "../hooks/use-Agents";
 import { useInstitutions } from "../hooks/useInstitutions";
+import { ExportManufacturersDataToExcel } from "./components/ExportManufacturersDataToExcel";
+import { ExportAgentsDataToExcel } from "./components/ExportAgentsDataToExcel";
+import { ExportInstitutionsDataToExcel } from "./components/ExportInstitutionsDataToExcel";
+import { toast } from "react-hot-toast";
 
 
 
@@ -417,7 +421,25 @@ const ApprovalManagementPage: React.FC = () => {
 
               <Card>
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-xl">Manufacturies</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl">Manufacturies</CardTitle>
+                    <Button
+                      onClick={() => {
+                        if (entities.factories.length > 0) {
+                          ExportManufacturersDataToExcel(entities.factories, "Manufacturers");
+                        } else {
+                          toast.error("No manufacturer data to export");
+                        }
+                      }}
+                      disabled={entities.factories.length === 0}
+                      className="flex items-center space-x-2 bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span>Export to Excel</span>
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="px-6 pb-6">
                   <DataTable
@@ -500,7 +522,25 @@ const ApprovalManagementPage: React.FC = () => {
 
               <Card>
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-xl">Agents/Sellers</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl">Agents/Sellers</CardTitle>
+                    <Button
+                      onClick={() => {
+                        if (entities.agents.length > 0) {
+                          ExportAgentsDataToExcel(entities.agents, "Agents");
+                        } else {
+                          toast.error("No agent data to export");
+                        }
+                      }}
+                      disabled={entities.agents.length === 0}
+                      className="flex items-center space-x-2 bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span>Export to Excel</span>
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="px-6 pb-6">
                   <DataTable
@@ -583,7 +623,25 @@ const ApprovalManagementPage: React.FC = () => {
 
               <Card>
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-xl">Institutions</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl">Institutions</CardTitle>
+                    <Button
+                      onClick={() => {
+                        if (entities.institutions.length > 0) {
+                          ExportInstitutionsDataToExcel(entities.institutions, "Institutions");
+                        } else {
+                          toast.error("No institution data to export");
+                        }
+                      }}
+                      disabled={entities.institutions.length === 0}
+                      className="flex items-center space-x-2 bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span>Export to Excel</span>
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="px-6 pb-6">
                   <DataTable

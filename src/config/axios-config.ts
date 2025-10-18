@@ -18,22 +18,10 @@ API.interceptors.request.use((config) => {
     // Get access token from localStorage
     const accessToken = localStorage.getItem("accessToken");
     
-    // Debug: Check if token exists and log its presence
-    if (!accessToken) {
-      console.warn(`[AUTH WARNING] No access token found for request to ${config.url}`);
-    } else {
-      // Add Authorization header with Bearer token
+    // Add Authorization header with Bearer token
+    if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
-      
-      // Verify the header was set correctly
-      if (!config.headers.Authorization) {
-        console.error("[AUTH ERROR] Failed to set Authorization header");
-      }
     }
-    
-    // eslint-disable-next-line no-console
-    const maskedAuth = config.headers?.Authorization ? `${String(config.headers.Authorization).slice(0,8)}...` : null;
-    console.log("[API REQUEST]", config.method?.toUpperCase(), config.url, { data: config.data, Authorization: maskedAuth });
   } catch (error) {
     console.error("[AUTH ERROR] Error in request interceptor:", error);
   }

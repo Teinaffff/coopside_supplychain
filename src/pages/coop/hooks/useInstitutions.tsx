@@ -80,6 +80,8 @@ const fetchInstitutions = async (): Promise<Institution[]> => {
           createdAt: i.createdAt || i.createdDate || "",
           // Bank accounts information
           bankAccounts: i.bankAccounts || i.bankAccountInfos || i.bankDetails || [],
+          // Documents information
+          appUserDocuments: i.appUserDocuments || [],
           // Status flags mapping
           isActive: i.isActive !== undefined ? i.isActive : true,
           isDeleted: i.isDeleted !== undefined ? i.isDeleted : false,

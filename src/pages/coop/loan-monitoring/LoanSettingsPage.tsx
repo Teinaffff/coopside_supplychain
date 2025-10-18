@@ -3,7 +3,7 @@ import { Card } from "../../../common/ui/card";
 import { Button } from "../../../common/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../common/ui/tabs";
 import { Settings, CreditCard, FileText } from "lucide-react";
-import LoanProductManagement from "../settings/components/LoanProductManagement";
+import LoanProductManagementNew from "../settings/components/LoanProductManagementNew";
 import TermsTemplates from "../settings/components/TermsTemplates";
 
 const LoanSettingsPage = () => {
@@ -31,7 +31,7 @@ const LoanSettingsPage = () => {
         </TabsList>
 
         <TabsContent value="loan-products">
-          <LoanProductManagement />
+          <LoanProductManagementNew />
         </TabsContent>
 
         <TabsContent value="terms">

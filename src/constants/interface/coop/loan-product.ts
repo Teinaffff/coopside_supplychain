@@ -3,7 +3,48 @@ interface Timestamps {
   updatedAt?: string;
 }
 
+// API Response Structure (matches backend)
 export interface LoanProduct extends Timestamps {
+  id: number;
+  code: string;
+  name: string;
+  description: string;
+  defaultInterestRate: number;
+  minInterestRate: number;
+  maxInterestRate: number;
+  defaultRepaymentPeriodMonths: number;
+  minRepaymentPeriodMonths: number;
+  maxRepaymentPeriodMonths: number;
+  minLoanAmount: number;
+  maxLoanAmount: number;
+  processingFeeType: "PERCENTAGE" | "FIXED";
+  processingFeeValue: number;
+  minProcessingFee: number;
+  maxProcessingFee: number;
+  latePaymentPenaltyRate: number;
+  prepaymentAllowed: boolean;
+  prepaymentPenaltyRate: number;
+  collateralRequired: boolean;
+  guarantorRequired: boolean;
+  minCreditScore: number;
+  requiredDocuments: string[];
+  requiresPartnerApproval: boolean;
+  requiresAdminApproval: boolean;
+  autoApproveThreshold: number;
+  minScoreForAutoApprove: number;
+  isActive: boolean;
+  displayOrder: number;
+  additionalSettings: any;
+  termsAndConditions: string;
+  createdBy: number;
+  updatedBy: number | null;
+  isDeleted: boolean;
+  deletedAt: string | null;
+  deletedBy: number | null;
+}
+
+// Legacy interface for backward compatibility (used in existing components)
+export interface LegacyLoanProduct extends Timestamps {
   id: string;
   productName: string;
   productCode: string;
@@ -116,7 +157,74 @@ export interface InterestRateTier {
   description?: string;
 }
 
+// New API-compatible form data interface
 export interface LoanProductFormData {
+  code: string;
+  name: string;
+  description: string;
+  defaultInterestRate: number;
+  minInterestRate: number;
+  maxInterestRate: number;
+  defaultRepaymentPeriodMonths: number;
+  minRepaymentPeriodMonths: number;
+  maxRepaymentPeriodMonths: number;
+  minLoanAmount: number;
+  maxLoanAmount: number;
+  processingFeeType: "PERCENTAGE" | "FIXED";
+  processingFeeValue: number;
+  minProcessingFee: number;
+  maxProcessingFee: number;
+  latePaymentPenaltyRate: number;
+  prepaymentAllowed: boolean;
+  prepaymentPenaltyRate: number;
+  collateralRequired: boolean;
+  guarantorRequired: boolean;
+  minCreditScore: number;
+  requiredDocuments: string[]; // This will be converted to JSON string before API call
+  requiresPartnerApproval: boolean;
+  requiresAdminApproval: boolean;
+  autoApproveThreshold: number;
+  minScoreForAutoApprove: number;
+  displayOrder: number;
+  additionalSettings?: any;
+  termsAndConditions: string;
+}
+
+// API request interface (with requiredDocuments as string)
+export interface CreateLoanProductRequest {
+  code: string;
+  name: string;
+  description: string;
+  defaultInterestRate: number;
+  minInterestRate: number;
+  maxInterestRate: number;
+  defaultRepaymentPeriodMonths: number;
+  minRepaymentPeriodMonths: number;
+  maxRepaymentPeriodMonths: number;
+  minLoanAmount: number;
+  maxLoanAmount: number;
+  processingFeeType: "PERCENTAGE" | "FIXED";
+  processingFeeValue: number;
+  minProcessingFee: number;
+  maxProcessingFee: number;
+  latePaymentPenaltyRate: number;
+  prepaymentAllowed: boolean;
+  prepaymentPenaltyRate: number;
+  collateralRequired: boolean;
+  guarantorRequired: boolean;
+  minCreditScore: number;
+  requiredDocuments: string; // JSON string for API
+  requiresPartnerApproval: boolean;
+  requiresAdminApproval: boolean;
+  autoApproveThreshold: number;
+  minScoreForAutoApprove: number;
+  displayOrder: number;
+  additionalSettings?: any;
+  termsAndConditions: string;
+}
+
+// Legacy form data interface for backward compatibility
+export interface LegacyLoanProductFormData {
   productName: string;
   productCode: string;
   description: string;

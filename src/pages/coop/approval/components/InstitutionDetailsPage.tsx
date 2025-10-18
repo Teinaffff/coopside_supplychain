@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
-  Clock,
   CreditCard,
   Building,
   MapPin,
@@ -14,6 +13,8 @@ import {
   Users,
   Search,
   RefreshCw,
+  FileText,
+  Eye,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import Loader from "../../../../common/Loader";
@@ -46,6 +47,7 @@ import {
 import { useInstitutions } from "../../hooks/useInstitutions";
 import { toast } from "react-hot-toast";
 import API from "../../../../config/axios-config";
+import { ExportConsumersDataToExcel } from "./ExportConsumersDataToExcel";
 
 // Consumer interface
 interface Consumer {
@@ -113,25 +115,6 @@ const InfoField: React.FC<InfoFieldProps> = ({
   </div>
 );
 
-// Reusable Activity Item Component
-interface ActivityItemProps {
-  action: string;
-  timestamp: string;
-}
-
-const ActivityItem: React.FC<ActivityItemProps> = ({ action, timestamp }) => (
-  <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
-    <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
-    <div className="flex-1">
-      <div className="text-sm font-medium text-gray-900 dark:text-slate-100">
-        {action}
-      </div>
-      <div className="text-xs text-gray-500 dark:text-slate-400">
-        {timestamp}
-      </div>
-    </div>
-  </div>
-);
 
 const InstitutionDetailsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -140,6 +123,7 @@ const InstitutionDetailsPage: React.FC = () => {
   const [openReject, setOpenReject] = useState(false);
   const [selectedRejectReason, setSelectedRejectReason] = useState("");
   const [customReason, setCustomReason] = useState("");
+  const [selectedAgreement, setSelectedAgreement] = useState<any>(null);
 
   // Predefined rejection reasons
   const rejectionReasons = [
@@ -149,13 +133,54 @@ const InstitutionDetailsPage: React.FC = () => {
     "Invalid ID card",
     "Other"
   ];
+
+  // Mock agreements data
+  const agreements = [
+    {
+      id: 1,
+      name: "Institution Onboarding Agreement",
+      status: "Pending",
+      consentBy: "Partner",
+      consentAt: "2024-01-15",
+      documentUrl: "#",
+      description: "Terms and conditions for institution onboarding process"
+    },
+    {
+      id: 2,
+      name: "Data Processing Agreement",
+      status: "Approved",
+      consentBy: "Partner",
+      consentAt: "2024-01-10",
+      documentUrl: "#",
+      description: "Agreement for processing consumer data and personal information"
+    },
+    {
+      id: 3,
+      name: "Service Level Agreement",
+      status: "Pending",
+      consentBy: "Partner",
+      consentAt: "2024-01-12",
+      documentUrl: "#",
+      description: "Service level commitments and performance standards"
+    },
+    {
+      id: 4,
+      name: "Financial Terms Agreement",
+      status: "Rejected",
+      consentBy: "Partner",
+      consentAt: "2024-01-08",
+      documentUrl: "#",
+      description: "Financial terms, fees, and payment conditions"
+    }
+  ];
   
   // Consumer state
   const [consumers, setConsumers] = useState<Consumer[]>([]);
   const [consumersLoading, setConsumersLoading] = useState(false);
   const [consumersError, setConsumersError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [partnerStatusFilter, setPartnerStatusFilter] = useState<string>("All");
+  const [superAdminStatusFilter, setSuperAdminStatusFilter] = useState<string>("All");
 
   const {
     institutions,
@@ -250,10 +275,10 @@ const InstitutionDetailsPage: React.FC = () => {
         return {
           id: consumer.id,
           fullName: consumer.fullLegalName || consumer.fullName || consumer.name || `Consumer ${consumer.id}`,
-          email: consumer.email || "",
-          phoneNumber: consumer.phoneNumber || consumer.phone || "",
-          department: consumer.department || "",
-          nationalId: consumer.nationalId || consumer.idNumber || "",
+          email: consumer.email || "N/A",
+          phoneNumber: consumer.phoneNumber || consumer.phone || "N/A",
+          department: consumer.department || "N/A",
+          nationalId: consumer.nationalId || consumer.idNumber || consumer.national_id || consumer.id_number || consumer.nationalIdNumber || "N/A",
           adminStatus: mappedAdminStatus,
           status: mappedStatus,
           createdAt: consumer.createdAt || new Date().toISOString(),
@@ -276,7 +301,7 @@ const InstitutionDetailsPage: React.FC = () => {
   }, [id]);
 
   // Refresh consumers when the consumers tab becomes active
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("details");
   
   useEffect(() => {
     if (activeTab === "consumers") {
@@ -328,11 +353,13 @@ const InstitutionDetailsPage: React.FC = () => {
                          consumer.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          consumer.nationalId.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = statusFilter === "All" || 
-                         consumer.adminStatus === statusFilter || 
-                         consumer.status === statusFilter;
+    const matchesPartnerStatus = partnerStatusFilter === "All" || 
+                                consumer.adminStatus === partnerStatusFilter;
     
-    return matchesSearch && matchesStatus;
+    const matchesSuperAdminStatus = superAdminStatusFilter === "All" || 
+                                   consumer.status === superAdminStatusFilter;
+    
+    return matchesSearch && matchesPartnerStatus && matchesSuperAdminStatus;
   });
 
   const getConsumerStatusBadge = (status: string) => {
@@ -425,12 +452,6 @@ const InstitutionDetailsPage: React.FC = () => {
     return <ErrorState onBack={handleBack} />;
   }
 
-  // Mock data for demonstration
-  const recentActivities = [
-    { action: "Institution registration submitted", timestamp: "2 hours ago" },
-    { action: "Documents uploaded", timestamp: "1 day ago" },
-    { action: "Application created", timestamp: "5 days ago" },
-  ];
 
   const getStatusBadge = (status: string) => {
     const statusUpper = status?.toUpperCase();
@@ -647,16 +668,16 @@ const InstitutionDetailsPage: React.FC = () => {
               Documents
             </TabsTrigger>
             <TabsTrigger
+              value="agreements"
+              className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
+            >
+              Agreements
+            </TabsTrigger>
+            <TabsTrigger
               value="consumers"
               className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
             >
               Consumers
-            </TabsTrigger>
-            <TabsTrigger
-              value="activity"
-              className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
-            >
-              Activity
             </TabsTrigger>
           </TabsList>
 
@@ -707,7 +728,7 @@ const InstitutionDetailsPage: React.FC = () => {
                         </div>
                         {bank.isPrimary && (
                           <div className="mt-3">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200">
                               Primary Account
                             </span>
                           </div>
@@ -775,46 +796,181 @@ const InstitutionDetailsPage: React.FC = () => {
           {/* Documents Tab */}
           <TabsContent value="documents">
             <DocumentPreview 
-              documents={institution.docs && institution.docs.length > 0 ? institution.docs.map((doc: any, index: number) => ({
-                id: doc.id || `doc-${index}`,
-                name: doc.name || `Document ${index + 1}`,
-                type: doc.type || 'Document',
-                uploadedAt: doc.uploadedAt || new Date().toISOString(),
-                status: doc.status || 'Pending',
-                url: doc.url,
-                size: doc.size
-              })) : [
-                // Sample documents for demonstration
-                {
-                  id: 'doc-1',
-                  name: 'Establishment Proclamation',
-                  type: 'Legal Document',
-                  uploadedAt: new Date().toISOString(),
-                  status: 'Approved' as const,
-                  url: '#',
-                  size: '4.1 MB'
-                },
-                {
-                  id: 'doc-2',
-                  name: 'Business Registration',
-                  type: 'Registration Document',
-                  uploadedAt: new Date(Date.now() - 86400000).toISOString(),
-                  status: 'Rejected' as const,
-                  url: '#',
-                  size: '2.3 MB'
-                },
-                {
-                  id: 'doc-3',
-                  name: 'Tax Certificate',
-                  type: 'Tax Document',
-                  uploadedAt: new Date(Date.now() - 172800000).toISOString(),
-                  status: 'Approved' as const,
-                  url: '#',
-                  size: '1.7 MB'
-                }
-              ]}
+              documents={institution.form.appUserDocuments && institution.form.appUserDocuments.length > 0 ? institution.form.appUserDocuments.map((doc: any, index: number) => {
+                const constructedUrl = doc.fileUrl ? (doc.fileUrl.startsWith('http') ? doc.fileUrl : `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5050'}${doc.fileUrl}`) : '';
+                console.log('[DOCUMENT DEBUG]', {
+                  originalFileUrl: doc.fileUrl,
+                  constructedUrl: constructedUrl,
+                  documentName: doc.documentName,
+                  documentType: doc.documentType
+                });
+                return {
+                  id: doc.id || `doc-${index}`,
+                  name: doc.documentName || `Document ${index + 1}`,
+                  type: doc.documentType || 'Document',
+                  uploadedAt: doc.uploadedAt || new Date().toISOString(),
+                  status: doc.status || 'Pending',
+                  url: constructedUrl,
+                  size: doc.fileSize ? `${(doc.fileSize / 1024 / 1024).toFixed(1)} MB` : 'Unknown',
+                  documentNumber: doc.documentNumber,
+                  fileType: doc.fileType,
+                  isVerified: doc.isVerified,
+                  reviewComments: doc.reviewComments,
+                  verifiedAt: doc.verifiedAt,
+                  approvedAt: doc.approvedAt,
+                  rejectedAt: doc.rejectedAt,
+                  approvedBy: doc.approvedBy,
+                  rejectedBy: doc.rejectedBy
+                };
+              }) : []}
               title="Institution Documents"
             />
+          </TabsContent>
+
+          {/* Agreements Tab */}
+          <TabsContent value="agreements">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Agreements List */}
+              <Card className="dark:bg-slate-800 dark:border-slate-700">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
+                      <FileText className="w-5 h-5 text-blue-600" />
+                      <span>Institution Agreements</span>
+                    </CardTitle>
+                    <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      {agreements.length}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-slate-400">
+                    Partner consent status for each agreement
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {/* Individual Agreements */}
+                    {agreements.map((agreement) => (
+                      <div
+                        key={agreement.id}
+                        className={`flex items-center justify-between p-4 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700 border transition-colors ${
+                          selectedAgreement?.id === agreement.id 
+                            ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' 
+                            : 'bg-white dark:bg-slate-800 border-gray-200 dark:border-slate-600'
+                        }`}
+                        onClick={() => {
+                          setSelectedAgreement(agreement);
+                          // Open document in document viewer
+                          window.open(agreement.documentUrl, '_blank');
+                        }}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3">
+                            <FileText className="w-5 h-5 text-gray-400 dark:text-slate-500" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 dark:text-slate-100">
+                                {agreement.name}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-slate-400">
+                                {agreement.description}
+                              </p>
+                              <div className="flex items-center space-x-4 mt-1">
+                                <span className="text-xs text-gray-500 dark:text-slate-400">
+                                  Partner Status: 
+                                  <Badge 
+                                    className={`ml-1 ${
+                                      agreement.status === "Approved" 
+                                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                        : agreement.status === "Rejected"
+                                        ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                                        : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                                    }`}
+                                  >
+                                    {agreement.status}
+                                  </Badge>
+                                </span>
+                                <span className="text-xs text-gray-500 dark:text-slate-400">
+                                  {new Date(agreement.consentAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center">
+                          <Eye className="w-4 h-4 text-gray-400 dark:text-slate-500" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Document Preview */}
+              <Card className="dark:bg-slate-800 dark:border-slate-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
+                    <Eye className="w-5 h-5 text-blue-600" />
+                    <span>Agreement Details</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {selectedAgreement ? (
+                    <div className="space-y-4">
+                      <div className="p-4 bg-gray-50 dark:bg-slate-700 rounded-lg">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2">
+                          {selectedAgreement.name}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-slate-400 mb-4">
+                          {selectedAgreement.description}
+                        </p>
+                        <div className="grid grid-cols-1 gap-3 text-sm">
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700 dark:text-slate-300">Partner Status:</span>
+                            <Badge 
+                              className={
+                                selectedAgreement.status === "Approved" 
+                                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                                  : selectedAgreement.status === "Rejected"
+                                  ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                                  : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                              }
+                            >
+                              {selectedAgreement.status}
+                            </Badge>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-medium text-gray-700 dark:text-slate-300">Consent Date:</span>
+                            <span className="text-gray-900 dark:text-slate-100">
+                              {new Date(selectedAgreement.consentAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Document Preview Area */}
+                      <div className="border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-lg p-8 text-center">
+                        <FileText className="w-12 h-12 text-gray-400 dark:text-slate-500 mx-auto mb-4" />
+                        <p className="text-gray-500 dark:text-slate-400 font-medium">
+                          Click agreement to view document
+                        </p>
+                        <p className="text-sm text-gray-400 dark:text-slate-500 mt-2">
+                          Document will open in a new tab
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <FileText className="w-16 h-16 text-gray-300 dark:text-slate-600 mx-auto mb-4" />
+                      <p className="text-gray-500 dark:text-slate-400 font-medium text-lg">
+                        No Agreement Selected
+                      </p>
+                      <p className="text-sm text-gray-400 dark:text-slate-500 mt-2">
+                        Click an agreement to view its details and open the document
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Consumers Tab */}
@@ -826,25 +982,43 @@ const InstitutionDetailsPage: React.FC = () => {
                     <Users className="w-5 h-5" />
                     <span>Consumers ({filteredConsumers.length})</span>
                   </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      console.log("[MANUAL REFRESH] User clicked refresh button");
-                      fetchConsumers();
-                    }}
-                    disabled={consumersLoading}
-                    className="flex items-center space-x-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40"
-                  >
-                    <RefreshCw className={`w-4 h-4 ${consumersLoading ? 'animate-spin' : ''}`} />
-                    <span>Refresh List</span>
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      onClick={() => {
+                        if (filteredConsumers.length > 0) {
+                          ExportConsumersDataToExcel(filteredConsumers, institution?.form?.fullLegalName || institution?.name);
+                        } else {
+                          toast.error("No consumer data to export");
+                        }
+                      }}
+                      disabled={consumersLoading || filteredConsumers.length === 0}
+                      className="flex items-center space-x-2 bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span>Export to Excel</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        console.log("[MANUAL REFRESH] User clicked refresh button");
+                        fetchConsumers();
+                      }}
+                      disabled={consumersLoading}
+                      className="flex items-center space-x-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${consumersLoading ? 'animate-spin' : ''}`} />
+                      <span>Refresh List</span>
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
                 {/* Search and Filter */}
                 <div className="mb-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="search">Search</Label>
                       <div className="relative">
@@ -859,10 +1033,24 @@ const InstitutionDetailsPage: React.FC = () => {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="status">Status</Label>
-                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <Label htmlFor="partnerStatus">Status by Partner</Label>
+                      <Select value={partnerStatusFilter} onValueChange={setPartnerStatusFilter}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder="Select partner status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="All">All</SelectItem>
+                          <SelectItem value="Approved">Approved</SelectItem>
+                          <SelectItem value="Rejected">Rejected</SelectItem>
+                          <SelectItem value="Pending">Pending</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="superAdminStatus">Status by Super Admin</Label>
+                      <Select value={superAdminStatusFilter} onValueChange={setSuperAdminStatusFilter}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select super admin status" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="All">All</SelectItem>
@@ -938,28 +1126,6 @@ const InstitutionDetailsPage: React.FC = () => {
             </Card>
           </TabsContent>
 
-          {/* Activity Tab */}
-          <TabsContent value="activity">
-            <Card className="dark:bg-slate-800 dark:border-slate-700">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
-                  <Clock className="w-5 h-5" />
-                  <span>Recent Activity</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentActivities.map((activity, index) => (
-                    <ActivityItem
-                      key={index}
-                      action={activity.action}
-                      timestamp={activity.timestamp}
-                    />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
       </Card>
     </div>
