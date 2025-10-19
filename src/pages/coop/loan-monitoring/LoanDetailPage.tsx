@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../common/ui/card";
 import { Button } from "../../../common/ui/button";
 import { Input } from "../../../common/ui/input";
@@ -14,6 +14,7 @@ import { processLoanApplicationStatus, ProcessedLoanApplication } from "../../..
 const LoanDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
   const [loanData, setLoanData] = useState<LoanApplication | null>(null);
   const [processedLoanData, setProcessedLoanData] = useState<ProcessedLoanApplication | null>(null);
@@ -32,6 +33,42 @@ const LoanDetailPage: React.FC = () => {
   const [interestRate, setInterestRate] = useState<number>(0);
   const [processingFeePercentage, setProcessingFeePercentage] = useState<number>(0);
   const [processingFeeFactor, setProcessingFeeFactor] = useState<number>(0);
+
+  // Debug: Log location state when component mounts
+  useEffect(() => {
+    console.log('LoanDetailPage mounted with location.state:', location.state);
+    console.log('LoanDetailPage mounted with sessionStorage:', sessionStorage.getItem('loanDetailReferrer'));
+  }, [location.state]);
+
+  // Function to handle back navigation
+  const handleBackNavigation = () => {
+    // Check if there's a state with the previous page
+    const state = location.state as { from?: string };
+    console.log('Back navigation - location.state:', location.state);
+    console.log('Back navigation - state.from:', state?.from);
+    
+    // Check sessionStorage as fallback
+    const sessionReferrer = sessionStorage.getItem('loanDetailReferrer');
+    console.log('Back navigation - sessionReferrer:', sessionReferrer);
+    
+    if (state?.from) {
+      console.log('Navigating to state.from:', state.from);
+      navigate(state.from);
+    } else if (sessionReferrer) {
+      console.log('Navigating to sessionReferrer:', sessionReferrer);
+      navigate(sessionReferrer);
+      // Clear the session storage after use
+      sessionStorage.removeItem('loanDetailReferrer');
+    } else {
+      console.log('No referrer found, using browser history');
+      // Fallback to browser history or default to loan monitoring
+      if (window.history.length > 1) {
+        navigate(-1);
+      } else {
+        navigate('/coop/loan-monitoring');
+      }
+    }
+  };
 
   // Function to fetch agent data
   const fetchAgentData = async (agentId: string) => {
@@ -315,9 +352,9 @@ const LoanDetailPage: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/coop/loan-monitoring')}
+          <Button
+            variant="outline"
+            onClick={handleBackNavigation}
             className="flex items-center"
           >
             ← Back

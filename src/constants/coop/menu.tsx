@@ -1,4 +1,4 @@
-import { LucideHome, ClipboardPlus, MonitorSmartphoneIcon, Banknote, FileText, Users2, Settings} from "lucide-react";
+import { LucideHome, ClipboardPlus, MonitorSmartphoneIcon, Banknote, FileText, Users2, Settings, CreditCard} from "lucide-react";
 
 export const menuItems = [
 
@@ -54,12 +54,12 @@ export const menuItems = [
   //   pathname: "/coop/transaction",
   //   icon: <ArrowRightLeft width={18} height={18} />,
   // },
-  // {
-  //   label: "Card Management",
-  //   to: "/coop/card",
-  //   pathname: "/coop/card",
-  //   icon: <CreditCard width={18} height={18} />,
-  // },
+  {
+    label: "Card Management",
+    to: "/coop/card",
+    pathname: "/coop/card",
+    icon: <CreditCard width={18} height={18} />,
+  },
   {
     label: "User Management",
     to: "/coop/users",

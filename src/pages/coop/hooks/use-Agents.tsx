@@ -106,42 +106,39 @@ const approveAgent = async (agentId: number): Promise<void> => {
 };
 
 // Reject agent function
+// Reject agent function
 const rejectAgent = async (agentId: number, reason: string): Promise<void> => {
   try {
     console.log("[REJECT AGENT] Input - agentId:", agentId, "Type:", typeof agentId, "Reason:", reason);
-    
+
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
       throw new Error("No authentication token found. Please login again.");
     }
 
-    // Validate agentId is a number
-    if (typeof agentId !== 'number' || isNaN(agentId)) {
+    if (typeof agentId !== "number" || isNaN(agentId)) {
       throw new Error(`Invalid agent ID: ${agentId} (type: ${typeof agentId})`);
     }
 
-    // Validate reason is not empty
-    if (!reason || reason.trim() === '') {
+    if (!reason || reason.trim() === "") {
       throw new Error("Rejection reason is required");
     }
 
-    // Send reason in request body (backend expects @RequestBody)
-    const url = `/v1/agents/${agentId}/reject`;
-    const requestData = { reason: reason.trim() };
-    console.log("[REJECT AGENT] URL:", url, "Data:", requestData);
-    
-    const response = await API.post(url, requestData);
-    
+   
+    const url = `/v1/agents/${agentId}/reject?reason=${encodeURIComponent(reason.trim())}`;
+    console.log("[REJECT AGENT] URL:", url);
+
+    const response = await API.post(url);
+
     console.log("[REJECT AGENT] Response:", response.status, response.data);
-    
+
     if (response.status !== 200 && response.status !== 201) {
       throw new Error("Failed to reject agent");
     }
-    
+
     return response.data;
   } catch (error: any) {
     console.error("[REJECT AGENT ERROR]", error);
-    
     if (error?.response?.status === 401) {
       throw new Error("Authentication failed. Please login again.");
     } else if (error?.response?.status === 403) {
@@ -153,10 +150,10 @@ const rejectAgent = async (agentId: number, reason: string): Promise<void> => {
     } else if (error?.response?.status === 500) {
       throw new Error(error?.response?.data?.message || "Server error occurred while rejecting agent. Please try again.");
     }
-    
     throw error;
   }
 };
+
 
 export const useAgents = (isFetchAgents?: boolean) => {
   const queryClient = useQueryClient();

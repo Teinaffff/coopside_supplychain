@@ -219,12 +219,11 @@ const rejectFactory = async (factoryId: number, reason: string): Promise<void> =
       throw new Error("Rejection reason is required");
     }
 
-    // Send reason in request body (backend expects @RequestBody)
-    const url = `/v1/factories/${factoryId}/reject`;
-    const requestData = { reason: reason.trim() };
-    console.log("[REJECT FACTORY] URL:", url, "Data:", requestData);
+    // Send reason as query parameter (backend expects @RequestParam)
+    const url = `/v1/factories/${factoryId}/reject?reason=${encodeURIComponent(reason.trim())}`;
+    console.log("[REJECT FACTORY] URL:", url);
     
-    const response = await API.post(url, requestData);
+    const response = await API.post(url);
     
     console.log("[REJECT FACTORY] Response:", response.status, response.data);
     

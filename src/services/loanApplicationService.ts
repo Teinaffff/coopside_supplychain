@@ -8,6 +8,9 @@ export interface LoanApplication {
   superAdminStatus?: "pending" | "approved" | "rejected";
   requestedAmount: number;
   approvedAmount?: number;
+  fees?: number;
+  interest?: number;
+  agentStatus?: "PENDING" | "APPROVED" | "REJECTED";
   tenure: number;
   products: number;
   created: string;

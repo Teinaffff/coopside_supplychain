@@ -228,7 +228,11 @@ const LoanMonitoringPage: React.FC = () => {
   };
 
   const handleViewDetails = (application: ProcessedLoanApplication) => {
-    navigate(`/coop/loan-monitoring/${application.applicationNumber}`);
+    // Store the current page in sessionStorage
+    sessionStorage.setItem('loanDetailReferrer', '/coop/loan-monitoring');
+    navigate(`/coop/loan-monitoring/${application.applicationNumber}`, {
+      state: { from: '/coop/loan-monitoring' }
+    });
   };
 
 

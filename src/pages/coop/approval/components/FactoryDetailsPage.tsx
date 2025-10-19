@@ -32,6 +32,8 @@ import {
   TabsTrigger,
 } from "../../../../common/ui/tabs";
 import { Textarea } from "../../../../common/ui/textarea";
+import { Label } from "../../../../common/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../common/ui/select";
 import { useFactories } from "../../hooks/use-factories";
 import { toast } from "react-hot-toast";
 import userService, { User as UserType } from "../../../../services/userService";
@@ -94,15 +96,27 @@ const FactoryDetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const [openApprove, setOpenApprove] = useState(false);
   const [openReject, setOpenReject] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
+  const [selectedRejectReason, setSelectedRejectReason] = useState("");
+  const [customReason, setCustomReason] = useState("");
   const [adminDetails, setAdminDetails] = useState<UserType | null>(null);
   const [adminLoading, setAdminLoading] = useState(false);
+
+  // Predefined rejection reasons (same as agents/consumers)
+  const rejectionReasons = [
+    "The tin number doesn't match.",
+    "Insufficient or invalid documentation provided for verification.",
+    "Trade License not renewed",
+    "Invalid ID card",
+    "Other"
+  ];
 
   const {
     factories,
     isLoading,
     approveFactory,
+    rejectFactory,
     isApproving,
+    isRejecting,
   } = useFactories();
   
   const factory = factories?.find((factory: any) => factory?.id?.toString() === id);
@@ -143,19 +157,27 @@ const FactoryDetailsPage: React.FC = () => {
   };
 
   const onReject = async () => {
-    if (!rejectReason.trim()) {
+    if (!factory?.id) {
+      toast.error("Invalid factory ID");
+      return;
+    }
+
+    // Determine the reason to send
+    const finalReason = selectedRejectReason === "Other" ? customReason : selectedRejectReason;
+    
+    if (!finalReason.trim()) {
       toast.error("Please provide a reason for rejection");
       return;
     }
+    
     try {
-      // TODO: Implement reject factory API call
-      console.log("Rejecting factory with reason:", rejectReason);
+      await rejectFactory({ factoryId: factory.id, reason: finalReason });
       setOpenReject(false);
-      setRejectReason("");
-      toast.success("Factory rejected successfully!");
+      setSelectedRejectReason("");
+      setCustomReason("");
     } catch (error) {
       console.error("Error rejecting factory:", error);
-      toast.error("Failed to reject factory");
+      // Error message is already handled by the mutation
     }
   };
 
@@ -202,21 +224,44 @@ const FactoryDetailsPage: React.FC = () => {
           isOpen={openReject}
           onClose={() => {
             setOpenReject(false);
-            setRejectReason("");
+            setSelectedRejectReason("");
+            setCustomReason("");
           }}
           onConfirm={onReject}
-          loading={false}
+          loading={isRejecting}
           title="Reject Factory"
-          description="Please provide a reason for rejecting this factory:"
+          description="Please select a reason for rejecting this factory:"
           content={
-            <div className="mt-4">
-              <Textarea
-                placeholder="Enter rejection reason..."
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                className="w-full"
-                rows={3}
-              />
+            <div className="mt-4 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reject-reason">Select rejection reason:</Label>
+                <Select value={selectedRejectReason} onValueChange={setSelectedRejectReason}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a reason for rejection" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rejectionReasons.map((reason) => (
+                      <SelectItem key={reason} value={reason}>
+                        {reason}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {selectedRejectReason === "Other" && (
+                <div className="space-y-2">
+                  <Label htmlFor="custom-reason">Please specify the reason:</Label>
+                  <Textarea
+                    id="custom-reason"
+                    placeholder="Please specify the reason..."
+                    value={customReason}
+                    onChange={(e) => setCustomReason(e.target.value)}
+                    className="w-full"
+                    rows={3}
+                  />
+                </div>
+              )}
             </div>
           }
         />
@@ -304,14 +349,14 @@ const FactoryDetailsPage: React.FC = () => {
           <Button
             variant="destructive"
             onClick={() => setOpenReject(true)}
-            disabled={!(factory.status === "Pending" && factory.adminStatus === "Approved")}
+            disabled={!(factory.status === "Pending" && factory.adminStatus === "Approved") || isRejecting}
           >
             <XCircle className="w-4 h-4 mr-2" />
-            Reject
+            {isRejecting ? "Rejecting..." : "Reject"}
           </Button>
           <Button
             onClick={() => setOpenApprove(true)}
-            disabled={!(factory.status === "Pending" && factory.adminStatus === "Approved")}
+            disabled={!(factory.status === "Pending" && factory.adminStatus === "Approved") || isApproving}
             className="bg-cyan-600 hover:bg-cyan-700"
           >
             <CheckCircle className="w-4 h-4 mr-2" />

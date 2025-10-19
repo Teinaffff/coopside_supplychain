@@ -32,6 +32,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import API from "../../../../config/axios-config";
 import { toast } from "react-hot-toast";
 import { useConsumers } from "../../hooks/useConsumers";
+import { mapConsumerStatus } from "../../../../lib/consumer-status-utils";
 
 // Bank Information interface
 interface BankInfo {
@@ -135,8 +136,11 @@ const ConsumerDetailsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [openApprove, setOpenApprove] = useState(false);
   const [openReject, setOpenReject] = useState(false);
+  const [openRevoke, setOpenRevoke] = useState(false);
   const [selectedRejectReason, setSelectedRejectReason] = useState("");
   const [customReason, setCustomReason] = useState("");
+  const [selectedRevokeReason, setSelectedRevokeReason] = useState("");
+  const [customRevokeReason, setCustomRevokeReason] = useState("");
 
   // Predefined rejection reasons (same as institutions/agents)
   const rejectionReasons = [
@@ -149,10 +153,12 @@ const ConsumerDetailsPage: React.FC = () => {
 
   // Use the consumers hook for approve/reject functionality
   const {
-    approveConsumer,
-    rejectConsumer,
+    approveConsumerAsync,
+    rejectConsumerAsync,
+    revokeConsumerApprovalAsync,
     isApproving,
     isRejecting,
+    isRevoking,
   } = useConsumers(consumer?.institutionId, false);
 
   // Handler functions
@@ -177,15 +183,16 @@ const ConsumerDetailsPage: React.FC = () => {
     }
     
     try {
-      await approveConsumer(consumer.id);
+      await approveConsumerAsync(consumer.id);
       setOpenApprove(false);
       
-      // Update consumer status locally
+      // Update consumer status locally only if approval was successful
       if (consumer) {
         setConsumer({ ...consumer, status: "Approved" });
       }
     } catch (error: any) {
       console.error("Error approving consumer:", error);
+      // Don't update local state if approval failed
       // Error message is already handled by the mutation
     }
   };
@@ -204,18 +211,64 @@ const ConsumerDetailsPage: React.FC = () => {
       return;
     }
     
+    console.log("[FRONTEND] Attempting to reject consumer:", {
+      id: consumer.id,
+      adminStatus: consumer.adminStatus,
+      status: consumer.status,
+      reason: finalReason
+    });
+    
     try {
-      await rejectConsumer({ consumerId: consumer.id, reason: finalReason });
+      await rejectConsumerAsync({ consumerId: consumer.id, reason: finalReason });
       setOpenReject(false);
       setSelectedRejectReason("");
       setCustomReason("");
       
-      // Update consumer status locally
+      // Update consumer status locally only if rejection was successful
       if (consumer) {
         setConsumer({ ...consumer, status: "Rejected" });
       }
     } catch (error: any) {
-      console.error("Error rejecting consumer:", error);
+      console.error("[FRONTEND] Error rejecting consumer:", error);
+      // Don't update local state if rejection failed
+      // Error message is already handled by the mutation
+    }
+  };
+
+  const onRevoke = async () => {
+    if (!consumer?.id) {
+      toast.error("Invalid consumer ID");
+      return;
+    }
+
+    // Determine the reason to send
+    const finalReason = selectedRevokeReason === "Other" ? customRevokeReason : selectedRevokeReason;
+    
+    if (!finalReason.trim()) {
+      toast.error("Please provide a reason for revoking approval");
+      return;
+    }
+    
+    console.log("[FRONTEND] Attempting to revoke consumer approval:", {
+      id: consumer.id,
+      adminStatus: consumer.adminStatus,
+      status: consumer.status,
+      reason: finalReason
+    });
+    
+    try {
+      await revokeConsumerApprovalAsync({ consumerId: consumer.id, reason: finalReason });
+      setOpenRevoke(false);
+      setSelectedRevokeReason("");
+      setCustomRevokeReason("");
+      
+      // Update consumer status locally only if revocation was successful
+      if (consumer) {
+        setConsumer({ ...consumer, status: "Pending" });
+      }
+    } catch (error: any) {
+      console.error("[FRONTEND] Error revoking consumer approval:", error);
+      // Don't update local state if revocation failed
       // Error message is already handled by the mutation
     }
   };
@@ -253,31 +306,21 @@ const ConsumerDetailsPage: React.FC = () => {
         });
         
         if (consumerData) {
-          // Map partner status (adminStatus) - check multiple possible field names
-          let mappedAdminStatus: "Approved" | "Rejected" | "Pending" = "Pending";
-          if (consumerData.approvalStatus) {
-            mappedAdminStatus = consumerData.approvalStatus === "APPROVED" || consumerData.approvalStatus === "Approved" ? "Approved" :
-                               consumerData.approvalStatus === "REJECTED" || consumerData.approvalStatus === "Rejected" ? "Rejected" : "Pending";
-          } else if (consumerData.partnerStatus) {
-            mappedAdminStatus = consumerData.partnerStatus === "APPROVED" || consumerData.partnerStatus === "Approved" ? "Approved" :
-                               consumerData.partnerStatus === "REJECTED" || consumerData.partnerStatus === "Rejected" ? "Rejected" : "Pending";
-          } else if (consumerData.coopAdminStatus) {
-            mappedAdminStatus = consumerData.coopAdminStatus === "APPROVED" || consumerData.coopAdminStatus === "Approved" ? "Approved" :
-                               consumerData.coopAdminStatus === "REJECTED" || consumerData.coopAdminStatus === "Rejected" ? "Rejected" : "Pending";
-          }
+          // Use the unified status mapping function
+          const statusMapping = mapConsumerStatus(consumerData);
           
-          // Map super admin status - check multiple possible field names
-          let mappedStatus: "Approved" | "Rejected" | "Pending" = "Pending";
-          if (consumerData.superAdminStatus) {
-            mappedStatus = consumerData.superAdminStatus === "APPROVED" || consumerData.superAdminStatus === "Approved" ? "Approved" :
-                          consumerData.superAdminStatus === "REJECTED" || consumerData.superAdminStatus === "Rejected" ? "Rejected" : "Pending";
-          } else if (consumerData.bankApprovalStatus) {
-            mappedStatus = consumerData.bankApprovalStatus === "APPROVED" || consumerData.bankApprovalStatus === "Approved" ? "Approved" :
-                          consumerData.bankApprovalStatus === "REJECTED" || consumerData.bankApprovalStatus === "Rejected" ? "Rejected" : "Pending";
-          } else if (consumerData.status) {
-            mappedStatus = consumerData.status === "APPROVED" || consumerData.status === "Approved" ? "Approved" :
-                          consumerData.status === "REJECTED" || consumerData.status === "Rejected" ? "Rejected" : "Pending";
-          }
+          console.log("[CONSUMER DETAILS] Status mapping:", {
+            rawData: {
+              approvalStatus: consumerData.approvalStatus,
+              partnerStatus: consumerData.partnerStatus,
+              coopAdminStatus: consumerData.coopAdminStatus,
+              adminStatus: consumerData.adminStatus,
+              superAdminStatus: consumerData.superAdminStatus,
+              bankApprovalStatus: consumerData.bankApprovalStatus,
+              status: consumerData.status
+            },
+            mapped: statusMapping
+          });
 
           // Transform consumer data
           const transformedConsumer: Consumer = {
@@ -301,8 +344,8 @@ const ConsumerDetailsPage: React.FC = () => {
             rejectedAt: consumerData.rejectedAt || consumerData.rejected_at || "",
             bankInfo: consumerData.bankInfo || consumerData.bank_info || consumerData.bankAccounts || [],
             docs: consumerData.docs || consumerData.documents || consumerData.files || [],
-            status: mappedStatus,
-            adminStatus: mappedAdminStatus,
+            status: statusMapping.status,
+            adminStatus: statusMapping.adminStatus,
             createdAt: consumerData.createdAt || new Date().toISOString(),
             institutionId: consumerData.institutionId || 0,
           };
@@ -314,6 +357,16 @@ const ConsumerDetailsPage: React.FC = () => {
             try {
               const institutionResponse = await API.get(`/v1/institutions/${transformedConsumer.institutionId}`);
               const institutionData = institutionResponse.data?.data || institutionResponse.data;
+              
+              console.log("[CONSUMER DETAILS] Institution data:", institutionData);
+              console.log("[CONSUMER DETAILS] Institution status fields:", {
+                status: institutionData?.status,
+                adminStatus: institutionData?.adminStatus,
+                onboardingStatus: institutionData?.onboardingStatus,
+                approvalStatus: institutionData?.approvalStatus,
+                superAdminStatus: institutionData?.superAdminStatus
+              });
+              
               setInstitution(institutionData);
             } catch (err) {
               console.warn("Could not fetch institution details:", err);
@@ -344,8 +397,54 @@ const ConsumerDetailsPage: React.FC = () => {
   }
 
 
-  // Check if consumer can be approved/rejected (only if partner has approved)
-  const canApproveOrReject = consumer?.adminStatus === "Approved" && consumer?.status === "Pending";
+  // Check institution status - handle different possible field names and values
+  const institutionStatus = institution?.status || institution?.onboardingStatus || institution?.approvalStatus || institution?.superAdminStatus;
+  const institutionAdminStatus = institution?.adminStatus || institution?.partnerStatus;
+  
+  console.log("[CONSUMER DETAILS] Institution status check:", {
+    institutionStatus,
+    institutionAdminStatus,
+    institution: institution,
+    allStatusFields: {
+      status: institution?.status,
+      onboardingStatus: institution?.onboardingStatus,
+      approvalStatus: institution?.approvalStatus,
+      superAdminStatus: institution?.superAdminStatus,
+      adminStatus: institution?.adminStatus,
+      partnerStatus: institution?.partnerStatus
+    }
+  });
+  
+  // More robust status checking - check for various forms of "Approved"
+  const isInstitutionRejected = institutionStatus === "Rejected" || institutionStatus === "REJECTED";
+  const isInstitutionPending = (institutionStatus === "Pending" || institutionStatus === "PENDING") && institutionAdminStatus !== "Approved" && institutionAdminStatus !== "APPROVED";
+  
+  // Check if institution is approved by super admin
+  let isInstitutionApprovedBySuperAdmin = institutionStatus === "Approved" || institutionStatus === "APPROVED" || institutionStatus === "approved";
+  
+  // Fallback: If we can't determine institution status but consumer has been processed by super admin,
+  // assume institution is approved (since consumer processing requires institution approval)
+  if (!isInstitutionApprovedBySuperAdmin && !isInstitutionRejected && !isInstitutionPending && consumer?.status && consumer.status !== "Pending") {
+    console.log("[CONSUMER DETAILS] Fallback: Assuming institution is approved because consumer has been processed by super admin");
+    isInstitutionApprovedBySuperAdmin = true;
+  }
+
+  // Check if consumer can be approved/rejected
+  // Can approve: if institution is approved by super admin AND partner approved consumer AND super admin hasn't processed yet
+  // Can reject: if institution is approved by super admin AND partner approved consumer AND (super admin hasn't processed yet OR already approved)
+  const canApprove = isInstitutionApprovedBySuperAdmin && consumer?.adminStatus === "Approved" && consumer?.status === "Pending";
+  const canReject = isInstitutionApprovedBySuperAdmin && ((consumer?.adminStatus === "Approved" && consumer?.status === "Pending") || 
+                   (consumer?.adminStatus === "Approved" && consumer?.status === "Approved"));
+
+  console.log("[CONSUMER DETAILS] Action permissions:", {
+    canApprove,
+    canReject,
+    isInstitutionApprovedBySuperAdmin,
+    consumerAdminStatus: consumer?.adminStatus,
+    consumerStatus: consumer?.status,
+    isInstitutionRejected,
+    isInstitutionPending
+  });
 
   const getStatusBadge = (status: string) => {
     const statusUpper = status?.toUpperCase();
@@ -422,6 +521,55 @@ const ConsumerDetailsPage: React.FC = () => {
           }
         />
 
+        {/* Revoke Modal */}
+        <AlertModal
+          isOpen={openRevoke}
+          onClose={() => {
+            setOpenRevoke(false);
+            setSelectedRevokeReason("");
+            setCustomRevokeReason("");
+          }}
+          onConfirm={onRevoke}
+          loading={isRevoking}
+          title="Revoke Consumer Approval"
+          description="Please provide a reason for revoking this consumer's approval:"
+          content={
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  Select a reason:
+                </label>
+                <Select value={selectedRevokeReason} onValueChange={setSelectedRevokeReason}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a revocation reason" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rejectionReasons.map((reason) => (
+                      <SelectItem key={reason} value={reason}>
+                        {reason}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {selectedRevokeReason === "Other" && (
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                    Custom reason:
+                  </label>
+              <Textarea
+                    placeholder="Enter custom revocation reason..."
+                    value={customRevokeReason}
+                    onChange={(e) => setCustomRevokeReason(e.target.value)}
+                className="w-full"
+                rows={3}
+              />
+                </div>
+              )}
+            </div>
+          }
+        />
+
         {/* Back Button */}
         <Button
           variant="ghost"
@@ -445,9 +593,11 @@ const ConsumerDetailsPage: React.FC = () => {
                   Employee ID: {consumer.employeeId || "N/A"}
                 </p>
                 {institution && (
-                  <p className="text-sm text-gray-500 dark:text-slate-400">
-                    Institution: {institution.fullLegalName || institution.name}
-                  </p>
+                  <div className="text-sm text-gray-500 dark:text-slate-400">
+                    <p>Institution: {institution.fullLegalName || institution.name}</p>
+                    <p>Institution Status: {institutionStatus || "Unknown"} (Admin: {institutionAdminStatus || "Unknown"})</p>
+                    <p>Detected: Approved={isInstitutionApprovedBySuperAdmin ? "Yes" : "No"}, Rejected={isInstitutionRejected ? "Yes" : "No"}, Pending={isInstitutionPending ? "Yes" : "No"}</p>
+                  </div>
                 )}
               </div>
               <div className="flex items-center space-x-2">
@@ -506,30 +656,54 @@ const ConsumerDetailsPage: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="flex justify-end space-x-4 mb-6">
+          {/* Revoke button for consumers of rejected institutions */}
+          {isInstitutionRejected && consumer?.status === "Approved" && (
+            <Button
+              variant="destructive"
+              onClick={() => setOpenRevoke(true)}
+              disabled={isRevoking}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              <XCircle className="w-4 h-4 mr-2" />
+              {isRevoking ? "Revoking..." : "Revoke Approval"}
+            </Button>
+          )}
+          
+          {/* Regular approve/reject buttons for approved institutions */}
+          {isInstitutionApprovedBySuperAdmin && (
+            <>
           <Button
             variant="destructive"
             onClick={() => setOpenReject(true)}
-            disabled={!canApproveOrReject || isRejecting}
+                disabled={!canReject || isRejecting}
           >
             <XCircle className="w-4 h-4 mr-2" />
             {isRejecting ? "Rejecting..." : "Reject"}
           </Button>
           <Button
             onClick={() => setOpenApprove(true)}
-            disabled={!canApproveOrReject || isApproving}
+                disabled={!canApprove || isApproving}
             className="bg-cyan-600 hover:bg-cyan-700"
           >
             <CheckCircle className="w-4 h-4 mr-2" />
             {isApproving ? "Approving..." : "Approve"}
           </Button>
+            </>
+          )}
         </div>
         
-        {!canApproveOrReject && (
+        {(!canApprove && !canReject) && (
           <div className="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/40 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg shadow-md">
             <div className="text-sm text-yellow-900 dark:text-yellow-100 font-semibold">
-              {consumer?.adminStatus !== "Approved" 
+              {isInstitutionRejected 
+                ? "This institution has been rejected by super admin. Consumer actions are disabled."
+                : isInstitutionPending
+                ? "This institution is pending partner approval. Consumer actions are disabled until the institution is approved."
+                : !isInstitutionApprovedBySuperAdmin
+                ? "This institution must be approved by super admin first before consumer actions can be performed."
+                : consumer?.adminStatus !== "Approved" 
                 ? "This consumer must be approved by the partner first before it can be approved/rejected by super admin."
-                : "This consumer has already been processed."}
+                : "This consumer has already been processed and cannot be modified."}
             </div>
           </div>
         )}

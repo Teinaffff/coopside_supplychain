@@ -98,10 +98,10 @@ const LoanDetailView: React.FC<LoanDetailViewProps> = ({
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      DISBURSED: { variant: "default" as const, color: "bg-green-100 text-green-800", icon: CheckCircle },
+      DISBURSED: { variant: "default" as const, color: "bg-cyan-100 text-cyan-800", icon: CheckCircle },
       PENDING_PARTNER_APPROVAL: { variant: "secondary" as const, color: "bg-orange-100 text-orange-800", icon: Clock },
       PENDING_SUPER_ADMIN_APPROVAL: { variant: "secondary" as const, color: "bg-purple-100 text-purple-800", icon: Clock },
-      APPROVED: { variant: "default" as const, color: "bg-blue-100 text-blue-800", icon: CheckCircle },
+      APPROVED: { variant: "default" as const, color: "bg-cyan-100 text-cyan-800", icon: CheckCircle },
       REJECTED: { variant: "destructive" as const, color: "bg-red-100 text-red-800", icon: XCircle },
       DRAFT: { variant: "outline" as const, color: "bg-gray-100 text-gray-800", icon: Clock },
       CANCELLED: { variant: "outline" as const, color: "bg-gray-100 text-gray-800", icon: XCircle }

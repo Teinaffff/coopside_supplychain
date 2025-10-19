@@ -5,6 +5,7 @@ export interface ProcessedLoanApplication extends LoanApplication {
   displaySuperAdminStatus: "PENDING" | "APPROVED" | "REJECTED";
   shouldShowInTracking: boolean;
   trackingStatus: "DISBURSED" | "NOT_DISBURSED" | null;
+  agentStatus: "PENDING" | "APPROVED" | "REJECTED";
 }
 
 /**
@@ -16,16 +17,18 @@ export interface ProcessedLoanApplication extends LoanApplication {
  * - REJECTED: Both statuses show as REJECTED
  */
 export function processLoanApplicationStatus(application: LoanApplication): ProcessedLoanApplication {
-  const { status, superAdminStatus } = application;
+  const { status, superAdminStatus, agentStatus } = application;
   
   console.log("=== STATUS PROCESSING DEBUG ===");
   console.log("Input status:", status, "Type:", typeof status);
   console.log("Input superAdminStatus:", superAdminStatus, "Type:", typeof superAdminStatus);
+  console.log("Input agentStatus:", agentStatus, "Type:", typeof agentStatus);
   
   let displayPartnerStatus: "PENDING" | "APPROVED" | "REJECTED" = "PENDING";
   let displaySuperAdminStatus: "PENDING" | "APPROVED" | "REJECTED" = "PENDING";
   let shouldShowInTracking = false;
   let trackingStatus: "DISBURSED" | "NOT_DISBURSED" | null = null;
+  let processedAgentStatus: "PENDING" | "APPROVED" | "REJECTED" = agentStatus || "PENDING";
 
   switch (status) {
     case "PENDING_PARTNER_APPROVAL":
@@ -102,6 +105,7 @@ export function processLoanApplicationStatus(application: LoanApplication): Proc
     displaySuperAdminStatus,
     shouldShowInTracking,
     trackingStatus,
+    agentStatus: processedAgentStatus,
   };
   
   console.log("=== STATUS PROCESSING RESULT ===");
@@ -109,6 +113,7 @@ export function processLoanApplicationStatus(application: LoanApplication): Proc
   console.log("Final displaySuperAdminStatus:", displaySuperAdminStatus);
   console.log("Final shouldShowInTracking:", shouldShowInTracking);
   console.log("Final trackingStatus:", trackingStatus);
+  console.log("Final agentStatus:", processedAgentStatus);
   
   return result;
 }
@@ -139,7 +144,7 @@ export function getStatusBadgeConfig(status: "PENDING" | "APPROVED" | "REJECTED"
     },
     APPROVED: { 
       variant: "default" as const, 
-      color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+      color: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
       icon: "CheckCircle"
     },
     REJECTED: { 

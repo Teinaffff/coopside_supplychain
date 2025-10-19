@@ -61,7 +61,10 @@ class AgentService {
   async rejectAgent(agentId: string, reason: string): Promise<void> {
     try {
       console.log('Rejecting agent with ID:', agentId, 'Reason:', reason);
-      await API.post(`/v1/agents/${agentId}/reject`, { reason });
+      // Send reason as query parameter (backend expects @RequestParam)
+      const url = `/v1/agents/${agentId}/reject?reason=${encodeURIComponent(reason.trim())}`;
+      console.log("[REJECT AGENT] URL:", url);
+      await API.post(url);
     } catch (error) {
       console.error('Error rejecting agent:', error);
       throw error;

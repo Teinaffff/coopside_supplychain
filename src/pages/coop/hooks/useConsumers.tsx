@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import consumerService from '../../../services/consumerService';
+import { mapConsumerStatus } from '../../../lib/consumer-status-utils';
 
 // Fetch consumers by institution
 const fetchConsumersByInstitution = async (institutionId: number) => {
@@ -9,31 +10,8 @@ const fetchConsumersByInstitution = async (institutionId: number) => {
     
     // Transform consumers data to match our interface
     return consumers.map((consumer: any) => {
-      // Map partner status (adminStatus) - check multiple possible field names
-      let mappedAdminStatus: "Approved" | "Rejected" | "Pending" = "Pending";
-      if (consumer.approvalStatus) {
-        mappedAdminStatus = consumer.approvalStatus === "APPROVED" || consumer.approvalStatus === "Approved" ? "Approved" :
-                           consumer.approvalStatus === "REJECTED" || consumer.approvalStatus === "Rejected" ? "Rejected" : "Pending";
-      } else if (consumer.partnerStatus) {
-        mappedAdminStatus = consumer.partnerStatus === "APPROVED" || consumer.partnerStatus === "Approved" ? "Approved" :
-                           consumer.partnerStatus === "REJECTED" || consumer.partnerStatus === "Rejected" ? "Rejected" : "Pending";
-      } else if (consumer.coopAdminStatus) {
-        mappedAdminStatus = consumer.coopAdminStatus === "APPROVED" || consumer.coopAdminStatus === "Approved" ? "Approved" :
-                           consumer.coopAdminStatus === "REJECTED" || consumer.coopAdminStatus === "Rejected" ? "Rejected" : "Pending";
-      }
-      
-      // Map super admin status - check multiple possible field names
-      let mappedStatus: "Approved" | "Rejected" | "Pending" = "Pending";
-      if (consumer.superAdminStatus) {
-        mappedStatus = consumer.superAdminStatus === "APPROVED" || consumer.superAdminStatus === "Approved" ? "Approved" :
-                      consumer.superAdminStatus === "REJECTED" || consumer.superAdminStatus === "Rejected" ? "Rejected" : "Pending";
-      } else if (consumer.bankApprovalStatus) {
-        mappedStatus = consumer.bankApprovalStatus === "APPROVED" || consumer.bankApprovalStatus === "Approved" ? "Approved" :
-                      consumer.bankApprovalStatus === "REJECTED" || consumer.bankApprovalStatus === "Rejected" ? "Rejected" : "Pending";
-      } else if (consumer.status) {
-        mappedStatus = consumer.status === "APPROVED" || consumer.status === "Approved" ? "Approved" :
-                      consumer.status === "REJECTED" || consumer.status === "Rejected" ? "Rejected" : "Pending";
-      }
+      // Use the unified status mapping function
+      const statusMapping = mapConsumerStatus(consumer);
 
       return {
         id: consumer.id,
@@ -55,8 +33,8 @@ const fetchConsumersByInstitution = async (institutionId: number) => {
         rejectedBy: consumer.rejectedBy || consumer.rejected_by || "",
         rejectedAt: consumer.rejectedAt || consumer.rejected_at || "",
         bankInfo: consumer.bankInfo || consumer.bank_info || consumer.bankAccounts || [],
-        adminStatus: mappedAdminStatus,
-        status: mappedStatus,
+        adminStatus: statusMapping.adminStatus,
+        status: statusMapping.status,
         createdAt: consumer.createdAt || new Date().toISOString(),
         institutionId: institutionId,
       };
@@ -83,6 +61,16 @@ const rejectConsumer = async (consumerId: number, reason: string): Promise<void>
     await consumerService.rejectConsumer(consumerId, reason);
   } catch (error: any) {
     console.error("[REJECT CONSUMER ERROR]", error);
+    throw error;
+  }
+};
+
+// Revoke consumer approval function
+const revokeConsumerApproval = async (consumerId: number, reason: string): Promise<void> => {
+  try {
+    await consumerService.revokeConsumerApproval(consumerId, reason);
+  } catch (error: any) {
+    console.error("[REVOKE CONSUMER ERROR]", error);
     throw error;
   }
 };
@@ -127,7 +115,26 @@ export const useConsumers = (institutionId?: number, isFetchConsumers?: boolean)
       toast.success("Consumer rejected successfully!");
     },
     onError: (error: any) => {
+      console.error("[MUTATION ERROR] Reject consumer error:", error);
+      console.error("[MUTATION ERROR] Error message:", error?.message);
       const errorMessage = error?.message || "Failed to reject consumer";
+      toast.error(errorMessage);
+    },
+  });
+
+  // Revoke consumer approval mutation
+  const revokeConsumerMutation = useMutation({
+    mutationFn: ({ consumerId, reason }: { consumerId: number; reason: string }) => 
+      revokeConsumerApproval(consumerId, reason),
+    onSuccess: () => {
+      // Invalidate and refetch consumers data
+      queryClient.invalidateQueries({ queryKey: ["consumers", institutionId] });
+      toast.success("Consumer approval revoked successfully!");
+    },
+    onError: (error: any) => {
+      console.error("[MUTATION ERROR] Revoke consumer error:", error);
+      console.error("[MUTATION ERROR] Error message:", error?.message);
+      const errorMessage = error?.message || "Failed to revoke consumer approval";
       toast.error(errorMessage);
     },
   });
@@ -139,7 +146,12 @@ export const useConsumers = (institutionId?: number, isFetchConsumers?: boolean)
     refetch,
     approveConsumer: approveConsumerMutation.mutate,
     rejectConsumer: rejectConsumerMutation.mutate,
+    revokeConsumerApproval: revokeConsumerMutation.mutate,
+    approveConsumerAsync: approveConsumerMutation.mutateAsync,
+    rejectConsumerAsync: rejectConsumerMutation.mutateAsync,
+    revokeConsumerApprovalAsync: revokeConsumerMutation.mutateAsync,
     isApproving: approveConsumerMutation.isPending,
     isRejecting: rejectConsumerMutation.isPending,
+    isRevoking: revokeConsumerMutation.isPending,
   };
 };

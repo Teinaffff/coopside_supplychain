@@ -22,6 +22,7 @@ import SystemUserRolesPage from "../../pages/coop/system/SystemUserRolesPage";
 import LoanProductDetailsPage from "../../pages/coop/settings/components/LoanProductDetailsPage";
 import LoanProductEditPage from "../../pages/coop/settings/components/LoanProductEditPage";
 import ProfilePage from "../../pages/coop/profile/ProfilePage";
+import CardManagementPage from "../../pages/coop/card/CardManagementPage";
 
 export const ROUTES = [
   {
@@ -54,11 +55,11 @@ export const ROUTES = [
     title: "Reports",
     element: <Reports />,
   },
-  // {
-  //   path: "card",
-  //   title: "Card Management",
-  //   element: <CardManagement />,
-  // },
+  {
+    path: "card",
+    title: "Card Management",
+    element: <CardManagementPage />,
+  },
   {
     path: "approval",
     title: "Approval Management",

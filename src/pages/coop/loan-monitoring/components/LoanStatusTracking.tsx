@@ -19,7 +19,7 @@ const LoanStatusTracking: React.FC<LoanStatusTrackingProps> = ({
     const config = {
       DISBURSED: { 
         variant: "default" as const, 
-        color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+        color: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
         icon: CheckCircle
       },
       NOT_DISBURSED: { 

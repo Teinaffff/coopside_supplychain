@@ -48,6 +48,7 @@ import { useInstitutions } from "../../hooks/useInstitutions";
 import { toast } from "react-hot-toast";
 import API from "../../../../config/axios-config";
 import { ExportConsumersDataToExcel } from "./ExportConsumersDataToExcel";
+import { mapConsumerStatus } from "../../../../lib/consumer-status-utils";
 
 // Consumer interface
 interface Consumer {
@@ -229,48 +230,9 @@ const InstitutionDetailsPage: React.FC = () => {
       // Transform consumers data
       const transformedConsumers = consumersData.map((consumer: any) => {
         console.log("[FETCH CONSUMERS] Raw consumer data:", consumer);
-        console.log("[FETCH CONSUMERS] All possible status fields:", {
-          id: consumer.id,
-          approvalStatus: consumer.approvalStatus,
-          status: consumer.status,
-          adminStatus: consumer.adminStatus,
-          partnerStatus: consumer.partnerStatus,
-          coopAdminStatus: consumer.coopAdminStatus,
-          superAdminStatus: consumer.superAdminStatus,
-          bankApprovalStatus: consumer.bankApprovalStatus,
-        });
         
-        // Map partner status (adminStatus) - check multiple possible field names
-        let mappedAdminStatus: "Approved" | "Rejected" | "Pending" = "Pending";
-        if (consumer.approvalStatus) {
-          mappedAdminStatus = consumer.approvalStatus === "APPROVED" || consumer.approvalStatus === "Approved" ? "Approved" :
-                             consumer.approvalStatus === "REJECTED" || consumer.approvalStatus === "Rejected" ? "Rejected" : "Pending";
-        } else if (consumer.partnerStatus) {
-          mappedAdminStatus = consumer.partnerStatus === "APPROVED" || consumer.partnerStatus === "Approved" ? "Approved" :
-                             consumer.partnerStatus === "REJECTED" || consumer.partnerStatus === "Rejected" ? "Rejected" : "Pending";
-        } else if (consumer.coopAdminStatus) {
-          mappedAdminStatus = consumer.coopAdminStatus === "APPROVED" || consumer.coopAdminStatus === "Approved" ? "Approved" :
-                             consumer.coopAdminStatus === "REJECTED" || consumer.coopAdminStatus === "Rejected" ? "Rejected" : "Pending";
-        }
-        
-        // Map super admin status - check multiple possible field names
-        let mappedStatus: "Approved" | "Rejected" | "Pending" = "Pending";
-        if (consumer.superAdminStatus) {
-          mappedStatus = consumer.superAdminStatus === "APPROVED" || consumer.superAdminStatus === "Approved" ? "Approved" :
-                        consumer.superAdminStatus === "REJECTED" || consumer.superAdminStatus === "Rejected" ? "Rejected" : "Pending";
-        } else if (consumer.bankApprovalStatus) {
-          mappedStatus = consumer.bankApprovalStatus === "APPROVED" || consumer.bankApprovalStatus === "Approved" ? "Approved" :
-                        consumer.bankApprovalStatus === "REJECTED" || consumer.bankApprovalStatus === "Rejected" ? "Rejected" : "Pending";
-        } else if (consumer.status) {
-          mappedStatus = consumer.status === "APPROVED" || consumer.status === "Approved" ? "Approved" :
-                        consumer.status === "REJECTED" || consumer.status === "Rejected" ? "Rejected" : "Pending";
-        }
-        
-        console.log("[FETCH CONSUMERS] Mapped statuses:", {
-          id: consumer.id,
-          partnerStatus: mappedAdminStatus,
-          superAdminStatus: mappedStatus
-        });
+        // Use the unified status mapping function
+        const statusMapping = mapConsumerStatus(consumer);
         
         return {
           id: consumer.id,
@@ -279,8 +241,8 @@ const InstitutionDetailsPage: React.FC = () => {
           phoneNumber: consumer.phoneNumber || consumer.phone || "N/A",
           department: consumer.department || "N/A",
           nationalId: consumer.nationalId || consumer.idNumber || consumer.national_id || consumer.id_number || consumer.nationalIdNumber || "N/A",
-          adminStatus: mappedAdminStatus,
-          status: mappedStatus,
+          adminStatus: statusMapping.adminStatus,
+          status: statusMapping.status,
           createdAt: consumer.createdAt || new Date().toISOString(),
           institutionId: parseInt(id),
         };
