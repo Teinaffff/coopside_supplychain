@@ -127,8 +127,19 @@ export function DataTable<TData, TValue>({
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id} className="hover:bg-accent">
               {headerGroup.headers.map((header) => {
+                const align = (header.column.columnDef as any)?.meta?.align as
+                  | "left"
+                  | "center"
+                  | "right"
+                  | undefined;
+                const headAlignClass =
+                  align === "right"
+                    ? "text-right"
+                    : align === "center"
+                    ? "text-center"
+                    : "text-left";
                 return (
-                  <TableHead key={header.id} className="text-center">
+                  <TableHead key={header.id} className={headAlignClass}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -150,11 +161,24 @@ export function DataTable<TData, TValue>({
                 onClick={() => clickable && getSelectedRow?.(row.original)}
                 data-state={row.getIsSelected() && "selected"}
               >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} style={{ textAlign: "center" }}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+                {row.getVisibleCells().map((cell) => {
+                  const align = (cell.column.columnDef as any)?.meta?.align as
+                    | "left"
+                    | "center"
+                    | "right"
+                    | undefined;
+                  const cellAlignStyle =
+                    align === "right"
+                      ? { textAlign: "right" as const }
+                      : align === "center"
+                      ? { textAlign: "center" as const }
+                      : { textAlign: "left" as const };
+                  return (
+                    <TableCell key={cell.id} style={cellAlignStyle}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             ))
           ) : (

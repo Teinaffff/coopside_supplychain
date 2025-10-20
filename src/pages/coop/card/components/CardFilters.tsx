@@ -19,14 +19,6 @@ const CardFilters: React.FC<CardFiltersProps> = ({
   onClearFilters,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const statusOptions = [
-    { value: "PENDING", label: "Pending", color: "bg-yellow-100 text-yellow-800" },
-    { value: "APPROVED", label: "Approved", color: "bg-blue-100 text-blue-800" },
-    { value: "REJECTED", label: "Rejected", color: "bg-red-100 text-red-800" },
-    { value: "ACTIVE", label: "Active", color: "bg-green-100 text-green-800" },
-    { value: "INACTIVE", label: "Inactive", color: "bg-gray-100 text-gray-800" },
-    { value: "SUSPENDED", label: "Suspended", color: "bg-orange-100 text-orange-800" },
-  ];
 
   const typeOptions = [
     { value: "CREDIT", label: "Credit" },
@@ -41,22 +33,14 @@ const CardFilters: React.FC<CardFiltersProps> = ({
     { value: "HIGH", label: "High" },
   ];
 
-  const handleStatusToggle = (status: string) => {
-    const currentStatuses = filters.status || [];
-    const newStatuses = currentStatuses.includes(status as any)
-      ? currentStatuses.filter(s => s !== status)
-      : [...currentStatuses, status as any];
-    
-    onFiltersChange({ ...filters, status: newStatuses });
-  };
 
   const handleTypeToggle = (type: string) => {
-    const currentTypes = filters.type || [];
+    const currentTypes = filters.cardType || [];
     const newTypes = currentTypes.includes(type as any)
       ? currentTypes.filter(t => t !== type)
       : [...currentTypes, type as any];
     
-    onFiltersChange({ ...filters, type: newTypes });
+    onFiltersChange({ ...filters, cardType: newTypes });
   };
 
 
@@ -91,7 +75,6 @@ const CardFilters: React.FC<CardFiltersProps> = ({
   const getActiveFiltersCount = () => {
     let count = 0;
     if (filters.search) count++;
-    if (filters.status?.length) count++;
     if (filters.type?.length) count++;
     if (filters.riskLevel?.length) count++;
     if (filters.dateRange?.from || filters.dateRange?.to) count++;
@@ -128,7 +111,7 @@ const CardFilters: React.FC<CardFiltersProps> = ({
         </div>
 
         {isExpanded && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {/* Search */}
           <div className="space-y-2">
             <label className="text-sm font-medium">Search</label>
@@ -139,22 +122,6 @@ const CardFilters: React.FC<CardFiltersProps> = ({
             />
           </div>
 
-          {/* Status Filter */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Status</label>
-            <div className="flex flex-wrap gap-1">
-              {statusOptions.map((option) => (
-                <Badge
-                  key={option.value}
-                  variant={filters.status?.includes(option.value as any) ? "default" : "outline"}
-                  className={`cursor-pointer ${filters.status?.includes(option.value as any) ? option.color : ""}`}
-                  onClick={() => handleStatusToggle(option.value)}
-                >
-                  {option.label}
-                </Badge>
-              ))}
-            </div>
-          </div>
 
           {/* Card Type Filter */}
           <div className="space-y-2">
@@ -163,7 +130,7 @@ const CardFilters: React.FC<CardFiltersProps> = ({
               {typeOptions.map((option) => (
                 <Badge
                   key={option.value}
-                  variant={filters.type?.includes(option.value as any) ? "default" : "outline"}
+                  variant={filters.cardType?.includes(option.value as any) ? "default" : "outline"}
                   className="cursor-pointer"
                   onClick={() => handleTypeToggle(option.value)}
                 >
@@ -191,24 +158,6 @@ const CardFilters: React.FC<CardFiltersProps> = ({
           </div>
 
 
-          {/* Super Admin Status Filter */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Super Admin Status</label>
-            <div className="flex flex-wrap gap-1">
-              {statusOptions.filter(option => 
-                ['PENDING', 'APPROVED', 'REJECTED'].includes(option.value)
-              ).map((option) => (
-                <Badge
-                  key={option.value}
-                  variant={filters.status?.includes(option.value as any) ? "default" : "outline"}
-                  className={`cursor-pointer ${filters.status?.includes(option.value as any) ? option.color : ""}`}
-                  onClick={() => handleStatusToggle(option.value)}
-                >
-                  {option.label}
-                </Badge>
-              ))}
-            </div>
-          </div>
 
           {/* Date Range */}
           <div className="space-y-2">

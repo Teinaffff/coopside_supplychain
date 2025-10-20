@@ -50,6 +50,17 @@ class ConsumerService {
     }
   }
 
+  // Get all consumers
+  async getAllConsumers(): Promise<Consumer[]> {
+    try {
+      const response = await API.get(`/v1/consumers`);
+      return response.data?.data || response.data || [];
+    } catch (error) {
+      console.error('Error fetching all consumers:', error);
+      throw error;
+    }
+  }
+
   // Get consumers by institution ID
   async getConsumersByInstitution(institutionId: number): Promise<Consumer[]> {
     try {

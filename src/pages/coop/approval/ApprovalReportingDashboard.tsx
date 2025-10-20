@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../common/ui/card";
 import { Button } from "../../../common/ui/button";
 import { Badge } from "../../../common/ui/badge";
@@ -7,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useFactories } from "../hooks/use-factories";
 import { useAgents } from "../hooks/use-Agents";
 import { useInstitutions } from "../hooks/useInstitutions";
+import { useAllConsumers } from "../hooks/useAllConsumers";
 
 interface ApprovalEntity {
   id: number;
@@ -21,13 +23,38 @@ interface ApprovalEntity {
 type EntityType = "agents" | "institutions" | "factories" | "consumers";
 
 const ApprovalReportingDashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>("30");
   const [selectedEntityType, setSelectedEntityType] = useState<EntityType | "all">("all");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 5;
+
+  // Navigation function for detail pages
+  const handleViewDetails = (entity: ApprovalEntity) => {
+    const basePath = "/coop/approval";
+    switch (entity.type) {
+      case "Agent":
+        navigate(`${basePath}/agents/${entity.id}`);
+        break;
+      case "Institution":
+        navigate(`${basePath}/institutions/${entity.id}`);
+        break;
+      case "Manufacturer":
+        navigate(`${basePath}/factories/${entity.id}`);
+        break;
+      case "Consumer":
+        navigate(`${basePath}/consumers/${entity.id}`);
+        break;
+      default:
+        console.warn(`Unknown entity type: ${entity.type}`);
+    }
+  };
 
   // Fetch real data
-  const { data: factories = [], isLoading: factoriesLoading } = useFactories();
-  const { data: agents = [], isLoading: agentsLoading } = useAgents();
-  const { data: institutions = [], isLoading: institutionsLoading } = useInstitutions();
+  const { factories = [], isLoading: factoriesLoading } = useFactories();
+  const { agents = [], isLoading: agentsLoading } = useAgents();
+  const { institutions = [], isLoading: institutionsLoading } = useInstitutions();
+  const { data: consumers = [], isLoading: consumersLoading } = useAllConsumers();
 
   // Calculate statistics from real data
   const stats = useMemo(() => {
@@ -49,6 +76,12 @@ const ApprovalReportingDashboard: React.FC = () => {
         type: "Institution",
         submittedAt: i.form?.createdAt || new Date().toISOString(),
         approvedAt: i.status === "Approved" ? i.form?.approvedAt || new Date().toISOString() : null
+      })),
+      ...consumers.map(c => ({
+        ...c,
+        type: "Consumer",
+        submittedAt: c.form?.createdAt || new Date().toISOString(),
+        approvedAt: c.status === "Approved" ? c.form?.approvedAt || new Date().toISOString() : null
       })),
     ];
 
@@ -87,6 +120,13 @@ const ApprovalReportingDashboard: React.FC = () => {
         rejected: factories.filter(f => f.status === "Rejected").length,
         adminApproved: factories.filter(f => f.adminStatus === "Approved").length,
       },
+      consumers: {
+        total: consumers.length,
+        approved: consumers.filter(c => c.status === "Approved").length,
+        pending: consumers.filter(c => c.status === "Pending").length,
+        rejected: consumers.filter(c => c.status === "Rejected").length,
+        adminApproved: consumers.filter(c => c.adminStatus === "Approved").length,
+      },
     };
 
     return {
@@ -102,7 +142,7 @@ const ApprovalReportingDashboard: React.FC = () => {
       adminApprovalRate: parseFloat(adminApprovalRate),
       entityBreakdown,
     };
-  }, [factories, agents, institutions]);
+  }, [factories, agents, institutions, consumers]);
 
   // Note: Charts removed as per requirement. Keeping core stats only.
 
@@ -139,7 +179,7 @@ const ApprovalReportingDashboard: React.FC = () => {
         name: f.name,
         status: f.status,
         adminStatus: f.adminStatus,
-        type: "Factory",
+        type: "Manufacturer",
         submittedAt: f.form?.createdAt || new Date().toISOString(),
         approvedAt: f.status === "Approved" ? f.form?.approvedAt || new Date().toISOString() : null
       })),
@@ -161,43 +201,64 @@ const ApprovalReportingDashboard: React.FC = () => {
         submittedAt: i.form?.createdAt || new Date().toISOString(),
         approvedAt: i.status === "Approved" ? i.form?.approvedAt || new Date().toISOString() : null
       })),
+      ...consumers.map(c => ({
+        id: c.id,
+        name: c.name,
+        status: c.status,
+        adminStatus: c.adminStatus,
+        type: "Consumer",
+        submittedAt: c.form?.createdAt || new Date().toISOString(),
+        approvedAt: c.status === "Approved" ? c.form?.approvedAt || new Date().toISOString() : null
+      })),
     ];
+
+    // Apply time range filter
+    const now = new Date();
+    const timeRangeDays = parseInt(selectedTimeRange);
+    const cutoffDate = new Date(now.getTime() - (timeRangeDays * 24 * 60 * 60 * 1000));
+    
+    const timeFilteredEntities = allEntities.filter(entity => {
+      const submittedDate = new Date(entity.submittedAt);
+      return submittedDate >= cutoffDate;
+    });
+
+    // Sort by submittedAt date (most recent first)
+    timeFilteredEntities.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
 
     if (selectedEntityType === "all") {
       return {
-        agents: agents.map(a => ({
-          id: a.id,
-          name: a.name,
-          status: a.status,
-          adminStatus: a.adminStatus,
-          type: "Agent",
-          submittedAt: a.form?.createdAt || new Date().toISOString(),
-          approvedAt: a.status === "Approved" ? a.form?.approvedAt || new Date().toISOString() : null
-        })),
-        institutions: institutions.map(i => ({
-          id: i.id,
-          name: i.name,
-          status: i.status,
-          adminStatus: i.adminStatus,
-          type: "Institution",
-          submittedAt: i.form?.createdAt || new Date().toISOString(),
-          approvedAt: i.status === "Approved" ? i.form?.approvedAt || new Date().toISOString() : null
-        })),
-        factories: factories.map(f => ({
-          id: f.id,
-          name: f.name,
-          status: f.status,
-          adminStatus: f.adminStatus,
-          type: "Factory",
-          submittedAt: f.form?.createdAt || new Date().toISOString(),
-          approvedAt: f.status === "Approved" ? f.form?.approvedAt || new Date().toISOString() : null
-        })),
-        consumers: [], // No direct consumer data
+        agents: timeFilteredEntities.filter(e => e.type === "Agent"),
+        institutions: timeFilteredEntities.filter(e => e.type === "Institution"),
+        factories: timeFilteredEntities.filter(e => e.type === "Manufacturer"),
+        consumers: timeFilteredEntities.filter(e => e.type === "Consumer"),
       };
     }
     
     const entityTypeMap = {
-      agents: agents.map(a => ({
+      agents: timeFilteredEntities.filter(e => e.type === "Agent"),
+      institutions: timeFilteredEntities.filter(e => e.type === "Institution"),
+      factories: timeFilteredEntities.filter(e => e.type === "Manufacturer"),
+      consumers: timeFilteredEntities.filter(e => e.type === "Consumer"),
+    };
+
+    return {
+      [selectedEntityType]: entityTypeMap[selectedEntityType] || [],
+    } as Record<string, ApprovalEntity[]>;
+  }, [selectedEntityType, selectedTimeRange, factories, agents, institutions, consumers]);
+
+  // Pagination logic for recent applications
+  const paginatedData = useMemo(() => {
+    const allEntities = [
+      ...factories.map(f => ({
+        id: f.id,
+        name: f.name,
+        status: f.status,
+        adminStatus: f.adminStatus,
+        type: "Manufacturer",
+        submittedAt: f.form?.createdAt || new Date().toISOString(),
+        approvedAt: f.status === "Approved" ? f.form?.approvedAt || new Date().toISOString() : null
+      })),
+      ...agents.map(a => ({
         id: a.id,
         name: a.name,
         status: a.status,
@@ -206,7 +267,7 @@ const ApprovalReportingDashboard: React.FC = () => {
         submittedAt: a.form?.createdAt || new Date().toISOString(),
         approvedAt: a.status === "Approved" ? a.form?.approvedAt || new Date().toISOString() : null
       })),
-      institutions: institutions.map(i => ({
+      ...institutions.map(i => ({
         id: i.id,
         name: i.name,
         status: i.status,
@@ -215,24 +276,35 @@ const ApprovalReportingDashboard: React.FC = () => {
         submittedAt: i.form?.createdAt || new Date().toISOString(),
         approvedAt: i.status === "Approved" ? i.form?.approvedAt || new Date().toISOString() : null
       })),
-      factories: factories.map(f => ({
-        id: f.id,
-        name: f.name,
-        status: f.status,
-        adminStatus: f.adminStatus,
-        type: "Factory",
-        submittedAt: f.form?.createdAt || new Date().toISOString(),
-        approvedAt: f.status === "Approved" ? f.form?.approvedAt || new Date().toISOString() : null
+      ...consumers.map(c => ({
+        id: c.id,
+        name: c.name,
+        status: c.status,
+        adminStatus: c.adminStatus,
+        type: "Consumer",
+        submittedAt: c.form?.createdAt || new Date().toISOString(),
+        approvedAt: c.status === "Approved" ? c.form?.approvedAt || new Date().toISOString() : null
       })),
-      consumers: [],
-    };
+    ];
+
+    // Sort by submittedAt date (most recent first)
+    allEntities.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedEntities = allEntities.slice(startIndex, endIndex);
 
     return {
-      [selectedEntityType]: entityTypeMap[selectedEntityType] || [],
-    } as Record<string, ApprovalEntity[]>;
-  }, [selectedEntityType, factories, agents, institutions]);
+      entities: paginatedEntities,
+      totalItems: allEntities.length,
+      totalPages: Math.ceil(allEntities.length / itemsPerPage),
+      currentPage,
+      hasNextPage: currentPage < Math.ceil(allEntities.length / itemsPerPage),
+      hasPrevPage: currentPage > 1,
+    };
+  }, [factories, agents, institutions, consumers, currentPage, itemsPerPage]);
 
-  const isLoading = factoriesLoading || agentsLoading || institutionsLoading;
+  const isLoading = factoriesLoading || agentsLoading || institutionsLoading || consumersLoading;
 
   if (isLoading) {
     return (
@@ -364,7 +436,7 @@ const ApprovalReportingDashboard: React.FC = () => {
       </div>
 
       {/* Additional Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-700 shadow-md hover:shadow-lg transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-purple-700 dark:text-purple-300">
@@ -382,24 +454,6 @@ const ApprovalReportingDashboard: React.FC = () => {
             </p>
           </CardContent>
         </Card>
-
-        <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 border-indigo-200 dark:border-indigo-700 shadow-md hover:shadow-lg transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
-              Ready for Review
-            </CardTitle>
-            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-              <PieChart className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-indigo-900 dark:text-indigo-100">{stats.readyForReview}</div>
-            <p className="text-xs text-indigo-600 dark:text-indigo-400 flex items-center mt-2">
-              <Activity className="h-3 w-3 mr-1" />
-              Partner approved, awaiting super admin
-            </p>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Entity Summary */}
@@ -411,7 +465,7 @@ const ApprovalReportingDashboard: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Agents */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
@@ -468,7 +522,7 @@ const ApprovalReportingDashboard: React.FC = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Factory className="h-5 w-5 text-purple-600" />
-                <h3 className="font-semibold text-gray-800 dark:text-white">🏭 Manufacturies</h3>
+                <h3 className="font-semibold text-gray-800 dark:text-white">🏭 Manufacturers</h3>
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
@@ -486,6 +540,32 @@ const ApprovalReportingDashboard: React.FC = () => {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-400">Pending:</span>
                   <span className="font-medium text-yellow-600">{stats.entityBreakdown.factories.pending}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Consumers */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-indigo-600" />
+                <h3 className="font-semibold text-gray-800 dark:text-white">👥 Consumers</h3>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Total:</span>
+                  <span className="font-medium">{stats.entityBreakdown.consumers.total}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Super Admin Approved:</span>
+                  <span className="font-medium text-green-600">{stats.entityBreakdown.consumers.approved}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Partner Approved:</span>
+                  <span className="font-medium text-blue-600">{stats.entityBreakdown.consumers.adminApproved}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Pending:</span>
+                  <span className="font-medium text-yellow-600">{stats.entityBreakdown.consumers.pending}</span>
                 </div>
               </div>
             </div>
@@ -508,54 +588,57 @@ const ApprovalReportingDashboard: React.FC = () => {
                 <tr>
                   <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Name</th>
                   <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Type</th>
-                  <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Super Admin Status</th>
                   <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Partner Status</th>
+                  <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Super Admin Status</th>
                   <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Submitted</th>
                   <th className="text-left p-4 font-semibold text-gray-700 dark:text-gray-300">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(filteredData).map(([type, entities]) =>
-                  entities.slice(0, 8).map((entity) => (
-                    <tr key={`${type}-${entity.id}`} className="border-b border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                      <td className="p-4 font-medium text-gray-900 dark:text-white">{entity.name}</td>
-                      <td className="p-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                          {entity.type}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(entity.status)}
-                          <Badge variant={getStatusBadgeVariant(entity.status) as any} className="text-xs">
-                            {entity.status}
-                          </Badge>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <Badge 
-                          variant={entity.adminStatus === "Approved" ? "outline" : entity.adminStatus === "Rejected" ? "destructive" : "secondary"}
-                          className="text-xs"
-                        >
-                          {entity.adminStatus}
+                {paginatedData.entities.map((entity) => (
+                  <tr key={`${entity.type}-${entity.id}`} className="border-b border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                    <td className="p-4 font-medium text-gray-900 dark:text-white">{entity.name}</td>
+                    <td className="p-4">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                        {entity.type}
+                      </span>
+                    </td>
+                    <td className="p-4">
+                      <Badge 
+                        variant={entity.adminStatus === "Approved" ? "outline" : entity.adminStatus === "Rejected" ? "destructive" : "secondary"}
+                        className="text-xs"
+                      >
+                        {entity.adminStatus}
+                      </Badge>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        {getStatusIcon(entity.status)}
+                        <Badge variant={getStatusBadgeVariant(entity.status) as any} className="text-xs">
+                          {entity.status}
                         </Badge>
-                      </td>
-                      <td className="p-4 text-gray-600 dark:text-gray-400">
-                        {new Date(entity.submittedAt).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </td>
-                      <td className="p-4">
-                        <Button size="sm" variant="outline" className="text-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300">
-                          View Details
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-                {Object.values(filteredData).flat().length === 0 && (
+                      </div>
+                    </td>
+                    <td className="p-4 text-gray-600 dark:text-gray-400">
+                      {new Date(entity.submittedAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </td>
+                    <td className="p-4">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="text-xs hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300"
+                        onClick={() => handleViewDetails(entity)}
+                      >
+                        View Details
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+                {paginatedData.entities.length === 0 && (
                   <tr>
                     <td colSpan={6} className="p-8 text-center text-gray-500 dark:text-gray-400">
                       <div className="flex flex-col items-center space-y-2">
@@ -570,6 +653,79 @@ const ApprovalReportingDashboard: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Pagination Controls */}
+      {paginatedData.totalPages > 1 && (
+        <Card className="bg-white dark:bg-gray-800 border-0 shadow-md">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, paginatedData.totalItems)} of {paginatedData.totalItems} applications
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={!paginatedData.hasPrevPage}
+                  className="flex items-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Previous
+                </Button>
+                
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: Math.min(5, paginatedData.totalPages) }, (_, i) => {
+                    const pageNumber = i + 1;
+                    const isActive = pageNumber === currentPage;
+                    
+                    return (
+                      <Button
+                        key={pageNumber}
+                        variant={isActive ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setCurrentPage(pageNumber)}
+                        className={`w-8 h-8 p-0 ${isActive ? 'bg-cyan-600 text-white' : ''}`}
+                      >
+                        {pageNumber}
+                      </Button>
+                    );
+                  })}
+                  
+                  {paginatedData.totalPages > 5 && (
+                    <>
+                      <span className="text-gray-400">...</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(paginatedData.totalPages)}
+                        className="w-8 h-8 p-0"
+                      >
+                        {paginatedData.totalPages}
+                      </Button>
+                    </>
+                  )}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, paginatedData.totalPages))}
+                  disabled={!paginatedData.hasNextPage}
+                  className="flex items-center gap-1"
+                >
+                  Next
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

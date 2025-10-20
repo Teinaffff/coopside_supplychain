@@ -4,26 +4,39 @@ interface Timestamps {
 }
 
 export interface Card extends Timestamps {
-  id: string;
+  id: number;
   cardNumber: string;
   cardName: string;
-  type: "CREDIT" | "DEBIT" | "PREPAID";
+  cardType: "CREDIT" | "DEBIT" | "PREPAID";
+  cardStatus: "PENDING" | "APPROVED" | "REJECTED" | "ACTIVE" | "INACTIVE" | "SUSPENDED";
+  approvalStatus: "PENDING" | "APPROVED" | "REJECTED";
   creditLimit?: number;
-  dailyLimit?: number;
+  spentAmount?: number;
   availableBalance?: number;
-  status: "PENDING" | "APPROVED" | "REJECTED" | "ACTIVE" | "INACTIVE" | "SUSPENDED";
-  partnerStatus: "PARTNER" | "NON_PARTNER" | "PENDING_PARTNER";
-  adminStatus: "SUPER_ADMIN" | "ADMIN" | "USER";
-  rejectionReason?: string;
-  requestedDate: string;
+  dailyLimit?: number;
+  expiryMonth?: number;
+  expiryYear?: number;
   issuedDate?: string;
+  lastUsed?: string;
+  approvedBy?: string;
+  approvedAt?: string;
+  rejectionReason?: string;
+  isExpired: boolean;
+  isUsable: boolean;
+  isApproved: boolean;
+  // Legacy fields for backward compatibility
+  type?: "CREDIT" | "DEBIT" | "PREPAID";
+  status?: "PENDING" | "APPROVED" | "REJECTED" | "ACTIVE" | "INACTIVE" | "SUSPENDED";
+  partnerStatus?: "PARTNER" | "NON_PARTNER" | "PENDING_PARTNER";
+  adminStatus?: "SUPER_ADMIN" | "ADMIN" | "USER";
+  requestedDate?: string;
   expiryDate?: string;
-  cardholderId: string;
-  cardholderName: string;
+  cardholderId?: string;
+  cardholderName?: string;
   cardholderEmail?: string;
   cardholderPhone?: string;
   kycReference?: string;
-  isActive: boolean;
+  isActive?: boolean;
   lastTransactionDate?: string;
   totalTransactions?: number;
   monthlySpend?: number;
@@ -33,8 +46,9 @@ export interface Card extends Timestamps {
 
 export interface CardFilter {
   search?: string;
-  status?: Card["status"][];
-  type?: Card["type"][];
+  cardStatus?: Card["cardStatus"][];
+  cardType?: Card["cardType"][];
+  approvalStatus?: Card["approvalStatus"][];
   partnerStatus?: Card["partnerStatus"][];
   adminStatus?: Card["adminStatus"][];
   dateRange?: {
@@ -46,6 +60,7 @@ export interface CardFilter {
     max: number;
   };
   riskLevel?: Card["riskLevel"][];
+  consumerId?: string;
 }
 
 export interface CardAction {

@@ -11,15 +11,25 @@ export interface User {
 }
 
 class UserService {
+  // Get all users
+  async getAllUsers(): Promise<User[]> {
+    try {
+      const response = await API.get(`/v1/users`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
+  }
+
   // Get user by ID
   async getUserById(userId: number): Promise<User> {
     try {
       console.log('Fetching user with ID:', userId);
       const response = await API.get(`/v1/users/${userId}`);
-      console.log('User API response:', response);
-      console.log('User API response data:', response.data);
-      
-      return response.data;
+      // Normalize possible response shapes
+      const data = (response as any)?.data?.data ?? (response as any)?.data ?? response;
+      return data as User;
     } catch (error) {
       console.error('Error fetching user by ID:', error);
       console.error('User ID attempted:', userId);

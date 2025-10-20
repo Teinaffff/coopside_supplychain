@@ -4,15 +4,7 @@ import { Badge } from "../../../../common/ui/badge";
 import { CardStats as CardStatsType } from "../../../../constants/interface/coop/card";
 import { 
   CreditCard, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  Activity, 
-  Pause, 
-  Users, 
-  Shield,
-  DollarSign,
-  TrendingUp
+  DollarSign
 } from "lucide-react";
 
 interface CardStatsProps {
@@ -28,27 +20,6 @@ const CardStats: React.FC<CardStatsProps> = ({ stats }) => {
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
-    {
-      title: "Pending",
-      value: stats.pending,
-      icon: <Clock className="w-5 h-5" />,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-50",
-    },
-    {
-      title: "Approved",
-      value: stats.approved,
-      icon: <CheckCircle className="w-5 h-5" />,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
-    },
-    {
-      title: "Rejected",
-      value: stats.rejected,
-      icon: <XCircle className="w-5 h-5" />,
-      color: "text-red-600",
-      bgColor: "bg-red-50",
-    },
   ];
 
   const financialCards = [
@@ -63,8 +34,8 @@ const CardStats: React.FC<CardStatsProps> = ({ stats }) => {
 
   return (
     <div className="space-y-6">
-      {/* Main Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Essential Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {statCards.map((stat, index) => (
           <Card key={index} className="hover:shadow-md transition-shadow">
             <CardContent className="p-4">
@@ -80,12 +51,8 @@ const CardStats: React.FC<CardStatsProps> = ({ stats }) => {
             </CardContent>
           </Card>
         ))}
-      </div>
-
-      {/* Financial Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
         {financialCards.map((stat, index) => (
-          <Card key={index} className="hover:shadow-md transition-shadow">
+          <Card key={`financial-${index}`} className="hover:shadow-md transition-shadow">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
