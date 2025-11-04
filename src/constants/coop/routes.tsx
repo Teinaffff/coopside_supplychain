@@ -16,6 +16,8 @@ import LoanMonitoringPage from "../../pages/coop/loan-monitoring/page";
 import LoanDetailPage from "../../pages/coop/loan-monitoring/LoanDetailPage";
 import DisbursementPage from "../../pages/coop/loan-monitoring/DisbursementPage";
 import LoanStatusTrackingPage from "../../pages/coop/loan-monitoring/LoanStatusTrackingPage";
+import RepaymentsListPage from "../../pages/coop/loan-monitoring/RepaymentsListPage";
+import RepaymentDetailPage from "../../pages/coop/loan-monitoring/RepaymentDetailPage";
 import SettingsPage from "../../pages/coop/settings/page";
 import LoanSettingsPage from "../../pages/coop/loan-monitoring/LoanSettingsPage";
 import SystemUserRolesPage from "../../pages/coop/system/SystemUserRolesPage";
@@ -119,6 +121,16 @@ export const ROUTES = [
     path: "loan-monitoring/settings",
     title: "Loan Settings",
     element: <LoanSettingsPage />,
+  },
+  {
+    path: "loan-monitoring/repayments",
+    title: "Repayments",
+    element: <RepaymentsListPage />,
+  },
+  {
+    path: "loan-monitoring/repayments/agent/:agentId",
+    title: "Repayment Details",
+    element: <RepaymentDetailPage />,
   },
   {
     path: "settings",

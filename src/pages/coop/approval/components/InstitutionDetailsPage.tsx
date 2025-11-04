@@ -49,6 +49,7 @@ import { toast } from "react-hot-toast";
 import API from "../../../../config/axios-config";
 import { ExportConsumersDataToExcel } from "./ExportConsumersDataToExcel";
 import { mapConsumerStatus } from "../../../../lib/consumer-status-utils";
+import documentService from "../../../../services/documentService";
 
 // Consumer interface
 interface Consumer {
@@ -182,6 +183,8 @@ const InstitutionDetailsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [partnerStatusFilter, setPartnerStatusFilter] = useState<string>("All");
   const [superAdminStatusFilter, setSuperAdminStatusFilter] = useState<string>("All");
+  const [institutionDocuments, setInstitutionDocuments] = useState<any[]>([]);
+  const [documentsLoading, setDocumentsLoading] = useState(false);
 
   const {
     institutions,
@@ -211,6 +214,68 @@ const InstitutionDetailsPage: React.FC = () => {
   console.log("[INSTITUTION DETAILS] Found institution:", institution);
   console.log("[INSTITUTION DETAILS] Institution ID from data:", institution?.id, "Type:", typeof institution?.id);
   console.log("[INSTITUTION DETAILS] Is loading:", isLoading);
+
+  // Fetch documents for the institution
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      if (!institution?.id && !numId) return;
+      
+      const institutionId = institution?.id || numId;
+      setDocumentsLoading(true);
+      try {
+        const docs = await documentService.getUserDocuments(institutionId);
+        // Transform documents to match DocumentPreview format
+        const transformedDocs = docs.map((doc: any) => {
+          // Use relative path from API - DocumentPreview will handle authenticated fetching
+          // The API returns fileUrl as a relative path like "/files/factories/19/..."
+          const constructedUrl = doc.fileUrl || doc.url || '';
+          // Map status: API returns status as partner status
+          const partnerStatus = doc.status || 'Pending';
+          // Check for superAdminStatus field (if API returns it)
+          const superAdminStatus = doc.superAdminStatus || doc.superAdminApprovalStatus || undefined;
+          
+          // Normalize status values
+          const normalizeStatus = (s: string): "Approved" | "Pending" | "Rejected" => {
+            const upper = s?.toUpperCase();
+            if (upper === "APPROVED") return "Approved";
+            if (upper === "REJECTED") return "Rejected";
+            return "Pending";
+          };
+
+          return {
+            id: doc.id || doc.documentId,
+            name: doc.name || doc.documentName || `Document ${doc.id}`,
+            type: doc.type || doc.documentType || 'Document',
+            uploadedAt: doc.uploadedAt || doc.createdAt || new Date().toISOString(),
+            status: normalizeStatus(partnerStatus), // Keep for backward compatibility
+            partnerStatus: normalizeStatus(partnerStatus),
+            superAdminStatus: superAdminStatus ? normalizeStatus(superAdminStatus) : undefined,
+            url: constructedUrl,
+            size: doc.size || (doc.fileSize ? `${(doc.fileSize / 1024 / 1024).toFixed(1)} MB` : 'Unknown'),
+            fileType: doc.fileType || doc.mimeType,
+            documentNumber: doc.documentNumber,
+            isVerified: doc.isVerified,
+            reviewComments: doc.reviewComments,
+            verifiedAt: doc.verifiedAt,
+            approvedAt: doc.approvedAt,
+            rejectedAt: doc.rejectedAt,
+            approvedBy: doc.approvedBy,
+            rejectedBy: doc.rejectedBy
+          };
+        });
+        setInstitutionDocuments(transformedDocs);
+      } catch (error) {
+        console.error("Error fetching institution documents:", error);
+        toast.error("Failed to load documents");
+      } finally {
+        setDocumentsLoading(false);
+      }
+    };
+
+    if (institution || numId) {
+      fetchDocuments();
+    }
+  }, [institution?.id, numId]);
 
   // Fetch consumers for this institution
   const fetchConsumers = async () => {
@@ -757,36 +822,25 @@ const InstitutionDetailsPage: React.FC = () => {
 
           {/* Documents Tab */}
           <TabsContent value="documents">
+            {documentsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                  <p className="text-gray-600 dark:text-slate-400">Loading documents...</p>
+                </div>
+              </div>
+            ) : (
             <DocumentPreview 
-              documents={institution.form.appUserDocuments && institution.form.appUserDocuments.length > 0 ? institution.form.appUserDocuments.map((doc: any, index: number) => {
-                const constructedUrl = doc.fileUrl ? (doc.fileUrl.startsWith('http') ? doc.fileUrl : `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5050'}${doc.fileUrl}`) : '';
-                console.log('[DOCUMENT DEBUG]', {
-                  originalFileUrl: doc.fileUrl,
-                  constructedUrl: constructedUrl,
-                  documentName: doc.documentName,
-                  documentType: doc.documentType
-                });
-                return {
-                  id: doc.id || `doc-${index}`,
-                  name: doc.documentName || `Document ${index + 1}`,
-                  type: doc.documentType || 'Document',
-                  uploadedAt: doc.uploadedAt || new Date().toISOString(),
-                  status: doc.status || 'Pending',
-                  url: constructedUrl,
-                  size: doc.fileSize ? `${(doc.fileSize / 1024 / 1024).toFixed(1)} MB` : 'Unknown',
-                  documentNumber: doc.documentNumber,
-                  fileType: doc.fileType,
-                  isVerified: doc.isVerified,
-                  reviewComments: doc.reviewComments,
-                  verifiedAt: doc.verifiedAt,
-                  approvedAt: doc.approvedAt,
-                  rejectedAt: doc.rejectedAt,
-                  approvedBy: doc.approvedBy,
-                  rejectedBy: doc.rejectedBy
-                };
-              }) : []}
+                documents={institutionDocuments}
               title="Institution Documents"
-            />
+                onDocumentUpdate={(documentId, status) => {
+                  // Update the document in local state
+                  setInstitutionDocuments(prev => prev.map(doc => 
+                    doc.id === documentId ? { ...doc, status } : doc
+                  ));
+                }}
+              />
+            )}
           </TabsContent>
 
           {/* Agreements Tab */}

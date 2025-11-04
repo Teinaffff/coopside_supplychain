@@ -44,24 +44,43 @@ export interface ApprovalRequest {
   interestRate: number;
   processingFeePercentage: number;
   processingFeeFactor: number;
+  approvalComment?: string;
   rejectionReason?: string;
-  remarks?: string;
 }
 
 export interface RejectionRequest {
   applicationNumber: string;
-  reason: string;
-  remarks?: string;
+  approved: boolean;
+  interestRate: number;
+  processingFeePercentage: number;
+  processingFeeFactor: number;
+  rejectionReason: string;
+  approvalComment?: string;
 }
 
 class LoanApplicationService {
   // Get all loan applications
   async getAllLoanApplications(): Promise<LoanApplication[]> {
     try {
+      console.log('[API] Fetching real loan applications from /v1/loan-applications/all');
       const response = await API.get('/v1/loan-applications/all');
-      return response.data;
+      console.log('[API] Response received:', {
+        status: response.status,
+        dataType: typeof response.data,
+        isArray: Array.isArray(response.data),
+        dataLength: Array.isArray(response.data) ? response.data.length : 'not an array',
+        dataStructure: response.data?.data ? 'nested (response.data.data)' : 'direct (response.data)'
+      });
+      
+      // Handle both nested and direct response structures
+      const applications = Array.isArray(response.data) 
+        ? response.data 
+        : (response.data?.data || response.data || []);
+      
+      console.log('[API] Returning', applications.length, 'real loan applications');
+      return applications;
     } catch (error) {
-      console.error('Error fetching all loan applications:', error);
+      console.error('[API ERROR] Failed to fetch real loan applications:', error);
       throw error;
     }
   }
@@ -307,14 +326,24 @@ class LoanApplicationService {
   // Approve loan application (bank action)
   async approveLoanApplication(approvalData: ApprovalRequest): Promise<LoanApplication> {
     try {
-      const response = await API.post(`/v1/admin/approvals/${approvalData.applicationNumber}/approve`, {
+      const requestBody: any = {
         approved: true,
-        approvedAmount: approvalData.approvedAmount,
         interestRate: approvalData.interestRate,
         processingFeePercentage: approvalData.processingFeePercentage,
         processingFeeFactor: approvalData.processingFeeFactor,
         rejectionReason: approvalData.rejectionReason || ""
-      });
+      };
+      
+      // Include approvedAmount only if it's provided and greater than 0
+      if (approvalData.approvedAmount && approvalData.approvedAmount > 0) {
+        requestBody.approvedAmount = approvalData.approvedAmount;
+      }
+      
+      console.log("=== APPROVAL API REQUEST ===");
+      console.log("Endpoint:", `/v1/admin/approvals/${approvalData.applicationNumber}/approve`);
+      console.log("Request body:", requestBody);
+      
+      const response = await API.post(`/v1/admin/approvals/${approvalData.applicationNumber}/approve`, requestBody);
       
       console.log("=== APPROVAL API RESPONSE ===");
       console.log("Full response:", response);
@@ -322,23 +351,59 @@ class LoanApplicationService {
       console.log("Response status:", response.status);
       console.log("Response headers:", response.headers);
       
-      return response.data;
-    } catch (error) {
-      console.error('Error approving loan application:', error);
+      // Handle both direct data and nested data structure
+      return response.data?.data || response.data;
+    } catch (error: any) {
+      console.error('=== APPROVAL API ERROR ===');
+      console.error('Error:', error);
+      console.error('Error response:', error?.response);
+      console.error('Error response data:', error?.response?.data);
+      console.error('Error response status:', error?.response?.status);
+      console.error('Error message:', error?.message);
       throw error;
     }
   }
 
   // Reject loan application (bank action)
+  // Note: This endpoint should only update the superAdminStatus field to "rejected",
+  // and should not affect the main loan application status field or partner status.
+  // The main status should remain unchanged (e.g., if partner approved, status stays APPROVED,
+  // but superAdminStatus becomes "rejected").
   async rejectLoanApplication(rejectionData: RejectionRequest): Promise<LoanApplication> {
     try {
-      const response = await API.post(`/v1/loan-applications/${rejectionData.applicationNumber}/reject`, {
-        reason: rejectionData.reason,
-        remarks: rejectionData.remarks
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error rejecting loan application:', error);
+      // Structure the request body similar to approve to ensure it only affects super admin status
+      const requestBody: any = {
+        approved: false,
+        interestRate: rejectionData.interestRate,
+        processingFeePercentage: rejectionData.processingFeePercentage,
+        processingFeeFactor: rejectionData.processingFeeFactor,
+        rejectionReason: rejectionData.rejectionReason
+      };
+      
+      // Don't include approvedAmount for reject (it should be 0 or not set)
+      // This ensures the backend knows this is a super admin rejection, not a partner rejection
+      
+      console.log("=== REJECT API REQUEST ===");
+      console.log("Endpoint:", `/v1/admin/approvals/${rejectionData.applicationNumber}/reject`);
+      console.log("Request body:", requestBody);
+      console.log("This should only update superAdminStatus to 'rejected'");
+      console.log("Main status and partner status should remain unchanged");
+      
+      const response = await API.post(`/v1/admin/approvals/${rejectionData.applicationNumber}/reject`, requestBody);
+      
+      console.log("=== REJECT API RESPONSE ===");
+      console.log("Response data:", response.data);
+      console.log("Super admin status should be updated to 'rejected'");
+      console.log("Main status should remain unchanged");
+      
+      // Handle both direct data and nested data structure
+      return response.data?.data || response.data;
+    } catch (error: any) {
+      console.error('=== REJECT API ERROR ===');
+      console.error('Error:', error);
+      console.error('Error response:', error?.response);
+      console.error('Error response data:', error?.response?.data);
+      console.error('Error response status:', error?.response?.status);
       throw error;
     }
   }

@@ -1,4 +1,4 @@
-import { LucideHome, ClipboardPlus, MonitorSmartphoneIcon, Banknote, FileText, Users2, Settings, CreditCard} from "lucide-react";
+import { LucideHome, ClipboardPlus, MonitorSmartphoneIcon, Banknote, FileText, Users2, Settings, CreditCard, TrendingUp} from "lucide-react";
 
 export const menuItems = [
 
@@ -40,6 +40,12 @@ export const menuItems = [
         pathname: "/coop/loan-monitoring/tracking",
         icon: <Banknote width={18} height={18} />,
       },
+      // {
+      //   label: "Repayments",
+      //   to: "/coop/loan-monitoring/repayments",
+      //   pathname: "/coop/loan-monitoring/repayments",
+      //   icon: <TrendingUp width={18} height={18} />,
+      // },
       {
         label: "Loan Settings",
         to: "/coop/loan-monitoring/settings",

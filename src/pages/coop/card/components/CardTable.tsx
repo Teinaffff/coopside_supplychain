@@ -126,19 +126,19 @@ const CardTable: React.FC<CardTableProps> = ({
         </div>
       ),
     },
-    {
-      accessorKey: "issuedDate",
-      header: "Issue Date",
-      meta: { align: "left" },
-      cell: ({ row }) => (
-        <div className="text-sm">
-          {row.original.issuedDate ? new Date(row.original.issuedDate).toLocaleDateString() : "N/A"}
-        </div>
-      ),
-    },
+    // {
+    //   accessorKey: "issuedDate",
+    //   header: "Issue Date",
+    //   meta: { align: "left" },
+    //   cell: ({ row }) => (
+    //     <div className="text-sm">
+    //       {row.original.issuedDate ? new Date(row.original.issuedDate).toLocaleDateString() : "N/A"}
+    //     </div>
+    //   ),
+    // },
     {
       accessorKey: "approvalStatus",
-      header: "Partner Statusimage.png",
+      header: "Status",
       meta: { align: "center" },
       cell: ({ row }) => getApprovalStatusBadge(row.original.approvalStatus),
     },

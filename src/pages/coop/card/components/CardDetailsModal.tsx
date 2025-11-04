@@ -110,8 +110,8 @@ const CardDetailsModal: React.FC<CardDetailsModalProps> = ({ open, onOpenChange,
               <div className="space-y-2">
                 <div className="text-sm font-medium">Approval</div>
                 <div className="bg-muted/30 rounded-md p-3 text-sm">
-                  <div>Approved By: {approverName ?? "—"}</div>
-                  <div>Approved At: {formatDate(card.approvedAt ?? undefined)}</div>
+                  <div>Approved/Rejected By: {approverName ?? "—"}</div>
+                  <div>Approved/Rejected At: {formatDate(card.approvedAt ?? undefined)}</div>
                   <div>Rejection Reason: {card.rejectionReason ?? "—"}</div>
                 </div>
               </div>

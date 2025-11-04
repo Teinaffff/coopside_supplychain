@@ -33,6 +33,7 @@ import API from "../../../../config/axios-config";
 import { toast } from "react-hot-toast";
 import { useConsumers } from "../../hooks/useConsumers";
 import { mapConsumerStatus } from "../../../../lib/consumer-status-utils";
+import documentService from "../../../../services/documentService";
 
 // Bank Information interface
 interface BankInfo {
@@ -141,6 +142,9 @@ const ConsumerDetailsPage: React.FC = () => {
   const [customReason, setCustomReason] = useState("");
   const [selectedRevokeReason, setSelectedRevokeReason] = useState("");
   const [customRevokeReason, setCustomRevokeReason] = useState("");
+  const [consumerDocuments, setConsumerDocuments] = useState<any[]>([]);
+  const [documentsLoading, setDocumentsLoading] = useState(false);
+  const [refetchTrigger, setRefetchTrigger] = useState(0);
 
   // Predefined rejection reasons (same as institutions/agents)
   const rejectionReasons = [
@@ -153,9 +157,9 @@ const ConsumerDetailsPage: React.FC = () => {
 
   // Use the consumers hook for approve/reject functionality
   const {
-    approveConsumerAsync,
-    rejectConsumerAsync,
-    revokeConsumerApprovalAsync,
+    approveConsumer,
+    rejectConsumer,
+    revokeConsumerApproval,
     isApproving,
     isRejecting,
     isRevoking,
@@ -176,112 +180,107 @@ const ConsumerDetailsPage: React.FC = () => {
     }
   };
 
-  const onApprove = async () => {
+  const onApprove = () => {
     if (!consumer?.id) {
       toast.error("Invalid consumer ID");
       return;
     }
     
-    try {
-      await approveConsumerAsync(consumer.id);
-      setOpenApprove(false);
-      
-      // Update consumer status locally only if approval was successful
-      if (consumer) {
-        setConsumer({ ...consumer, status: "Approved" });
-      }
-    } catch (error: any) {
-      console.error("Error approving consumer:", error);
-      // Don't update local state if approval failed
-      // Error message is already handled by the mutation
-    }
+    // Call the mutation and pass consumer ID directly
+    approveConsumer(consumer.id);
+    setOpenApprove(false);
+    
+    // Refetch consumer data to get updated status from API
+    setRefetchTrigger(prev => prev + 1);
   };
 
-  const onReject = async () => {
-    if (!consumer?.id) {
-      toast.error("Invalid consumer ID");
-      return;
-    }
-
+  const onReject = () => {
     // Determine the reason to send
     const finalReason = selectedRejectReason === "Other" ? customReason : selectedRejectReason;
-    
+  
     if (!finalReason.trim()) {
       toast.error("Please provide a reason for rejection");
       return;
     }
-    
-    console.log("[FRONTEND] Attempting to reject consumer:", {
-      id: consumer.id,
-      adminStatus: consumer.adminStatus,
-      status: consumer.status,
-      reason: finalReason
-    });
-    
-    try {
-      await rejectConsumerAsync({ consumerId: consumer.id, reason: finalReason });
-      setOpenReject(false);
-      setSelectedRejectReason("");
-      setCustomReason("");
-      
-      // Update consumer status locally only if rejection was successful
-      if (consumer) {
-        setConsumer({ ...consumer, status: "Rejected" });
-      }
-    } catch (error: any) {
-      console.error("[FRONTEND] Error rejecting consumer:", error);
-      // Don't update local state if rejection failed
-      // Error message is already handled by the mutation
-    }
-  };
-
-  const onRevoke = async () => {
-    if (!consumer?.id) {
-      toast.error("Invalid consumer ID");
+  
+    // Get the consumer ID
+    const consumerId = consumer?.id || (id ? parseInt(id, 10) : null);
+  
+    if (!consumerId || isNaN(Number(consumerId))) {
+      console.error("Invalid consumer ID:", { consumerId, id, consumer });
+      toast.error("Invalid consumer ID - unable to reject");
       return;
     }
+  
+    // Always use reject endpoint for consumers approved by partner
+    // The reject endpoint should handle both pending and approved super admin statuses
+    // This matches the pattern used for institutions - reject works for all cases
+    console.log("[REJECT CONSUMER] Consumer status:", {
+      isConsumerApproved,
+      isConsumerPending,
+      normalizedConsumerStatus,
+      consumerStatus: consumer?.status,
+      consumerAdminStatus: consumer?.adminStatus,
+      isConsumerApprovedByPartner
+    });
+    
+    // Call the mutation - same pattern as institutions
+    rejectConsumer({
+      consumerId: Number(consumerId),
+      reason: finalReason
+    });
+  
+    // Reset modal and form state
+    setOpenReject(false);
+    setSelectedRejectReason("");
+    setCustomReason("");
+    
+    // Refetch consumer data to get updated status from API
+    setRefetchTrigger(prev => prev + 1);
+  };
 
+  const onRevoke = () => {
     // Determine the reason to send
     const finalReason = selectedRevokeReason === "Other" ? customRevokeReason : selectedRevokeReason;
-    
+  
     if (!finalReason.trim()) {
       toast.error("Please provide a reason for revoking approval");
       return;
     }
-    
-    console.log("[FRONTEND] Attempting to revoke consumer approval:", {
-      id: consumer.id,
-      adminStatus: consumer.adminStatus,
-      status: consumer.status,
+  
+    // Get the consumer ID
+    const consumerId = consumer?.id || (id ? parseInt(id, 10) : null);
+  
+    if (!consumerId || isNaN(Number(consumerId))) {
+      console.error("Invalid consumer ID:", { consumerId, id, consumer });
+      toast.error("Invalid consumer ID - unable to revoke approval");
+      return;
+    }
+  
+    // Call the mutation and pass an object (important!)
+    revokeConsumerApproval({
+      consumerId: Number(consumerId),
       reason: finalReason
     });
+  
+    // Reset modal and form state
+    setOpenRevoke(false);
+    setSelectedRevokeReason("");
+    setCustomRevokeReason("");
     
-    try {
-      await revokeConsumerApprovalAsync({ consumerId: consumer.id, reason: finalReason });
-      setOpenRevoke(false);
-      setSelectedRevokeReason("");
-      setCustomRevokeReason("");
-      
-      // Update consumer status locally only if revocation was successful
-      if (consumer) {
-        setConsumer({ ...consumer, status: "Pending" });
-      }
-    } catch (error: any) {
-      console.error("[FRONTEND] Error revoking consumer approval:", error);
-      // Don't update local state if revocation failed
-      // Error message is already handled by the mutation
-    }
+    // Refetch consumer data to get updated status from API
+    setRefetchTrigger(prev => prev + 1);
   };
 
   // Fetch consumer and institution data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Fetch consumer details
-        const consumerResponse = await API.get(`/v1/consumers/${id}`);
-        const consumerData = consumerResponse.data?.data || consumerResponse.data;
+  // Fetch consumer data function
+  const fetchConsumerData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Fetch consumer details
+      const consumerResponse = await API.get(`/v1/consumers/${id}`);
+      const consumerData = consumerResponse.data?.data || consumerResponse.data;
         
         console.log("[CONSUMER DETAILS] Raw API response:", consumerData);
         console.log("[CONSUMER DETAILS] National ID fields:", {
@@ -359,12 +358,22 @@ const ConsumerDetailsPage: React.FC = () => {
               const institutionData = institutionResponse.data?.data || institutionResponse.data;
               
               console.log("[CONSUMER DETAILS] Institution data:", institutionData);
+              console.log("[CONSUMER DETAILS] Institution FULL object (for debugging):", JSON.stringify(institutionData, null, 2));
               console.log("[CONSUMER DETAILS] Institution status fields:", {
+                superAdminApprovalStatus: institutionData?.superAdminApprovalStatus,
                 status: institutionData?.status,
                 adminStatus: institutionData?.adminStatus,
+                adminApprovalStatus: institutionData?.adminApprovalStatus,
                 onboardingStatus: institutionData?.onboardingStatus,
                 approvalStatus: institutionData?.approvalStatus,
-                superAdminStatus: institutionData?.superAdminStatus
+                superAdminStatus: institutionData?.superAdminStatus,
+                partnerStatus: institutionData?.partnerStatus,
+                // Check nested form object
+                formSuperAdminApprovalStatus: institutionData?.form?.superAdminApprovalStatus,
+                formStatus: institutionData?.form?.status,
+                formAdminStatus: institutionData?.form?.adminStatus,
+                // Check if it's in a different structure
+                allKeys: institutionData ? Object.keys(institutionData) : []
               });
               
               setInstitution(institutionData);
@@ -379,12 +388,67 @@ const ConsumerDetailsPage: React.FC = () => {
       } finally {
         setIsLoading(false);
       }
-    };
+  };
 
+  useEffect(() => {
     if (id) {
-      fetchData();
+      fetchConsumerData();
     }
-  }, [id]);
+  }, [id, refetchTrigger]);
+
+  // Fetch documents for the consumer
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      if (!consumer?.id) return;
+      
+      setDocumentsLoading(true);
+      try {
+        const docs = await documentService.getUserDocuments(consumer.id);
+        // Transform documents to match DocumentPreview format
+        const transformedDocs = docs.map((doc: any) => {
+          // Use relative path from API - DocumentPreview will handle authenticated fetching
+          // The API returns fileUrl as a relative path like "/files/factories/19/..."
+          const constructedUrl = doc.fileUrl || doc.url || '';
+          
+          // Map status: API returns status as partner status
+          const partnerStatus = doc.status || 'Pending';
+          // Check for superAdminStatus field (if API returns it)
+          const superAdminStatus = doc.superAdminStatus || doc.superAdminApprovalStatus || undefined;
+          
+          // Normalize status values
+          const normalizeStatus = (s: string): "Approved" | "Pending" | "Rejected" => {
+            const upper = s?.toUpperCase();
+            if (upper === "APPROVED") return "Approved";
+            if (upper === "REJECTED") return "Rejected";
+            return "Pending";
+          };
+
+          return {
+            id: doc.id || doc.documentId,
+            name: doc.name || doc.documentName || `Document ${doc.id}`,
+            type: doc.type || doc.documentType || 'Document',
+            uploadedAt: doc.uploadedAt || doc.createdAt || new Date().toISOString(),
+            status: normalizeStatus(partnerStatus), // Keep for backward compatibility
+            partnerStatus: normalizeStatus(partnerStatus),
+            superAdminStatus: superAdminStatus ? normalizeStatus(superAdminStatus) : undefined,
+            url: constructedUrl,
+            size: doc.size || (doc.fileSize ? `${(doc.fileSize / 1024 / 1024).toFixed(1)} MB` : 'Unknown'),
+            fileType: doc.fileType || doc.mimeType
+          };
+        });
+          setConsumerDocuments(transformedDocs);
+        } catch (error) {
+          console.error("Error fetching consumer documents:", error);
+          toast.error("Failed to load documents");
+        } finally {
+          setDocumentsLoading(false);
+        }
+      };
+
+      if (consumer?.id) {
+        fetchDocuments();
+      }
+    }, [consumer?.id]);
 
   // Loading state
   if (isLoading) {
@@ -397,51 +461,161 @@ const ConsumerDetailsPage: React.FC = () => {
   }
 
 
+  // Normalize status for comparison (convert to uppercase for case-insensitive check)
+  const normalizeStatusForCheck = (status: any): string => {
+    if (!status) return "";
+    return String(status).trim().toUpperCase();
+  };
+  
   // Check institution status - handle different possible field names and values
-  const institutionStatus = institution?.status || institution?.onboardingStatus || institution?.approvalStatus || institution?.superAdminStatus;
-  const institutionAdminStatus = institution?.adminStatus || institution?.partnerStatus;
+  // Priority: superAdminApprovalStatus is the main field for super admin approval status
+  // Also check the form object which might contain the original data
+  const institutionStatusRaw = institution?.superAdminApprovalStatus || 
+                                institution?.status || 
+                                institution?.onboardingStatus || 
+                                institution?.approvalStatus || 
+                                institution?.superAdminStatus ||
+                                institution?.form?.superAdminApprovalStatus ||
+                                institution?.form?.status ||
+                                institution?.form?.onboardingStatus ||
+                                "";
+  const institutionAdminStatusRaw = institution?.adminStatus || 
+                                     institution?.adminApprovalStatus ||
+                                     institution?.partnerStatus ||
+                                     institution?.form?.adminStatus ||
+                                     institution?.form?.adminApprovalStatus ||
+                                     institution?.form?.partnerStatus ||
+                                     "";
   
   console.log("[CONSUMER DETAILS] Institution status check:", {
-    institutionStatus,
-    institutionAdminStatus,
+    institutionStatusRaw,
+    institutionAdminStatusRaw,
     institution: institution,
     allStatusFields: {
+      superAdminApprovalStatus: institution?.superAdminApprovalStatus,
       status: institution?.status,
       onboardingStatus: institution?.onboardingStatus,
       approvalStatus: institution?.approvalStatus,
       superAdminStatus: institution?.superAdminStatus,
       adminStatus: institution?.adminStatus,
-      partnerStatus: institution?.partnerStatus
-    }
+      adminApprovalStatus: institution?.adminApprovalStatus,
+      partnerStatus: institution?.partnerStatus,
+      formSuperAdminApprovalStatus: institution?.form?.superAdminApprovalStatus,
+      formStatus: institution?.form?.status,
+      formOnboardingStatus: institution?.form?.onboardingStatus
+    },
+    // Log all institution keys to see what's available
+    institutionKeys: institution ? Object.keys(institution) : [],
+    institutionId: institution?.id
   });
   
-  // More robust status checking - check for various forms of "Approved"
-  const isInstitutionRejected = institutionStatus === "Rejected" || institutionStatus === "REJECTED";
-  const isInstitutionPending = (institutionStatus === "Pending" || institutionStatus === "PENDING") && institutionAdminStatus !== "Approved" && institutionAdminStatus !== "APPROVED";
+  const normalizedInstitutionStatus = normalizeStatusForCheck(institutionStatusRaw);
+  const normalizedAdminStatus = normalizeStatusForCheck(institutionAdminStatusRaw);
   
-  // Check if institution is approved by super admin
-  let isInstitutionApprovedBySuperAdmin = institutionStatus === "Approved" || institutionStatus === "APPROVED" || institutionStatus === "approved";
+  // More robust status checking - check for various forms of "Approved"
+  const isInstitutionRejected = normalizedInstitutionStatus === "REJECTED" || normalizedInstitutionStatus === "REJECTED_BY_ADMIN";
+  // Only consider pending if status is explicitly "PENDING" AND partner hasn't approved
+  // If partner approved, the institution is likely approved even if status shows pending
+  const isInstitutionPending = normalizedInstitutionStatus === "PENDING" && 
+                                normalizedAdminStatus !== "APPROVED";
+  
+  // Check if institution is approved by super admin - check for "APPROVED" (case-insensitive)
+  // Accept any variation: "APPROVED", "Approved", "approved"
+  let isInstitutionApprovedBySuperAdmin = normalizedInstitutionStatus === "APPROVED";
+  
+  // Additional check: if status is in the form object and we haven't found it yet
+  if (!isInstitutionApprovedBySuperAdmin && institution?.form) {
+    const formStatus = normalizeStatusForCheck(institution.form.superAdminApprovalStatus || institution.form.status || institution.form.onboardingStatus);
+    if (formStatus === "APPROVED") {
+      console.log("[CONSUMER DETAILS] Found approved status in form object");
+      isInstitutionApprovedBySuperAdmin = true;
+    }
+  }
+  
+  // CRITICAL FALLBACK: If consumer is approved by partner, assume institution is approved
+  // This is the most important fallback - if partner approved the consumer, institution must be approved
+  // Only skip this if we have a CLEAR rejection status
+  if (!isInstitutionApprovedBySuperAdmin && consumer) {
+    const isConsumerApprovedByPartnerCheck = normalizeStatusForCheck(consumer?.adminStatus) === "APPROVED";
+    
+    if (isConsumerApprovedByPartnerCheck && institution) {
+      // If we have a clear rejection, don't override
+      if (!isInstitutionRejected) {
+        console.log("[CONSUMER DETAILS] CRITICAL FALLBACK: Consumer is approved by partner. Assuming institution is approved (unless explicitly rejected).");
+        isInstitutionApprovedBySuperAdmin = true;
+      } else {
+        console.log("[CONSUMER DETAILS] Institution is rejected, cannot override even though consumer is partner-approved.");
+      }
+    }
+  }
   
   // Fallback: If we can't determine institution status but consumer has been processed by super admin,
   // assume institution is approved (since consumer processing requires institution approval)
-  if (!isInstitutionApprovedBySuperAdmin && !isInstitutionRejected && !isInstitutionPending && consumer?.status && consumer.status !== "Pending") {
+  if (!isInstitutionApprovedBySuperAdmin && !isInstitutionRejected && consumer?.status && consumer.status !== "Pending") {
     console.log("[CONSUMER DETAILS] Fallback: Assuming institution is approved because consumer has been processed by super admin");
     isInstitutionApprovedBySuperAdmin = true;
   }
+  
+  console.log("[CONSUMER DETAILS] Final institution approval check:", {
+    isInstitutionApprovedBySuperAdmin,
+    normalizedInstitutionStatus,
+    normalizedAdminStatus,
+    isInstitutionRejected,
+    isInstitutionPending,
+    rawInstitutionStatus: institutionStatusRaw,
+    hasInstitution: !!institution,
+    institutionId: institution?.id
+  });
 
+  // Normalize consumer status for comparison
+  // If status is missing/empty, treat it as "Pending" (not yet processed by super admin)
+  const normalizedConsumerStatus = normalizeStatusForCheck(consumer?.status);
+  const normalizedConsumerAdminStatus = normalizeStatusForCheck(consumer?.adminStatus);
+  
+  // Check if partner has approved the consumer (check this early)
+  const isConsumerApprovedByPartner = normalizedConsumerAdminStatus === "APPROVED";
+  
+  // FINAL FALLBACK: If consumer is approved by partner and institution exists but status is unclear,
+  // assume institution is approved (this is the most reliable indicator)
+  // Move this check here so it runs before canApprove/canReject calculations
+  // This ensures that if partner approved the consumer, we can always process it
+  if (!isInstitutionApprovedBySuperAdmin && isConsumerApprovedByPartner && institution) {
+    // Only override if we don't have a clear rejection
+    if (!isInstitutionRejected) {
+      console.log("[CONSUMER DETAILS] FINAL FALLBACK: Consumer is approved by partner. Assuming institution is approved to enable actions.");
+      isInstitutionApprovedBySuperAdmin = true;
+    } else {
+      console.log("[CONSUMER DETAILS] Institution is explicitly rejected, cannot process consumer even if partner approved.");
+    }
+  }
+  
+  // Check if consumer is already processed (approved or rejected by super admin)
+  // If status is empty/null/undefined, consider it as pending (not processed yet)
+  const isConsumerApproved = normalizedConsumerStatus === "APPROVED";
+  const isConsumerRejected = normalizedConsumerStatus === "REJECTED" || normalizedConsumerStatus === "REJECTED_BY_ADMIN";
+  // Empty status means pending (not yet processed by super admin)
+  const isConsumerPending = normalizedConsumerStatus === "" || normalizedConsumerStatus === "PENDING";
+  const isConsumerProcessed = isConsumerApproved || isConsumerRejected;
+  
   // Check if consumer can be approved/rejected
-  // Can approve: if institution is approved by super admin AND partner approved consumer AND super admin hasn't processed yet
-  // Can reject: if institution is approved by super admin AND partner approved consumer AND (super admin hasn't processed yet OR already approved)
-  const canApprove = isInstitutionApprovedBySuperAdmin && consumer?.adminStatus === "Approved" && consumer?.status === "Pending";
-  const canReject = isInstitutionApprovedBySuperAdmin && ((consumer?.adminStatus === "Approved" && consumer?.status === "Pending") || 
-                   (consumer?.adminStatus === "Approved" && consumer?.status === "Approved"));
+  // SIMPLIFIED: Only check if partner approved the consumer
+  // If partner approved → super admin can approve/reject (regardless of institution status)
+  // Can approve: if partner approved consumer AND super admin hasn't processed yet (pending or empty)
+  // Can reject: if partner approved consumer AND (super admin hasn't processed yet OR already approved)
+  const canApprove = isConsumerApprovedByPartner && isConsumerPending;
+  const canReject = isConsumerApprovedByPartner && (isConsumerPending || isConsumerApproved);
 
   console.log("[CONSUMER DETAILS] Action permissions:", {
     canApprove,
     canReject,
     isInstitutionApprovedBySuperAdmin,
     consumerAdminStatus: consumer?.adminStatus,
+    normalizedConsumerAdminStatus,
     consumerStatus: consumer?.status,
+    normalizedConsumerStatus,
+    isConsumerApprovedByPartner,
+    isConsumerPending,
+    isConsumerProcessed,
     isInstitutionRejected,
     isInstitutionPending
   });
@@ -490,31 +664,45 @@ const ConsumerDetailsPage: React.FC = () => {
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                   Select a reason:
                 </label>
-                <Select value={selectedRejectReason} onValueChange={setSelectedRejectReason}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Choose a rejection reason" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {rejectionReasons.map((reason) => (
-                      <SelectItem key={reason} value={reason}>
+                <div className="space-y-2">
+                  {rejectionReasons.map((reason) => (
+                    <div key={reason} className="flex items-center">
+                      <input
+                        type="radio"
+                        id={`reject-${reason}`}
+                        name="rejectionReason"
+                        value={reason}
+                        checked={selectedRejectReason === reason}
+                        onChange={(e) => {
+                          setSelectedRejectReason(e.target.value);
+                          if (e.target.value !== "Other") {
+                            setCustomReason("");
+                          }
+                        }}
+                        className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 dark:border-gray-600 dark:bg-slate-800"
+                      />
+                      <label
+                        htmlFor={`reject-${reason}`}
+                        className="ml-2 block text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
+                      >
                         {reason}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
               {selectedRejectReason === "Other" && (
                 <div>
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                     Custom reason:
                   </label>
-              <Textarea
+                  <Textarea
                     placeholder="Enter custom rejection reason..."
                     value={customReason}
                     onChange={(e) => setCustomReason(e.target.value)}
-                className="w-full"
-                rows={3}
-              />
+                    className="w-full"
+                    rows={3}
+                  />
                 </div>
               )}
             </div>
@@ -595,7 +783,7 @@ const ConsumerDetailsPage: React.FC = () => {
                 {institution && (
                   <div className="text-sm text-gray-500 dark:text-slate-400">
                     <p>Institution: {institution.fullLegalName || institution.name}</p>
-                    <p>Institution Status: {institutionStatus || "Unknown"} (Admin: {institutionAdminStatus || "Unknown"})</p>
+                    <p>Institution Status: {institutionStatusRaw || "Unknown"} (Admin: {institutionAdminStatusRaw || "Unknown"})</p>
                     <p>Detected: Approved={isInstitutionApprovedBySuperAdmin ? "Yes" : "No"}, Rejected={isInstitutionRejected ? "Yes" : "No"}, Pending={isInstitutionPending ? "Yes" : "No"}</p>
                   </div>
                 )}
@@ -669,25 +857,25 @@ const ConsumerDetailsPage: React.FC = () => {
             </Button>
           )}
           
-          {/* Regular approve/reject buttons for approved institutions */}
-          {isInstitutionApprovedBySuperAdmin && (
+          {/* Approve/Reject buttons - show when consumer is approved by partner */}
+          {isConsumerApprovedByPartner && (
             <>
-          <Button
-            variant="destructive"
-            onClick={() => setOpenReject(true)}
+              <Button
+                variant="destructive"
+                onClick={() => setOpenReject(true)}
                 disabled={!canReject || isRejecting}
-          >
-            <XCircle className="w-4 h-4 mr-2" />
-            {isRejecting ? "Rejecting..." : "Reject"}
-          </Button>
-          <Button
-            onClick={() => setOpenApprove(true)}
+              >
+                <XCircle className="w-4 h-4 mr-2" />
+                {isRejecting ? "Rejecting..." : "Reject"}
+              </Button>
+              <Button
+                onClick={() => setOpenApprove(true)}
                 disabled={!canApprove || isApproving}
-            className="bg-cyan-600 hover:bg-cyan-700"
-          >
-            <CheckCircle className="w-4 h-4 mr-2" />
-            {isApproving ? "Approving..." : "Approve"}
-          </Button>
+                className="bg-cyan-600 hover:bg-cyan-700"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                {isApproving ? "Approving..." : "Approve"}
+              </Button>
             </>
           )}
         </div>
@@ -695,15 +883,17 @@ const ConsumerDetailsPage: React.FC = () => {
         {(!canApprove && !canReject) && (
           <div className="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/40 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg shadow-md">
             <div className="text-sm text-yellow-900 dark:text-yellow-100 font-semibold">
-              {isInstitutionRejected 
-                ? "This institution has been rejected by super admin. Consumer actions are disabled."
-                : isInstitutionPending
-                ? "This institution is pending partner approval. Consumer actions are disabled until the institution is approved."
-                : !isInstitutionApprovedBySuperAdmin
-                ? "This institution must be approved by super admin first before consumer actions can be performed."
-                : consumer?.adminStatus !== "Approved" 
+              {!isConsumerApprovedByPartner
                 ? "This consumer must be approved by the partner first before it can be approved/rejected by super admin."
-                : "This consumer has already been processed and cannot be modified."}
+                : isConsumerRejected
+                ? "This consumer has already been rejected and cannot be modified."
+                : isConsumerApproved
+                ? "This consumer has already been approved and cannot be modified."
+                : isConsumerPending && isConsumerApprovedByPartner
+                ? `Consumer is pending super admin approval. Partner status: ${consumer?.adminStatus || "Unknown"}. You can now approve or reject this consumer.`
+                : normalizedConsumerStatus !== "" && !isConsumerPending && !isConsumerApproved && !isConsumerRejected
+                ? `Consumer status "${consumer?.status || normalizedConsumerStatus}" is invalid or unrecognized. Please contact support.`
+                : `Consumer status cannot be determined (status: "${consumer?.status || "empty"}", normalized: "${normalizedConsumerStatus}"). Consumer actions are disabled.`}
             </div>
           </div>
         )}
@@ -850,38 +1040,25 @@ const ConsumerDetailsPage: React.FC = () => {
 
           {/* Documents Tab */}
           <TabsContent value="documents">
+            {documentsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                  <p className="text-gray-600 dark:text-slate-400">Loading documents...</p>
+                </div>
+              </div>
+            ) : (
             <DocumentPreview 
-              documents={consumer.docs && consumer.docs.length > 0 ? consumer.docs.map((doc: any, index: number) => ({
-                id: doc.id || `doc-${index}`,
-                name: doc.name || `Document ${index + 1}`,
-                type: doc.type || 'Document',
-                uploadedAt: doc.uploadedAt || new Date().toISOString(),
-                status: doc.status || 'Pending',
-                url: doc.url,
-                size: doc.size
-              })) : [
-                // Sample documents for demonstration
-                {
-                  id: 'doc-1',
-                  name: 'Consumer ID Document',
-                  type: 'Identity Document',
-                  uploadedAt: new Date().toISOString(),
-                  status: 'Approved' as const,
-                  url: '#',
-                  size: '1.2 MB'
-                },
-                {
-                  id: 'doc-2',
-                  name: 'Employment Certificate',
-                  type: 'Employment Document',
-                  uploadedAt: new Date(Date.now() - 86400000).toISOString(),
-                  status: 'Pending' as const,
-                  url: '#',
-                  size: '0.8 MB'
-                }
-              ]}
+                documents={consumerDocuments}
               title="Consumer Documents"
-            />
+                onDocumentUpdate={(documentId, status) => {
+                  // Update the document in local state
+                  setConsumerDocuments(prev => prev.map(doc => 
+                    doc.id === documentId ? { ...doc, status } : doc
+                  ));
+                }}
+              />
+            )}
           </TabsContent>
 
         </Tabs>

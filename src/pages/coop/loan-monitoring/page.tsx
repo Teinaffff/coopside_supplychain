@@ -50,108 +50,6 @@ const LoanMonitoringPage: React.FC = () => {
     superAdminStatus: "all",
   });
 
-  // Mock data for development
-  const mockLoanApplications: LoanApplication[] = [
-    {
-      applicationNumber: "LA-7A4FF322",
-      loanType: "Goods Purchase Financing",
-      status: "DISBURSED",
-      superAdminStatus: "approved",
-      requestedAmount: 4300,
-      approvedAmount: 4000,
-      tenure: 12,
-      products: 2,
-      created: "2025-07-10T10:00:00Z",
-      factoryId: "FAC-67890",
-      agentId: "AG-12345",
-      borrowerName: "Alice Smith",
-      interestRate: 10,
-      purpose: "Purchase steel pipes and cement bags for construction project.",
-      documents: [
-        { name: "Proforma Invoice", url: "/docs/invoice-7A4FF322.pdf" },
-        { name: "Business License", url: "/docs/license-AliceSmith.pdf" },
-      ],
-      riskScore: 75,
-    },
-    {
-      applicationNumber: "LA-8B5GG433",
-      loanType: "Equipment Financing",
-      status: "PENDING_SUPER_ADMIN_APPROVAL",
-      superAdminStatus: "pending",
-      requestedAmount: 15000,
-      approvedAmount: undefined,
-      tenure: 24,
-      products: 1,
-      created: "2025-07-09T14:30:00Z",
-      factoryId: "FAC-11223",
-      agentId: "AG-98765",
-      borrowerName: "Bob Johnson",
-      interestRate: undefined,
-      purpose: "Financing new agricultural machinery.",
-      documents: [
-        { name: "Equipment Quote", url: "/docs/quote-8B5GG433.pdf" },
-      ],
-      riskScore: 60,
-    },
-    {
-      applicationNumber: "LA-9C6HH544",
-      loanType: "Goods Purchase Financing",
-      status: "APPROVED",
-      superAdminStatus: "approved",
-      requestedAmount: 7500,
-      approvedAmount: 7000,
-      tenure: 18,
-      products: 3,
-      created: "2025-07-08T09:15:00Z",
-      factoryId: "FAC-44556",
-      agentId: "AG-12345",
-      borrowerName: "Charlie Brown",
-      interestRate: 8,
-      purpose: "Bulk purchase of raw materials.",
-      documents: [
-        { name: "Supplier Invoice", url: "/docs/invoice-9C6HH544.pdf" },
-      ],
-      riskScore: 80,
-    },
-    {
-      applicationNumber: "LA-1D7II655",
-      loanType: "Working Capital Loan",
-      status: "REJECTED",
-      superAdminStatus: "rejected",
-      requestedAmount: 10000,
-      approvedAmount: undefined,
-      tenure: 6,
-      products: 0,
-      created: "2025-07-07T11:00:00Z",
-      factoryId: "FAC-77889",
-      agentId: "AG-54321",
-      borrowerName: "Diana Prince",
-      interestRate: undefined,
-      purpose: "Short-term operational expenses.",
-      documents: [],
-      riskScore: 45,
-    },
-    {
-      applicationNumber: "LA-2E8JJ766",
-      loanType: "Goods Purchase Financing",
-      status: "PENDING_PARTNER_APPROVAL",
-      superAdminStatus: "pending",
-      requestedAmount: 3000,
-      approvedAmount: undefined,
-      tenure: 9,
-      products: 1,
-      created: "2025-07-06T16:00:00Z",
-      factoryId: "FAC-99001",
-      agentId: "AG-98765",
-      borrowerName: "Eve Adams",
-      interestRate: undefined,
-      purpose: "Purchase of office supplies.",
-      documents: [
-        { name: "Quotation", url: "/docs/quote-2E8JJ766.pdf" },
-      ],
-      riskScore: 70,
-    },
-  ];
 
   useEffect(() => {
     loadLoanApplications();
@@ -173,8 +71,17 @@ const LoanMonitoringPage: React.FC = () => {
 
   const loadLoanApplications = async () => {
     try {
+      console.log('[LOAD LOAN APPLICATIONS] Fetching real data from API...');
       // Use the new enriched data function that includes agent names
       const applications = await loanApplicationService.getAllLoanApplicationsWithAgentData();
+      
+      console.log('[LOAD LOAN APPLICATIONS] API returned', applications.length, 'real loan applications');
+      console.log('[LOAD LOAN APPLICATIONS] Sample application:', applications[0] ? {
+        applicationNumber: applications[0].applicationNumber,
+        borrowerName: (applications[0] as any).borrowerName,
+        status: (applications[0] as any).status,
+        agentStatus: (applications[0] as any).agentStatus
+      } : 'No applications');
       
       // Transform API data to match our expected format
       const transformedApplications = applications.map((app: any) => ({
@@ -182,6 +89,8 @@ const LoanMonitoringPage: React.FC = () => {
         loanType: app.loanType || app.type || 'Goods Purchase Financing',
         status: app.status || 'PENDING',
         superAdminStatus: app.superAdminStatus || 'pending',
+        // Extract agentStatus - this represents the actual partner/agent status from API
+        agentStatus: app.agentStatus || app.agent_status || app.partnerStatus || app.partner_status || undefined,
         requestedAmount: app.requestedAmount || app.amount || app.loanAmount || app.request_amount || app.requestAmount || app.principalAmount || app.principal_amount || app.totalAmount || app.total_amount || app.loanDetails?.amount || app.financialDetails?.amount || app.applicationDetails?.amount || 0,
         approvedAmount: app.approvedAmount || app.approved_amount || undefined,
         tenure: app.tenure || app.duration || 12,
@@ -213,13 +122,19 @@ const LoanMonitoringPage: React.FC = () => {
       
       setLoanApplications(transformedApplications);
       setProcessedApplications(processed);
-      toast.success(`Loaded ${transformedApplications.length} loan applications with agent data`);
-    } catch (error) {
+      
+      // Count applications that should appear in Loan Requests (not in tracking)
+      const loanRequestsCount = processed.filter(app => !app.shouldShowInTracking).length;
+      console.log('[LOAD LOAN APPLICATIONS] Successfully loaded', transformedApplications.length, 'real loan applications from API');
+      console.log('[LOAD LOAN APPLICATIONS] Applications for Loan Requests page:', loanRequestsCount);
+      toast.success(`Loaded ${loanRequestsCount} loan applications`);
+    } catch (error: any) {
       console.error('Error loading loan applications from API:', error);
-      toast.error('Failed to load loan applications from API. Using mock data for demonstration.');
-      const processed = processLoanApplications(mockLoanApplications);
-      setLoanApplications(mockLoanApplications);
-      setProcessedApplications(processed);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+      toast.error(`Failed to load loan applications: ${errorMessage}`);
+      // Don't use mock data - show error and keep empty state
+      setLoanApplications([]);
+      setProcessedApplications([]);
     }
   };
 
@@ -377,31 +292,18 @@ const LoanMonitoringPage: React.FC = () => {
         ),
       },
       {
-        accessorKey: "approvedAmount",
-        header: "Approved Amount",
-        cell: ({ row }) => (
-          <div className="py-2 font-medium">
-            {row.original.approvedAmount ? `ETB ${row.original.approvedAmount.toLocaleString()}` : "N/A"}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "displayPartnerStatus",
-        header: "Status by Partner",
-        cell: ({ row }) => (
-          <div className="py-2">
-            {getDisplayStatusBadge(row.getValue("displayPartnerStatus"))}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "displaySuperAdminStatus",
-        header: "Status by Super Admin",
-        cell: ({ row }) => (
-          <div className="py-2">
-            {getDisplayStatusBadge(row.getValue("displaySuperAdminStatus"))}
-          </div>
-        ),
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => {
+          const partnerStatus = row.original.displayPartnerStatus || row.original.agentStatus || "PENDING";
+          // If partner status is REJECTED, show REJECTED, otherwise show partner status
+          const displayStatus = partnerStatus === "REJECTED" ? "REJECTED" : partnerStatus;
+          return (
+            <div className="py-2">
+              {getDisplayStatusBadge(displayStatus as "PENDING" | "APPROVED" | "REJECTED")}
+            </div>
+          );
+        },
       },
       {
         accessorKey: "created",
@@ -418,7 +320,9 @@ const LoanMonitoringPage: React.FC = () => {
 
   // Filter applications based on current filters
   const filteredApplications = useMemo(() => {
-    let filtered = [...processedApplications];
+    // First, exclude applications that should show in tracking (like PENDING_AGENT_CONFIRMATION)
+    // These should only appear in Loan Status Tracking page, not in Loan Requests
+    let filtered = processedApplications.filter(app => !app.shouldShowInTracking);
 
     // Apply search filter
     if (searchTerm) {

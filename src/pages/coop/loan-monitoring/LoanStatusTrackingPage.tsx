@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../common/ui/card";
 import { Input } from "../../../common/ui/input";
@@ -7,14 +7,14 @@ import { Badge } from "../../../common/ui/badge";
 import { DataTable } from "../../../common/ui/data-table";
 import { 
   Search, 
-  Filter, 
   Download, 
   Clock,
   DollarSign,
   Calendar,
   Package,
   CheckCircle,
-  AlertTriangle
+  TrendingUp,
+  XCircle
 } from "lucide-react";
 import {
   Select,
@@ -23,16 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../../common/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../../../common/ui/dialog";
 import loanApplicationService, { LoanApplication } from "../../../services/loanApplicationService";
 import disbursementService from "../../../services/disbursementService";
+import repaymentService from "../../../services/repaymentService";
 import { toast } from "react-hot-toast";
 import { processLoanApplications, ProcessedLoanApplication } from "../../../lib/loan-status-utils";
 import API from "../../../config/axios-config";
@@ -40,7 +33,7 @@ import API from "../../../config/axios-config";
 type FilterState = {
   loanType: string;
   tenure: string;
-  disbursementStatus: string;
+  status: string;
 };
 
 const LoanStatusTrackingPage: React.FC = () => {
@@ -48,13 +41,12 @@ const LoanStatusTrackingPage: React.FC = () => {
   const [processedApplications, setProcessedApplications] = useState<ProcessedLoanApplication[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loanTypes, setLoanTypes] = useState<string[]>([]);
-  const [disbursingApplications, setDisbursingApplications] = useState<Set<string>>(new Set());
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [selectedApplication, setSelectedApplication] = useState<ProcessedLoanApplication | null>(null);
+  const [agentsWithRepayments, setAgentsWithRepayments] = useState<Set<string>>(new Set());
+  const [isCheckingRepayments, setIsCheckingRepayments] = useState(false);
   const [filters, setFilters] = useState<FilterState>({
     loanType: "all",
     tenure: "all",
-    disbursementStatus: "all",
+    status: "all",
   });
 
   useEffect(() => {
@@ -81,8 +73,11 @@ const LoanStatusTrackingPage: React.FC = () => {
 
   const loadLoanApplications = async () => {
     try {
+      console.log('[LOAD LOAN APPLICATIONS - TRACKING] Fetching real data from API...');
       // Use the new enriched data function that includes agent names
       const applications = await loanApplicationService.getAllLoanApplicationsWithAgentData();
+      
+      console.log('[LOAD LOAN APPLICATIONS - TRACKING] API returned', applications.length, 'real loan applications');
       
       // Debug: Log the structure of the first application to see available fields
       if (applications.length > 0) {
@@ -133,7 +128,8 @@ const LoanStatusTrackingPage: React.FC = () => {
         approvedAmount: app.approvedAmount || app.approved_amount || app.approvedAmountValue || app.approved_amount_value || app.loanApprovedAmount || app.loan_approved_amount || app.finalApprovedAmount || app.final_approved_amount || app.amountApproved || app.amount_approved || app.approvedLoanAmount || app.approved_loan_amount || app.disbursedAmount || app.disbursed_amount || undefined,
         fees: app.fees || app.processingFee || app.loanFees || 0,
         interest: app.interest || app.interestAmount || app.loanInterest || 0,
-        agentStatus: app.agentStatus || (app.status === 'APPROVED' || app.status === 'DISBURSED' ? 'APPROVED' : 'PENDING'),
+        // Extract agentStatus - this represents the actual partner/agent status from API
+        agentStatus: app.agentStatus || app.agent_status || app.partnerStatus || app.partner_status || undefined,
         tenure: app.tenure || app.duration || 12,
         products: app.products || app.productCount || 0,
         created: app.created || app.createdAt || app.date_created || new Date().toISOString(),
@@ -154,6 +150,7 @@ const LoanStatusTrackingPage: React.FC = () => {
       console.log('Applications for tracking:', trackingApps.map(app => ({
         applicationNumber: app.applicationNumber,
         status: app.status,
+        agentStatus: app.agentStatus,
         superAdminStatus: app.superAdminStatus,
         displayPartnerStatus: app.displayPartnerStatus,
         displaySuperAdminStatus: app.displaySuperAdminStatus,
@@ -163,80 +160,96 @@ const LoanStatusTrackingPage: React.FC = () => {
       
       // Process applications directly
       setProcessedApplications(processed);
-      toast.success(`Loaded  loan applications with agent data`);
-    } catch (error) {
+      
+      // Count applications that should appear in Loan Status Tracking
+      const trackingCount = processed.filter(app => app.shouldShowInTracking).length;
+      console.log('[LOAD LOAN APPLICATIONS - TRACKING] Successfully loaded', processed.length, 'real loan applications from API');
+      console.log('[LOAD LOAN APPLICATIONS - TRACKING] Applications for tracking:', trackingCount);
+      
+      // Check which agents have repayments
+      checkAgentsWithRepayments(processed);
+      
+      toast.success(`Loaded ${trackingCount} loan applications`);
+    } catch (error: any) {
       console.error('Error loading loan applications from API:', error);
-      toast.error('Failed to load loan applications from API. Using mock data for demonstration.');
-      // Use mock data for demonstration
-      const mockApplications: LoanApplication[] = [
-        {
-          applicationNumber: "LA-7A4FF322",
-          loanType: "Goods Purchase Financing",
-          status: "DISBURSED",
-          superAdminStatus: "approved",
-          requestedAmount: 4300,
-          approvedAmount: 4000,
-          fees: 200,
-          interest: 300,
-          agentStatus: "APPROVED",
-          tenure: 12,
-          products: 2,
-          created: "2025-07-10T10:00:00Z",
-          factoryId: "FAC-67890",
-          agentId: "AG-12345",
-          borrowerName: "Unknown Agent",
-          interestRate: 10,
-          purpose: "Purchase steel pipes and cement bags for construction project.",
-          documents: [],
-          riskScore: 75,
-        },
-        {
-          applicationNumber: "LA-5AAE5E9B",
-          loanType: "Goods Purchase Financing",
-          status: "APPROVED",
-          superAdminStatus: "approved",
-          requestedAmount: 100,
-          approvedAmount: 0,
-          fees: 50,
-          interest: 25,
-          agentStatus: "APPROVED",
-          tenure: 12,
-          products: 1,
-          created: "2025-07-07T10:00:00Z",
-          factoryId: "FAC-12345",
-          agentId: "AG-67890",
-          borrowerName: "Sara Jemal",
-          interestRate: 8,
-          purpose: "Purchase office supplies.",
-          documents: [],
-          riskScore: 80,
-        },
-        {
-          applicationNumber: "LA-9488CA1E",
-          loanType: "Goods Purchase Financing",
-          status: "DISBURSED",
-          superAdminStatus: "approved",
-          requestedAmount: 5000,
-          approvedAmount: 4000,
-          fees: 300,
-          interest: 400,
-          agentStatus: "APPROVED",
-          tenure: 18,
-          products: 3,
-          created: "2025-07-08T14:30:00Z",
-          factoryId: "FAC-11223",
-          agentId: "AG-98765",
-          borrowerName: "Sara Jemal",
-          interestRate: 9,
-          purpose: "Bulk purchase of raw materials.",
-          documents: [],
-          riskScore: 85,
-        },
-      ];
-      const processed = processLoanApplications(mockApplications);
-      // Use mock data directly
-      setProcessedApplications(processed);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+      toast.error(`Failed to load loan applications: ${errorMessage}`);
+      // Don't use mock data - show error and keep empty state
+      setProcessedApplications([]);
     }
+  };
+
+  const checkAgentsWithRepayments = async (applications: ProcessedLoanApplication[]) => {
+    // Get unique agent IDs
+    const uniqueAgentIds = [...new Set(
+      applications
+        .filter(app => app.agentId)
+        .map(app => app.agentId!.toString())
+    )];
+
+    if (uniqueAgentIds.length === 0) {
+      return;
+    }
+
+    setIsCheckingRepayments(true);
+    const agentsWithData = new Set<string>();
+
+    // Check each agent for repayments using the same flow as RepaymentDetailPage:
+    // 1. First get all loan applications by agent ID
+    // 2. Then for each loan application, check if it has repayment data
+    const checkPromises = uniqueAgentIds.map(async (agentId) => {
+      try {
+        // Step 1: Get all loan applications for this agent
+        let loanApplications: any = await loanApplicationService.getLoanApplicationsByAgent(agentId);
+        
+        // Handle nested response structure
+        if (loanApplications && !Array.isArray(loanApplications) && (loanApplications as any).data) {
+          loanApplications = (loanApplications as any).data;
+        }
+        if (!Array.isArray(loanApplications)) {
+          loanApplications = loanApplications ? [loanApplications] : [];
+        }
+
+        if (loanApplications.length === 0) {
+          console.debug(`No loan applications found for agent ${agentId}`);
+          return;
+        }
+
+        // Step 2: Check if any loan application has repayment data
+        const repaymentCheckPromises = loanApplications.map(async (loanApp: any) => {
+          const applicationNumber = loanApp.applicationNumber || loanApp.id;
+          if (!applicationNumber) {
+            return false;
+          }
+          
+          try {
+            const repayments = await repaymentService.getRepaymentsByLoan(applicationNumber);
+            return repayments && repayments.length > 0;
+          } catch (error) {
+            // If no repayment found for this loan, that's okay
+            return false;
+          }
+        });
+
+        const repaymentResults = await Promise.all(repaymentCheckPromises);
+        const hasAnyRepayments = repaymentResults.some(hasRepayment => hasRepayment === true);
+
+        if (hasAnyRepayments) {
+          agentsWithData.add(agentId);
+          console.debug(`Agent ${agentId} has repayment data`);
+        } else {
+          console.debug(`No repayments found for agent ${agentId}'s loan applications`);
+        }
+      } catch (error) {
+        // Silently fail - agent probably doesn't have repayments
+        console.debug(`Error checking repayments for agent ${agentId}:`, error);
+      }
+    });
+
+    await Promise.all(checkPromises);
+    setAgentsWithRepayments(agentsWithData);
+    setIsCheckingRepayments(false);
+    console.log(`[LoanStatusTrackingPage] Found ${agentsWithData.size} agent(s) with repayment data out of ${uniqueAgentIds.length} total agents`);
   };
 
   const handleFilterChange = (name: string, value: string) => {
@@ -250,6 +263,23 @@ const LoanStatusTrackingPage: React.FC = () => {
     sessionStorage.setItem('loanDetailReferrer', '/coop/loan-monitoring/tracking');
     navigate(`/coop/loan-monitoring/${application.applicationNumber}`, {
       state: { from: '/coop/loan-monitoring/tracking' }
+    });
+  };
+
+  const handleViewRepayments = (agentId: string | undefined, borrowerName?: string, applicationNumber?: string) => {
+    if (!agentId) {
+      toast.error('Agent ID is not available for this loan');
+      return;
+    }
+    console.log('[LoanStatusTrackingPage] Navigating to repayments:', {
+      agentId,
+      borrowerName,
+      applicationNumber,
+      path: `/coop/loan-monitoring/repayments/agent/${agentId}`
+    });
+    // Navigate to repayment detail page with agentId and borrower info
+    navigate(`/coop/loan-monitoring/repayments/agent/${agentId}`, {
+      state: { borrowerName, applicationNumber }
     });
   };
 
@@ -279,9 +309,9 @@ const LoanStatusTrackingPage: React.FC = () => {
         dataToExport = dataToExport.filter(app => app.tenure === tenureValue);
       }
 
-      // Apply disbursement status filter
-      if (filters.disbursementStatus !== "all") {
-        dataToExport = dataToExport.filter(app => app.trackingStatus === filters.disbursementStatus);
+      // Apply status filter
+      if (filters.status !== "all") {
+        dataToExport = dataToExport.filter(app => app.displayPartnerStatus === filters.status);
       }
 
       // Filter only tracking applications
@@ -301,10 +331,9 @@ const LoanStatusTrackingPage: React.FC = () => {
         'Approved Amount': app.approvedAmount ? `ETB ${app.approvedAmount.toLocaleString()}` : 'N/A',
         'Fees': app.fees ? `ETB ${app.fees.toLocaleString()}` : 'N/A',
         'Interest': app.interest ? `ETB ${app.interest.toLocaleString()}` : 'N/A',
-        'Agent Status': app.agentStatus || 'N/A',
+        'Agent Status': app.displayPartnerStatus || app.agentStatus || 'N/A',
         'Interest Rate': app.interestRate ? `${app.interestRate}%` : 'N/A',
         'Tenure (Months)': app.tenure,
-        'Disbursement Status': app.trackingStatus?.replace(/_/g, ' ') || 'N/A',
         'Risk Score': app.riskScore || 'N/A',
         'Purpose': app.purpose || 'N/A',
         'Partner Status': app.displayPartnerStatus,
@@ -347,31 +376,6 @@ const LoanStatusTrackingPage: React.FC = () => {
   };
 
 
-  const getTrackingStatusBadge = (status: "DISBURSED" | "NOT_DISBURSED") => {
-    const config = {
-      DISBURSED: { 
-        variant: "default" as const, 
-        color: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
-        icon: CheckCircle
-      },
-      NOT_DISBURSED: { 
-        variant: "secondary" as const, 
-        color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-        icon: Clock
-      }
-    };
-
-    const statusConfig = config[status];
-    const Icon = statusConfig.icon;
-
-    return (
-      <Badge variant={statusConfig.variant} className={statusConfig.color}>
-        <Icon className="h-3 w-3 mr-1" />
-        {status.replace(/_/g, ' ')}
-      </Badge>
-    );
-  };
-
   const getAgentStatusBadge = (status: string) => {
     const config = {
       APPROVED: { 
@@ -402,59 +406,6 @@ const LoanStatusTrackingPage: React.FC = () => {
     );
   };
 
-  const handleDisburseClick = (application: ProcessedLoanApplication) => {
-    setSelectedApplication(application);
-    setShowConfirmDialog(true);
-  };
-
-  const handleConfirmDisburse = async () => {
-    if (!selectedApplication) return;
-
-    try {
-      if (!selectedApplication.agentId) {
-        toast.error('Agent ID is required for disbursement');
-        return;
-      }
-
-      // Add to loading state
-      setDisbursingApplications(prev => new Set(prev).add(selectedApplication.applicationNumber));
-
-      console.log('Disbursing loan for application:', selectedApplication.applicationNumber);
-      
-      const response = await disbursementService.disburseLoan({
-        applicationNumber: selectedApplication.applicationNumber,
-        agentId: selectedApplication.agentId,
-        remarks: `Loan disbursed for ${selectedApplication.borrowerName}`
-      });
-      
-      console.log('Disbursement response:', response);
-      
-      if (response) {
-        toast.success('Loan disbursed successfully!');
-        // Reload applications to reflect the change
-        await loadLoanApplications();
-        // Close dialog
-        setShowConfirmDialog(false);
-        setSelectedApplication(null);
-      }
-    } catch (error: any) {
-      console.error('Error disbursing loan:', error);
-      console.error('Error details:', error.response?.data || error.message);
-      toast.error(`Failed to disburse loan: ${error.response?.data?.message || error.message}`);
-    } finally {
-      // Remove from loading state
-      setDisbursingApplications(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(selectedApplication.applicationNumber);
-        return newSet;
-      });
-    }
-  };
-
-  const handleCancelDisburse = () => {
-    setShowConfirmDialog(false);
-    setSelectedApplication(null);
-  };
 
 
   const columns = [
@@ -522,44 +473,61 @@ const LoanStatusTrackingPage: React.FC = () => {
       ),
     },
     {
-      accessorKey: "agentStatus",
+      accessorKey: "displayPartnerStatus",
       header: "Agent Status",
       cell: ({ row }: any) => (
         <div className="py-2">
-          {getAgentStatusBadge(row.original.agentStatus)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: "trackingStatus",
-      header: "Disbursement Status",
-      cell: ({ row }: any) => (
-        <div className="py-2">
-          {row.original.trackingStatus ? getTrackingStatusBadge(row.original.trackingStatus) : "N/A"}
+          {getAgentStatusBadge(row.original.displayPartnerStatus || row.original.agentStatus || "PENDING")}
         </div>
       ),
     },
     {
       accessorKey: "actions",
-      header: "Actions",
+      header: "Repayment Data",
       cell: ({ row }: any) => {
-        const isDisbursing = disbursingApplications.has(row.original.applicationNumber);
-        const canDisburse = row.original.agentStatus === "APPROVED" && row.original.trackingStatus === "NOT_DISBURSED";
+        const application = row.original as ProcessedLoanApplication;
+        const agentId = application.agentId?.toString();
+        const agentStatus = application.displayPartnerStatus || application.agentStatus || "";
+        const isAgentApproved = agentStatus.toUpperCase() === "APPROVED";
+        const hasRepayments = agentId ? agentsWithRepayments.has(agentId) : false;
+        const isButtonDisabled = !agentId || !hasRepayments || !isAgentApproved || isCheckingRepayments;
         
         return (
-          <div className="py-2 flex space-x-2">
-            {canDisburse && (
+          <div className="py-2 flex items-center gap-2">
+            {agentId && (
               <Button
                 size="sm"
-                disabled={isDisbursing}
+                variant="outline"
                 onClick={(e) => {
-                  e.preventDefault();
                   e.stopPropagation();
-                  handleDisburseClick(row.original);
+                  if (!isButtonDisabled) {
+                    handleViewRepayments(
+                      agentId,
+                      application.borrowerName,
+                      application.applicationNumber
+                    );
+                  }
                 }}
-                className="bg-cyan-600 hover:bg-cyan-700 text-white disabled:opacity-50"
+                disabled={isButtonDisabled}
+                className={
+                  isButtonDisabled
+                    ? "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed opacity-50"
+                    : "bg-cyan-50 hover:bg-cyan-100 text-cyan-700 border-cyan-300 hover:border-cyan-400"
+                }
+                title={
+                  isButtonDisabled
+                    ? !agentId
+                      ? "Agent ID not available"
+                      : isCheckingRepayments
+                      ? "Checking repayments..."
+                      : !isAgentApproved
+                      ? "Agent status must be APPROVED to view repayments"
+                      : "No repayments available for this agent"
+                    : "View repayments"
+                }
               >
-                {isDisbursing ? "Processing..." : "Disburse"}
+                <TrendingUp className="h-3 w-3 mr-1" />
+                Repayments
               </Button>
             )}
           </div>
@@ -568,13 +536,51 @@ const LoanStatusTrackingPage: React.FC = () => {
     },
   ];
 
-  const trackingApplications = processedApplications.filter(app => app.shouldShowInTracking);
+  // Filter tracking applications
+  const trackingApplications = useMemo(() => {
+    let filtered = processedApplications.filter(app => app.shouldShowInTracking);
+    
+    // Apply status filter (filter by Agent Status)
+    if (filters.status !== "all") {
+      filtered = filtered.filter(app => app.displayPartnerStatus === filters.status);
+    }
+    
+    // Apply loan type filter
+    if (filters.loanType !== "all") {
+      filtered = filtered.filter(app => app.loanType === filters.loanType);
+    }
+    
+    // Apply tenure filter
+    if (filters.tenure !== "all") {
+      const tenureValue = parseInt(filters.tenure);
+      filtered = filtered.filter(app => app.tenure === tenureValue);
+    }
+    
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(app =>
+        app.applicationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.loanType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.borrowerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        app.purpose?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    return filtered;
+  }, [processedApplications, filters, searchTerm]);
 
   const stats = {
     total: trackingApplications.length,
-    disbursed: trackingApplications.filter(app => app.trackingStatus === "DISBURSED").length,
-    notDisbursed: trackingApplications.filter(app => app.trackingStatus === "NOT_DISBURSED").length,
-    totalValue: trackingApplications.reduce((sum, app) => sum + (app.approvedAmount || 0), 0)
+    totalValue: trackingApplications.reduce((sum, app) => sum + (app.approvedAmount || 0), 0),
+    approved: trackingApplications.filter(app => 
+      app.displayPartnerStatus === "APPROVED" && app.displaySuperAdminStatus === "APPROVED"
+    ).length,
+    pending: trackingApplications.filter(app => 
+      app.displayPartnerStatus === "PENDING" || app.displaySuperAdminStatus === "PENDING"
+    ).length,
+    rejected: trackingApplications.filter(app => 
+      app.displayPartnerStatus === "REJECTED" || app.displaySuperAdminStatus === "REJECTED"
+    ).length
   };
 
   return (
@@ -585,7 +591,7 @@ const LoanStatusTrackingPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900">
             Loan Status Tracking ({stats.total})
           </h1>
-          <p className="text-gray-600">Track approved loans and their disbursement status</p>
+          <p className="text-gray-600">Track approved loans</p>
         </div>
         <div className="flex space-x-2">
           <Button 
@@ -599,40 +605,52 @@ const LoanStatusTrackingPage: React.FC = () => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Approved</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Applications</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
             <p className="text-xs text-muted-foreground">
-              Approved loan applications
+              Loan applications in tracking
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Disbursed</CardTitle>
+            <CardTitle className="text-sm font-medium">Approved</CardTitle>
             <CheckCircle className="h-4 w-4 text-cyan-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-cyan-600">{stats.disbursed}</div>
+            <div className="text-2xl font-bold text-cyan-600">{stats.approved}</div>
             <p className="text-xs text-muted-foreground">
-              Loans disbursed to borrowers
+              Fully approved applications
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Disbursement</CardTitle>
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
             <Clock className="h-4 w-4 text-yellow-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats.notDisbursed}</div>
+            <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
             <p className="text-xs text-muted-foreground">
-              Awaiting disbursement
+              Applications pending approval
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Rejected</CardTitle>
+            <XCircle className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
+            <p className="text-xs text-muted-foreground">
+              Rejected applications
             </p>
           </CardContent>
         </Card>
@@ -703,19 +721,21 @@ const LoanStatusTrackingPage: React.FC = () => {
             </Select>
 
             <Select
-              value={filters.disbursementStatus}
-              onValueChange={(value) => handleFilterChange("disbursementStatus", value)}
+              value={filters.status}
+              onValueChange={(value) => handleFilterChange("status", value)}
             >
-              <SelectTrigger className="w-[200px]">
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Filter by Disbursement Status" />
+              <SelectTrigger className="w-[180px]">
+                <CheckCircle className="mr-2 h-4 w-4" />
+                <SelectValue placeholder="Filter by Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Disbursement Status</SelectItem>
-                <SelectItem value="DISBURSED">Disbursed</SelectItem>
-                <SelectItem value="NOT_DISBURSED">Not Disbursed</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="APPROVED">Approved</SelectItem>
+                <SelectItem value="REJECTED">Rejected</SelectItem>
               </SelectContent>
             </Select>
+
           </div>
         </CardContent>
       </Card>
@@ -744,74 +764,6 @@ const LoanStatusTrackingPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Confirmation Dialog */}
-      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
-              Confirm Disbursement
-            </DialogTitle>
-            <DialogDescription>
-              Are you sure you want to approve and disburse this loan? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedApplication && (
-            <div className="py-4 space-y-3">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium text-gray-500">Application:</span>
-                  <p className="font-semibold">{selectedApplication.applicationNumber}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-500">Borrower:</span>
-                  <p className="font-semibold">{selectedApplication.borrowerName}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-500">Requested Amount:</span>
-                  <p className="font-semibold">ETB {selectedApplication.requestedAmount?.toLocaleString() || 'N/A'}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-500">Approved Amount:</span>
-                  <p className="font-semibold">
-                    {selectedApplication.approvedAmount ? `ETB ${selectedApplication.approvedAmount.toLocaleString()}` : 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-500">Fees:</span>
-                  <p className="font-semibold">
-                    {selectedApplication.fees ? `ETB ${selectedApplication.fees.toLocaleString()}` : 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-500">Interest:</span>
-                  <p className="font-semibold">
-                    {selectedApplication.interest ? `ETB ${selectedApplication.interest.toLocaleString()}` : 'N/A'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={handleCancelDisburse}
-              disabled={disbursingApplications.has(selectedApplication?.applicationNumber || '')}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleConfirmDisburse}
-              disabled={disbursingApplications.has(selectedApplication?.applicationNumber || '')}
-              className="bg-cyan-600 hover:bg-cyan-700 text-white"
-            >
-              {disbursingApplications.has(selectedApplication?.applicationNumber || '') ? 'Processing...' : 'Confirm Disbursement'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -33,6 +33,7 @@ import { useAgents } from "../../hooks/use-Agents";
 import { toast } from "react-hot-toast";
 import { Label } from "../../../../common/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../common/ui/select";
+import documentService from "../../../../services/documentService";
 
 // Reusable Error State Component
 interface ErrorStateProps {
@@ -94,6 +95,8 @@ const AgentDetailsPage: React.FC = () => {
   const [openReject, setOpenReject] = useState(false);
   const [selectedRejectReason, setSelectedRejectReason] = useState("");
   const [customReason, setCustomReason] = useState("");
+  const [agentDocuments, setAgentDocuments] = useState<any[]>([]);
+  const [documentsLoading, setDocumentsLoading] = useState(false);
 
   // Predefined rejection reasons
   const rejectionReasons = [
@@ -133,6 +136,72 @@ const AgentDetailsPage: React.FC = () => {
   console.log("[AGENT DETAILS] Agent ID from data:", agent?.id, "Type:", typeof agent?.id);
   console.log("[AGENT DETAILS] Is loading:", isLoading);
 
+  const toNumericId = (value: any): number | null => {
+    if (value === undefined || value === null) return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  // Fetch documents for the agent
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      const agentId = toNumericId(agent?.id ?? numId);
+      if (agentId === null) return;
+      setDocumentsLoading(true);
+      try {
+        const docs = await documentService.getUserDocuments(agentId);
+        // Transform documents to match DocumentPreview format
+        const transformedDocs = docs.map((doc: any) => {
+          // Use relative path from API - DocumentPreview will handle authenticated fetching
+          // The API returns fileUrl as a relative path like "/files/factories/19/..."
+          const constructedUrl = doc.fileUrl || doc.url || '';
+          
+          // Map status: API returns status as partner status
+          const partnerStatus = doc.status || 'Pending';
+          // Check for superAdminStatus field (if API returns it)
+          const superAdminStatus = doc.superAdminStatus || doc.superAdminApprovalStatus || undefined;
+          
+          // Normalize status values
+          const normalizeStatus = (s: string): "Approved" | "Pending" | "Rejected" => {
+            const upper = s?.toUpperCase();
+            if (upper === "APPROVED") return "Approved";
+            if (upper === "REJECTED") return "Rejected";
+            return "Pending";
+          };
+
+          return {
+            id: doc.id || doc.documentId,
+            name: doc.name || doc.documentName || `Document ${doc.id}`,
+            type: doc.type || doc.documentType || 'Document',
+            uploadedAt: doc.uploadedAt || doc.createdAt || new Date().toISOString(),
+            status: normalizeStatus(partnerStatus), // Keep for backward compatibility
+            partnerStatus: normalizeStatus(partnerStatus),
+            superAdminStatus: superAdminStatus ? normalizeStatus(superAdminStatus) : undefined,
+            // Prefer API-provided URL; if absent, fall back to a predictable files endpoint
+            // This helps when backend returns only a file name without a path
+            url: constructedUrl && constructedUrl.trim() !== ''
+              ? constructedUrl
+              : (doc.id || doc.documentId)
+                ? `/files/documents/${doc.id || doc.documentId}`
+                : '',
+            size: doc.size || (doc.fileSize ? `${(doc.fileSize / 1024 / 1024).toFixed(1)} MB` : 'Unknown'),
+            fileType: doc.fileType || doc.mimeType
+          };
+        });
+        setAgentDocuments(transformedDocs);
+      } catch (error) {
+        console.error("Error fetching agent documents:", error);
+        toast.error("Failed to load documents");
+      } finally {
+        setDocumentsLoading(false);
+      }
+    };
+
+    if (toNumericId(agent?.id ?? numId) !== null) {
+      fetchDocuments();
+    }
+  }, [agent?.id, numId]);
+
   // Handler functions
   const handleBack = () => {
     navigate("/coop/approval?tab=agents");
@@ -143,26 +212,16 @@ const AgentDetailsPage: React.FC = () => {
     console.log("[ON APPROVE] Agent object:", agent);
     console.log("[ON APPROVE] Numeric ID from URL:", numId);
     
-    // Use agent.id first, fallback to parsed URL ID
-    let agentId = agent?.id;
-    
-    // If agent ID is undefined, try using the parsed URL ID
-    if (!agentId && numId) {
-      console.warn("[ON APPROVE] Agent ID is undefined, using URL ID:", numId);
-      agentId = numId;
-    }
-    
-    if (!agentId || isNaN(Number(agentId))) {
+    const agentId = toNumericId(agent?.id ?? numId);
+    if (agentId === null) {
       console.error("[ON APPROVE] Invalid agent ID:", { agentId, numId, agent });
       toast.error("Invalid agent ID - unable to approve");
       return;
     }
-    
-    const numAgentId = Number(agentId);
-    console.log("[ON APPROVE] Calling approveAgent with ID:", numAgentId);
+    console.log("[ON APPROVE] Calling approveAgent with ID:", agentId);
     
     try {
-      await approveAgent(numAgentId);
+      await approveAgent(agentId);
       setOpenApprove(false);
     } catch (error) {
       console.error("[ON APPROVE] Error approving agent:", error);
@@ -182,30 +241,19 @@ const AgentDetailsPage: React.FC = () => {
     console.log("[ON REJECT] Agent object:", agent);
     console.log("[ON REJECT] Numeric ID from URL:", numId);
     
-    // Use agent.id first, fallback to parsed URL ID
-    let agentId = agent?.id;
-    
-    // If agent ID is undefined, try using the parsed URL ID
-    if (!agentId && numId) {
-      console.warn("[ON REJECT] Agent ID is undefined, using URL ID:", numId);
-      agentId = numId;
-    }
-    
+    const agentId = toNumericId(agent?.id ?? numId);
     console.log("[ON REJECT] Agent ID to use:", agentId, "Type:", typeof agentId);
     console.log("[ON REJECT] Final Reason:", finalReason);
     
-    if (!agentId || isNaN(Number(agentId))) {
+    if (agentId === null) {
       console.error("[ON REJECT] Invalid agent ID:", { agentId, numId, agent });
       toast.error("Invalid agent ID - unable to reject");
       return;
     }
-    
-    const numAgentId = Number(agentId);
-    console.log("[ON REJECT] Converted Agent ID:", numAgentId, "Type:", typeof numAgentId);
-    console.log("[ON REJECT] Calling rejectAgent with ID:", numAgentId, "and reason:", finalReason);
+    console.log("[ON REJECT] Calling rejectAgent with ID:", agentId, "and reason:", finalReason);
     
     try {
-      await rejectAgent({ agentId: numAgentId, reason: finalReason });
+      await rejectAgent({ agentId, reason: finalReason });
 
       setOpenReject(false);
       setSelectedRejectReason("");
@@ -518,36 +566,14 @@ const AgentDetailsPage: React.FC = () => {
           {/* Documents Tab */}
           <TabsContent value="documents">
             <DocumentPreview 
-              documents={agent.docs && agent.docs.length > 0 ? agent.docs.map((doc: any, index: number) => ({
-                id: doc.id || `doc-${index}`,
-                name: doc.name || `Document ${index + 1}`,
-                type: doc.type || 'Document',
-                uploadedAt: doc.uploadedAt || new Date().toISOString(),
-                status: doc.status || 'Pending',
-                url: doc.url,
-                size: doc.size
-              })) : [
-                // Sample documents for demonstration
-                {
-                  id: 'doc-1',
-                  name: 'Agent License',
-                  type: 'License Document',
-                  uploadedAt: new Date().toISOString(),
-                  status: 'Approved' as const,
-                  url: '#',
-                  size: '1.2 MB'
-                },
-                {
-                  id: 'doc-2',
-                  name: 'Identity Verification',
-                  type: 'Identity Document',
-                  uploadedAt: new Date(Date.now() - 86400000).toISOString(),
-                  status: 'Pending' as const,
-                  url: '#',
-                  size: '0.8 MB'
-                }
-              ]}
+              documents={documentsLoading ? [] : agentDocuments}
               title="Agent Documents"
+              onDocumentUpdate={(documentId, status) => {
+                // Update the document in local state
+                setAgentDocuments(prev => prev.map(doc => 
+                  doc.id === documentId ? { ...doc, status } : doc
+                ));
+              }}
             />
           </TabsContent>
 

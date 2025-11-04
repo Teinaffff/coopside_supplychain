@@ -163,14 +163,7 @@ class ConsumerService {
         console.error("[REJECT CONSUMER ERROR] Error message:", errorMessage);
         console.error("[REJECT CONSUMER ERROR] Full error data:", error?.response?.data);
         
-        // Check for various forms of "cannot reject approved consumer" error
-        const lowerErrorMessage = errorMessage.toLowerCase();
-        if (lowerErrorMessage.includes("cannot reject") && lowerErrorMessage.includes("approved") ||
-            lowerErrorMessage.includes("cannot reject an approved consumer") ||
-            lowerErrorMessage.includes("already approved") ||
-            lowerErrorMessage.includes("approved consumer")) {
-          throw new Error("This consumer has already been approved and cannot be rejected. Please contact support if you need to change the status.");
-        }
+        // Pass through the API error message directly (allow rejecting approved consumers if API supports it)
         throw new Error(errorMessage);
       } else if (error?.response?.status === 409) {
         throw new Error("This consumer has already been processed and cannot be rejected again.");

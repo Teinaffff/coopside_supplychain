@@ -37,6 +37,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { useFactories } from "../../hooks/use-factories";
 import { toast } from "react-hot-toast";
 import userService, { User as UserType } from "../../../../services/userService";
+import documentService from "../../../../services/documentService";
+import DocumentPreview from "./DocumentPreview";
 
 // Reusable Error State Component
 interface ErrorStateProps {
@@ -100,6 +102,8 @@ const FactoryDetailsPage: React.FC = () => {
   const [customReason, setCustomReason] = useState("");
   const [adminDetails, setAdminDetails] = useState<UserType | null>(null);
   const [adminLoading, setAdminLoading] = useState(false);
+  const [factoryDocuments, setFactoryDocuments] = useState<any[]>([]);
+  const [documentsLoading, setDocumentsLoading] = useState(false);
 
   // Predefined rejection reasons (same as agents/consumers)
   const rejectionReasons = [
@@ -140,6 +144,61 @@ const FactoryDetailsPage: React.FC = () => {
 
     fetchAdminDetails();
   }, [factory?.adminApprovedBy]);
+
+  // Fetch documents for the factory
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      if (!factory?.id && !id) return;
+      
+      const factoryId = factory?.id || id;
+      setDocumentsLoading(true);
+      try {
+        const docs = await documentService.getUserDocuments(factoryId);
+        // Transform documents to match DocumentPreview format
+        const transformedDocs = docs.map((doc: any) => {
+          // Use relative path from API - DocumentPreview will handle authenticated fetching
+          // The API returns fileUrl as a relative path like "/files/factories/19/..."
+          const constructedUrl = doc.fileUrl || doc.url || '';
+          
+          // Map status: API returns status as partner status
+          const partnerStatus = doc.status || 'Pending';
+          // Check for superAdminStatus field (if API returns it)
+          const superAdminStatus = doc.superAdminStatus || doc.superAdminApprovalStatus || undefined;
+          
+          // Normalize status values
+          const normalizeStatus = (s: string): "Approved" | "Pending" | "Rejected" => {
+            const upper = s?.toUpperCase();
+            if (upper === "APPROVED") return "Approved";
+            if (upper === "REJECTED") return "Rejected";
+            return "Pending";
+          };
+
+          return {
+            id: doc.id || doc.documentId,
+            name: doc.name || doc.documentName || `Document ${doc.id}`,
+            type: doc.type || doc.documentType || 'Document',
+            uploadedAt: doc.uploadedAt || doc.createdAt || new Date().toISOString(),
+            status: normalizeStatus(partnerStatus), // Keep for backward compatibility
+            partnerStatus: normalizeStatus(partnerStatus),
+            superAdminStatus: superAdminStatus ? normalizeStatus(superAdminStatus) : undefined,
+            url: constructedUrl,
+            size: doc.size || (doc.fileSize ? `${(doc.fileSize / 1024 / 1024).toFixed(1)} MB` : 'Unknown'),
+            fileType: doc.fileType || doc.mimeType
+          };
+        });
+        setFactoryDocuments(transformedDocs);
+      } catch (error) {
+        console.error("Error fetching factory documents:", error);
+        toast.error("Failed to load documents");
+      } finally {
+        setDocumentsLoading(false);
+      }
+    };
+
+    if (factory || id) {
+      fetchDocuments();
+    }
+  }, [factory?.id, id]);
 
   // Handler functions
   const handleBack = () => {
@@ -520,38 +579,25 @@ const FactoryDetailsPage: React.FC = () => {
 
           {/* Documents Tab */}
           <TabsContent value="documents">
-            <Card className="dark:bg-slate-800 dark:border-slate-700">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
-                  <FileText className="w-5 h-5" />
-                  <span>Documents</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {factory.docs && factory.docs.length > 0 ? (
-                    factory.docs.map((doc: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-800 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <FileText className="w-4 h-4 text-gray-500" />
-                          <div>
-                            <div className="text-sm font-medium">{doc.name || `Document ${index + 1}`}</div>
-                            <div className="text-xs text-gray-500">{doc.uploadedAt || "Uploaded recently"}</div>
-                          </div>
-                        </div>
-                        <Button size="sm" variant="outline">
-                          View
-                        </Button>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-gray-500 dark:text-slate-400">
-                      No documents uploaded yet
-                    </div>
-                  )}
+            {documentsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                  <p className="text-gray-600 dark:text-slate-400">Loading documents...</p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            ) : (
+              <DocumentPreview 
+                documents={factoryDocuments}
+                title="Factory Documents"
+                onDocumentUpdate={(documentId, status) => {
+                  // Update the document in local state
+                  setFactoryDocuments(prev => prev.map(doc => 
+                    doc.id === documentId ? { ...doc, status } : doc
+                  ));
+                }}
+              />
+            )}
           </TabsContent>
 
         </Tabs>

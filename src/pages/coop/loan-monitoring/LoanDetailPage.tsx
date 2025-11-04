@@ -4,12 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../../common/ui/car
 import { Button } from "../../../common/ui/button";
 import { Input } from "../../../common/ui/input";
 import { Label } from "../../../common/ui/label";
-import { CheckCircle, XCircle, User, Building2, Phone, Mail, MapPin, AlertCircle, CreditCard, FileText, Calendar, Hash } from "lucide-react";
-import agentService, { Agent } from "../../../services/agentService";
-import factoryService, { Factory } from "../../../services/factoryService";
+import { Textarea } from "../../../common/ui/textarea";
+import { CheckCircle, X } from "lucide-react";
 import loanApplicationService, { LoanApplication } from "../../../services/loanApplicationService";
 import { toast } from "react-hot-toast";
-import { processLoanApplicationStatus, ProcessedLoanApplication } from "../../../lib/loan-status-utils";
+import API from "../../../config/axios-config";
+import factoryService from "../../../services/factoryService";
+import loanProductService from "../../../services/loanProductService";
 
 const LoanDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,22 +18,42 @@ const LoanDetailPage: React.FC = () => {
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
   const [loanData, setLoanData] = useState<LoanApplication | null>(null);
-  const [processedLoanData, setProcessedLoanData] = useState<ProcessedLoanApplication | null>(null);
-  const [agentData, setAgentData] = useState<Agent | null>(null);
-  const [factoryData, setFactoryData] = useState<Factory | null>(null);
-  const [agentLoading, setAgentLoading] = useState(false);
-  const [factoryLoading, setFactoryLoading] = useState(false);
+  const [agentLoanApplications, setAgentLoanApplications] = useState<LoanApplication[]>([]);
+  const [factoryLoanApplications, setFactoryLoanApplications] = useState<LoanApplication[]>([]);
+  const [factoryDetails, setFactoryDetails] = useState<any>(null);
+  const [isLoadingFactoryDetails, setIsLoadingFactoryDetails] = useState(false);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
   const [isApprovingLoan, setIsApprovingLoan] = useState(false);
   const [isRejectingLoan, setIsRejectingLoan] = useState(false);
-  const [loanRejectReason, setLoanRejectReason] = useState("");
+  const [selectedRejectionReason, setSelectedRejectionReason] = useState<string>("");
+  const [customRejectionReason, setCustomRejectionReason] = useState<string>("");
   const [showLoanRejectDialog, setShowLoanRejectDialog] = useState(false);
   const [showLoanApproveDialog, setShowLoanApproveDialog] = useState(false);
   
   // Loan approval form fields
   const [approvedAmount, setApprovedAmount] = useState<number>(0);
-  const [interestRate, setInterestRate] = useState<number>(0);
-  const [processingFeePercentage, setProcessingFeePercentage] = useState<number>(0);
-  const [processingFeeFactor, setProcessingFeeFactor] = useState<number>(0);
+  const [loanProduct, setLoanProduct] = useState<any>(null);
+  const [isLoadingProduct, setIsLoadingProduct] = useState(false);
+  
+  // Rejection reasons options
+  const rejectionReasons = [
+    "Insufficient credit history",
+    "High risk score",
+    "Incomplete documentation",
+    "Unable to verify income",
+    "Loan amount exceeds limit",
+    "Poor payment history",
+    "Insufficient collateral",
+    "Business not eligible",
+    "Other"
+  ];
+  const isFromTracking = (() => {
+    const state = location.state as { from?: string } | undefined;
+    const sessionReferrer = typeof window !== 'undefined' ? sessionStorage.getItem('loanDetailReferrer') : undefined;
+    return state?.from === '/coop/loan-monitoring/tracking' || sessionReferrer === '/coop/loan-monitoring/tracking';
+  })();
+
 
   // Debug: Log location state when component mounts
   useEffect(() => {
@@ -74,31 +95,64 @@ const LoanDetailPage: React.FC = () => {
   const fetchAgentData = async (agentId: string) => {
     if (!agentId) return;
     
-    setAgentLoading(true);
+    // Load agent's loan applications to derive financial fields
     try {
-      const agent = await agentService.getAgentById(agentId);
-      setAgentData(agent);
-    } catch (error) {
-      console.error("Error fetching agent data:", error);
-      setAgentData(null);
-    } finally {
-      setAgentLoading(false);
+      const apps = await loanApplicationService.getLoanApplicationsByAgent(agentId);
+      if (Array.isArray(apps)) {
+        setAgentLoanApplications(apps);
+      } else if (apps) {
+        // Some backends may return an object with data key
+        const maybeArray = (apps as any).data;
+        if (Array.isArray(maybeArray)) setAgentLoanApplications(maybeArray);
+      }
+    } catch (e) {
+      console.warn("Failed to load agent loan applications:", e);
+      setAgentLoanApplications([]);
     }
   };
 
-  // Function to fetch factory data
-  const fetchFactoryData = async (factoryId: string) => {
+  const fetchFactoryLoans = async (factoryId: string) => {
     if (!factoryId) return;
-    
-    setFactoryLoading(true);
+    try {
+      const apps = await loanApplicationService.getLoanApplicationsByFactory(factoryId);
+      if (Array.isArray(apps)) {
+        setFactoryLoanApplications(apps);
+      } else if (apps) {
+        const maybeArray = (apps as any).data;
+        if (Array.isArray(maybeArray)) setFactoryLoanApplications(maybeArray);
+      }
+    } catch (e) {
+      console.warn("Failed to load factory loan applications:", e);
+      setFactoryLoanApplications([]);
+    }
+  };
+
+  const fetchFactoryDetails = async (factoryId: string) => {
+    if (!factoryId) return;
+    setIsLoadingFactoryDetails(true);
     try {
       const factory = await factoryService.getFactoryById(factoryId);
-      setFactoryData(factory);
-    } catch (error) {
-      console.error("Error fetching factory data:", error);
-      setFactoryData(null);
+      setFactoryDetails(factory);
+    } catch (e) {
+      console.warn("Failed to load factory details:", e);
+      setFactoryDetails(null);
     } finally {
-      setFactoryLoading(false);
+      setIsLoadingFactoryDetails(false);
+    }
+  };
+
+  const fetchTransactions = async (applicationNumber: string) => {
+    if (!applicationNumber) return;
+    setIsLoadingTransactions(true);
+    try {
+      const response = await API.get(`/v1/transactions/loan/${applicationNumber}`);
+      const transactionsData = response.data?.data || response.data || [];
+      setTransactions(Array.isArray(transactionsData) ? transactionsData : []);
+    } catch (e) {
+      console.warn("Failed to load transactions:", e);
+      setTransactions([]);
+    } finally {
+      setIsLoadingTransactions(false);
     }
   };
 
@@ -150,6 +204,10 @@ const LoanDetailPage: React.FC = () => {
         applicationNumber: (loan as any).applicationNumber || (loan as any).id || loanId,
         loanType: (loan as any).loanTypeName || (loan as any).loanType || (loan as any).type || 'Goods Purchase Financing',
         status: (loan as any).status || 'PENDING_PARTNER_APPROVAL',
+        // CRITICAL: Preserve superAdminStatus and agentStatus to correctly show separate statuses
+        // superAdminStatus represents Super Admin's decision, agentStatus represents Partner's decision
+        superAdminStatus: (loan as any).superAdminStatus || (loan as any).super_admin_status || undefined,
+        agentStatus: (loan as any).agentStatus || (loan as any).agent_status || (loan as any).partnerStatus || (loan as any).partner_status || undefined,
         requestedAmount: (loan as any).requestedAmount || (loan as any).amount || (loan as any).loanAmount || (loan as any).request_amount || (loan as any).requestAmount || (loan as any).principalAmount || (loan as any).principal_amount || (loan as any).totalAmount || (loan as any).total_amount || (loan as any).loanDetails?.amount || (loan as any).financialDetails?.amount || (loan as any).applicationDetails?.amount || 0,
         approvedAmount: (loan as any).approvedAmount || (loan as any).approved_amount || undefined,
         tenure: (loan as any).tenure || (loan as any).duration || 12,
@@ -172,19 +230,7 @@ const LoanDetailPage: React.FC = () => {
       console.log("Transformed Loan Data:", transformedLoan);
       setLoanData(transformedLoan);
       
-      // Process loan data with status logic
-      console.log("Processing loan status - Input:", {
-        status: transformedLoan.status,
-        superAdminStatus: transformedLoan.superAdminStatus
-      });
-      const processedLoan = processLoanApplicationStatus(transformedLoan);
-      setProcessedLoanData(processedLoan);
-      console.log("Processed Loan Data:", processedLoan);
-      console.log("Processed statuses:", {
-        displayPartnerStatus: processedLoan.displayPartnerStatus,
-        displaySuperAdminStatus: processedLoan.displaySuperAdminStatus,
-        shouldShowInTracking: processedLoan.shouldShowInTracking
-      });
+      // Processed status data removed; keeping only base loan details for this page
       
       // Fetch agent and factory data
       if (transformedLoan.agentId) {
@@ -192,9 +238,11 @@ const LoanDetailPage: React.FC = () => {
         fetchAgentData(transformedLoan.agentId.toString());
       }
       if (transformedLoan.factoryId) {
-        console.log("Fetching factory data for ID:", transformedLoan.factoryId);
-        fetchFactoryData(transformedLoan.factoryId.toString());
+        console.log("Fetching factory loan applications for ID:", transformedLoan.factoryId);
+        fetchFactoryLoans(transformedLoan.factoryId.toString());
+        fetchFactoryDetails(transformedLoan.factoryId.toString());
       }
+      // Transactions will be fetched via useEffect when loanData is set and isFromTracking is true
       
       console.log("Loan data loaded successfully");
     } catch (error: any) {
@@ -212,6 +260,7 @@ const LoanDetailPage: React.FC = () => {
         loanType: 'Goods Purchase Financing',
         status: 'PENDING_PARTNER_APPROVAL',
         superAdminStatus: 'pending',
+        agentStatus: undefined, // Partner status unknown in fallback
         requestedAmount: 0,
         approvedAmount: undefined,
         tenure: 12,
@@ -228,19 +277,13 @@ const LoanDetailPage: React.FC = () => {
       
       setLoanData(fallbackLoan);
       
-      // Process fallback loan data with status logic
-      const processedFallbackLoan = processLoanApplicationStatus(fallbackLoan);
-      setProcessedLoanData(processedFallbackLoan);
       toast.error(`API failed, showing basic details for ${loanId}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Function to open approve dialog
-  const handleApproveLoan = () => {
-    setShowLoanApproveDialog(true);
-  };
+  // Function to open approve dialog is controlled inline where needed
 
   // Function to submit loan approval
   const handleSubmitLoanApproval = async () => {
@@ -251,17 +294,21 @@ const LoanDetailPage: React.FC = () => {
       toast.error('Please enter a valid approved amount');
       return;
     }
-    if (interestRate < 0) {
-      toast.error('Please enter a valid interest rate');
-      return;
-    }
-    if (processingFeePercentage < 0) {
-      toast.error('Please enter a valid processing fee percentage');
-      return;
-    }
-    if (processingFeeFactor < 0) {
-      toast.error('Please enter a valid processing fee factor');
-      return;
+
+    // Get values from loan product
+    const interestRate = loanProduct?.defaultInterestRate || loanData?.interestRate || 0;
+    const processingFeeType = loanProduct?.processingFeeType || 'PERCENTAGE';
+    const processingFeeValue = loanProduct?.processingFeeValue || 0;
+    
+    // Calculate processing fee based on type
+    let processingFeePercentage = 0;
+    let processingFeeFactor = 0;
+    
+    if (processingFeeType === 'PERCENTAGE') {
+      processingFeePercentage = processingFeeValue;
+      processingFeeFactor = (approvedAmount * processingFeeValue) / 100;
+    } else {
+      processingFeeFactor = processingFeeValue;
     }
     
     setIsApprovingLoan(true);
@@ -287,9 +334,10 @@ const LoanDetailPage: React.FC = () => {
         console.log("Refreshing loan data after approval...");
         fetchLoanData(loanData.applicationNumber);
       }, 1000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error approving loan:', error);
-      toast.error('Failed to approve loan application');
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to approve loan application';
+      toast.error(errorMessage);
     } finally {
       setIsApprovingLoan(false);
     }
@@ -297,23 +345,56 @@ const LoanDetailPage: React.FC = () => {
 
   // Function to reject loan
   const handleRejectLoan = async () => {
-    if (!loanData || !loanRejectReason.trim()) return;
+    if (!loanData) return;
+    
+    // Determine the final rejection reason
+    const finalRejectionReason = selectedRejectionReason === "Other" 
+      ? customRejectionReason.trim() 
+      : selectedRejectionReason;
+    
+    if (!finalRejectionReason) {
+      toast.error('Please select or provide a rejection reason');
+      return;
+    }
     
     setIsRejectingLoan(true);
     try {
-      await loanApplicationService.rejectLoanApplication({
+      const response = await loanApplicationService.rejectLoanApplication({
         applicationNumber: loanData.applicationNumber,
-        reason: loanRejectReason,
-        remarks: 'Rejected by bank'
+        approved: false,
+        interestRate: 0,
+        processingFeePercentage: 0,
+        processingFeeFactor: 0,
+        rejectionReason: finalRejectionReason
       });
-      toast.success('Loan application rejected');
+      
+      console.log('=== REJECT RESPONSE HANDLING ===');
+      console.log('Reject API response:', response);
+      console.log('Before rejection - Main status:', loanData.status);
+      console.log('Before rejection - SuperAdminStatus:', loanData.superAdminStatus);
+      console.log('After rejection - Main status should be:', loanData.status);
+      console.log('After rejection - SuperAdminStatus should be: rejected');
+      console.log('Partner status should remain unchanged');
+      
+      // Verify the response shows only superAdminStatus changed
+      if (response) {
+        console.log('Response status:', response.status);
+        console.log('Response superAdminStatus:', response.superAdminStatus);
+        console.log('Response agentStatus:', response.agentStatus);
+      }
+      
+      toast.success('Loan application rejected by super admin (superAdminStatus updated only)');
       setShowLoanRejectDialog(false);
-      setLoanRejectReason("");
-      // Refresh loan data
-      fetchLoanData(loanData.applicationNumber);
-    } catch (error) {
+      setSelectedRejectionReason("");
+      setCustomRejectionReason("");
+      // Refresh loan data to see updated superAdminStatus
+      setTimeout(() => {
+        fetchLoanData(loanData.applicationNumber);
+      }, 500);
+    } catch (error: any) {
       console.error('Error rejecting loan:', error);
-      toast.error('Failed to reject loan application');
+      const errorMessage = error?.response?.data?.message || error?.message || 'Failed to reject loan application';
+      toast.error(errorMessage);
     } finally {
       setIsRejectingLoan(false);
     }
@@ -326,15 +407,39 @@ const LoanDetailPage: React.FC = () => {
     }
   }, [id]);
 
-  // Initialize form fields when loan data loads
+  // Fetch loan product details when loan data is loaded
   useEffect(() => {
+    const fetchLoanProduct = async () => {
+      if (!loanData?.loanTypeCode) return;
+      
+      setIsLoadingProduct(true);
+      try {
+        const response = await loanProductService.getLoanTypeByCode(loanData.loanTypeCode);
+        if (response.success && response.data) {
+          setLoanProduct(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching loan product:', error);
+        setLoanProduct(null);
+      } finally {
+        setIsLoadingProduct(false);
+      }
+    };
+
     if (loanData) {
       setApprovedAmount(loanData.approvedAmount || loanData.requestedAmount || 0);
-      setInterestRate(loanData.interestRate || 0);
-      setProcessingFeePercentage(0); // Default to 0 as this might not be in loan data
-      setProcessingFeeFactor(0); // Default to 0 as this might not be in loan data
+      if (loanData.loanTypeCode) {
+        fetchLoanProduct();
+      }
     }
   }, [loanData]);
+
+  // Fetch transactions when on tracking page and loan data is available
+  useEffect(() => {
+    if (isFromTracking && loanData?.applicationNumber) {
+      fetchTransactions(loanData.applicationNumber);
+    }
+  }, [isFromTracking, loanData?.applicationNumber]);
 
   if (isLoading) {
     return (
@@ -346,6 +451,95 @@ const LoanDetailPage: React.FC = () => {
       </div>
     );
   }
+
+  // Derive financial fields from agent applications endpoint when missing on main loan data
+  const relatedAgentApp = (() => {
+    if (!agentLoanApplications || agentLoanApplications.length === 0) return undefined;
+    const byId = agentLoanApplications.find(
+      (a: any) => a?.applicationNumber === loanData?.applicationNumber || a?.id === loanData?.applicationNumber
+    );
+    if (byId) return byId as any;
+    // fallback to latest
+    const sorted = [...agentLoanApplications].sort((a: any, b: any) => {
+      const da = new Date(a.created || a.submissionDate || a.requestDate || '').getTime();
+      const db = new Date(b.created || b.submissionDate || b.requestDate || '').getTime();
+      return db - da;
+    });
+    return (sorted[0] as any) || undefined;
+  })();
+
+  const derivedApprovedAmount: number | undefined = (
+    (loanData as any)?.approvedAmount ??
+    (relatedAgentApp?.approvedAmount ??
+      relatedAgentApp?.approved_amount ??
+      relatedAgentApp?.finalApprovedAmount ??
+      relatedAgentApp?.final_approved_amount ??
+      relatedAgentApp?.amountApproved ??
+      relatedAgentApp?.amount_approved ??
+      relatedAgentApp?.disbursedAmount ??
+      relatedAgentApp?.disbursed_amount)
+  );
+
+  const derivedInterestRate: number | undefined = (
+    (loanData as any)?.interestRate ??
+    relatedAgentApp?.interestRate ??
+    relatedAgentApp?.interest_rate
+  );
+
+  const derivedProcessingFee: number | undefined = (
+    (relatedAgentApp?.processingFee ??
+      relatedAgentApp?.processing_fee ??
+      relatedAgentApp?.fees ??
+      relatedAgentApp?.loanFees)
+  );
+
+  // Derive product lists from agent and factory endpoints
+  const agentProducts: any[] = (() => {
+    const source = relatedAgentApp as any;
+    const products = source?.products || source?.applicationProducts || [];
+    return Array.isArray(products) ? products : [];
+  })();
+
+  // Factory products intentionally not used in UI to avoid redundancy
+
+  // Determine if Approve/Reject buttons should be enabled
+  // Buttons are ACTIVE only when status is PENDING_SUPER_ADMIN_APPROVAL (approved by partner, waiting for system approval)
+  // Buttons are DISABLED for:
+  // - PENDING_PARTNER_APPROVAL (partner hasn't approved yet)
+  // - REJECTED or CANCELLED or any status containing REJECTED (already rejected)
+  // - APPROVED or DISBURSED (both already approved)
+  const status = loanData?.status?.toUpperCase() || '';
+  const canApproveOrReject = status === 'PENDING_SUPER_ADMIN_APPROVAL';
+
+  // Get the reason message for why buttons are disabled
+  const getDisabledReason = () => {
+    if (!loanData) return '';
+    const status = loanData.status?.toUpperCase() || '';
+    
+    // Check if status contains PENDING_PARTNER, PENDING_AGENT, or is DRAFT
+    // This covers: PENDING_PARTNER_APPROVAL, PENDING AGENT CONFIRMATION, PENDING_AGENT_CONFIRMATION, etc.
+    if (status === 'PENDING_PARTNER_APPROVAL' || 
+        status === 'DRAFT' || 
+        status.includes('PENDING_PARTNER') ||
+        status.includes('PENDING AGENT') ||
+        status.includes('PENDING_AGENT') ||
+        status === 'PENDING_AGENT_CONFIRMATION' ||
+        status === 'PENDING AGENT CONFIRMATION') {
+      return 'Partner should approve first';
+    }
+    // Check if status contains REJECTED (handles REJECTED, PARTNER_REJECTED, PARTNER REJECTED, etc.)
+    if (status.includes('REJECTED') || status === 'CANCELLED') {
+      return 'Rejected by partner';
+    }
+    if (status === 'APPROVED' || status === 'DISBURSED') {
+      return 'This loan request has already been processed';
+    }
+    // For any other pending status that's not PENDING_SUPER_ADMIN_APPROVAL, show default message
+    if (status.includes('PENDING') && status !== 'PENDING_SUPER_ADMIN_APPROVAL') {
+      return 'Partner should approve first';
+    }
+    return '';
+  };
 
   return (
     <div className="space-y-6 p-6">
@@ -368,128 +562,93 @@ const LoanDetailPage: React.FC = () => {
         
         {/* Action Buttons */}
         <div className="flex items-center space-x-3">
-          
-          {/* Loan Action Buttons */}
-          {processedLoanData && (
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                {processedLoanData.displayPartnerStatus === "PENDING" || processedLoanData.displayPartnerStatus === "REJECTED" ? (
-                  <div className="flex items-center space-x-3 w-full">
-                    <Button
-                      disabled={true}
-                      className="bg-cyan-300 text-white px-6 py-2 cursor-not-allowed flex-1 opacity-60"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Approve Loan
-                    </Button>
-                    <Button
-                      disabled={true}
-                      className="bg-red-300 text-white px-6 py-2 cursor-not-allowed flex-1 opacity-60"
-                    >
-                      <XCircle className="w-4 h-4 mr-2" />
-                      Reject Loan
-                    </Button>
-                  </div>
-                ) : processedLoanData.displaySuperAdminStatus === "APPROVED" || processedLoanData.displaySuperAdminStatus === "REJECTED" ? (
-                  <div className="flex items-center space-x-3 w-full">
-                    <Button
-                      disabled={true}
-                      className="bg-cyan-300 text-white px-6 py-2 cursor-not-allowed flex-1 opacity-60"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Approve Loan
-                    </Button>
-                    <Button
-                      disabled={true}
-                      className="bg-red-300 text-white px-6 py-2 cursor-not-allowed flex-1 opacity-60"
-                    >
-                      <XCircle className="w-4 h-4 mr-2" />
-                      Reject Loan
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-3 w-full">
-                    <Button
-                      onClick={handleApproveLoan}
-                      disabled={isApprovingLoan}
-                      className="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 flex-1"
-                    >
-                      {isApprovingLoan ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      ) : (
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                      )}
-                      {isApprovingLoan ? 'Approving...' : 'Approve Loan'}
-                    </Button>
-                    <Button
-                      onClick={() => setShowLoanRejectDialog(true)}
-                      disabled={isRejectingLoan}
-                      variant="destructive"
-                      className="px-6 py-2 flex-1"
-                    >
-                      <XCircle className="w-4 h-4 mr-2" />
-                      Reject Loan
-                    </Button>
-                  </div>
-                )}
-              </div>
-              
-              {/* Status Message Banner - positioned under buttons */}
-              {(processedLoanData.displayPartnerStatus === "PENDING" || 
-                processedLoanData.displayPartnerStatus === "REJECTED" || 
-                processedLoanData.displaySuperAdminStatus === "APPROVED" || 
-                processedLoanData.displaySuperAdminStatus === "REJECTED") && (
-                <div className="w-full bg-yellow-100 border-t border-b border-yellow-200 text-gray-700 py-2 px-4 text-center text-sm">
-                  {processedLoanData.displayPartnerStatus === "PENDING" 
-                    ? "This loan request is pending partner approval"
-                    : processedLoanData.displayPartnerStatus === "REJECTED"
-                    ? "This loan request has been rejected by partner"
-                    : processedLoanData.displaySuperAdminStatus === "APPROVED"
-                    ? "This loan request has already been processed"
-                    : "This loan request has already been processed"
-                  }
-                </div>
-              )}
-            </div>
+          {!isFromTracking && (
+            <>
+              <Button
+                className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-cyan-600"
+                onClick={() => setShowLoanApproveDialog(true)}
+                disabled={!canApproveOrReject || isApprovingLoan || isRejectingLoan}
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Approve Loan
+              </Button>
+              <Button
+                variant="destructive"
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-red-600"
+                onClick={() => setShowLoanRejectDialog(true)}
+                disabled={!canApproveOrReject || isApprovingLoan || isRejectingLoan}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Reject Loan
+              </Button>
+            </>
           )}
         </div>
       </div>
 
+      {/* Status Message Banner */}
+      {!isFromTracking && !canApproveOrReject && loanData && getDisabledReason() && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+          <p className="text-sm text-yellow-800">{getDisabledReason()}</p>
+        </div>
+      )}
+
       {/* Loan Application Details */}
-      <Card className="border-l-4 border-l-purple-500">
-        <CardHeader className="bg-gradient-to-r from-purple-50 to-violet-50">
-          <CardTitle className="flex items-center text-purple-900">
+      <Card className="border-l-4 border-l-cyan-500">
+        <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50">
+          <CardTitle className="flex items-center text-cyan-900">
             Loan Application Details
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-sm font-semibold text-gray-700 mb-1">Application Number</p>
                 <p className="text-lg font-medium text-gray-900">{loanData?.applicationNumber}</p>
+              </div>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm font-semibold text-gray-700 mb-1">Requested Amount</p>
+              <p className="text-xl font-bold text-cyan-600">ETB {loanData?.requestedAmount?.toLocaleString()}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-sm font-semibold text-gray-700 mb-1">Borrower Name</p>
                 <p className="text-lg font-medium text-gray-900">{loanData?.borrowerName}</p>
               </div>
+            {isFromTracking && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm font-semibold text-gray-700 mb-1">Approved Amount</p>
+                <p className="text-xl font-bold text-cyan-600">
+                  {derivedApprovedAmount !== undefined ? `ETB ${Number(derivedApprovedAmount).toLocaleString()}` : 'N/A'}
+                </p>
+              </div>
+            )}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-sm font-semibold text-gray-700 mb-1">Product Code</p>
                 <p className="text-lg font-medium text-gray-900">{loanData?.loanTypeCode || 'N/A'}</p>
               </div>
+            {isFromTracking && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm font-semibold text-gray-700 mb-1">Interest Rate</p>
+                <p className="text-lg font-medium text-gray-900">
+                  {derivedInterestRate !== undefined ? `${derivedInterestRate}%` : 'N/A'}
+                </p>
+              </div>
+            )}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-sm font-semibold text-gray-700 mb-1">Product Name</p>
                 <p className="text-lg font-medium text-gray-900">{loanData?.loanTypeName || loanData?.loanType}</p>
               </div>
+            {isFromTracking && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm font-semibold text-gray-700 mb-1">Processing Fee</p>
+                <p className="text-lg font-medium text-gray-900">
+                  {derivedProcessingFee !== undefined ? `ETB ${Number(derivedProcessingFee).toLocaleString()}` : 'N/A'}
+                </p>
+              </div>
+            )}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-sm font-semibold text-gray-700 mb-1">Purpose</p>
                 <p className="text-lg font-medium text-gray-900">{loanData?.purpose}</p>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 mb-1">Requested Amount</p>
-                <p className="text-xl font-bold text-purple-600">ETB {loanData?.requestedAmount?.toLocaleString()}</p>
               </div>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="text-sm font-semibold text-gray-700 mb-1">Status</p>
@@ -510,309 +669,233 @@ const LoanDetailPage: React.FC = () => {
                 <p className="text-lg font-medium text-gray-900">
                   {loanData?.submissionDate ? new Date(loanData.submissionDate).toLocaleDateString() : 'N/A'}
                 </p>
-              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Agent Details */}
-      <Card className="border-l-4 border-l-blue-500">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50">
-          <CardTitle className="flex items-center text-blue-900">
-            <User className="w-5 h-5 mr-2" />
-            Agent Details
+      {/* Products Section */}
+      {agentProducts.length > 0 && (
+        <Card className="border-l-4 border-l-cyan-500">
+          <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50">
+            <CardTitle className="flex items-center text-cyan-900">
+              Products
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-2">
+              {agentProducts.map((p: any, idx: number) => (
+                <div key={idx} className="flex items-center justify-between text-sm text-gray-700 bg-white p-4 rounded-lg border border-gray-200 hover:bg-gray-50">
+                  <span className="font-medium">{p.productName || p.name} × {p.productQuantity || p.quantity || 1}</span>
+                  <span className="font-medium text-gray-900">ETB {(p.productTotalPrice || (p.productUnitPrice || 0) * (p.productQuantity || 1)).toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Factory Details */}
+      {(factoryDetails || (factoryLoanApplications && factoryLoanApplications.length > 0)) && (
+        <Card className="border-l-4 border-l-cyan-500">
+          <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50">
+            <CardTitle className="flex items-center text-cyan-900">
+              Factory Details
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
-          {agentLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-              <span className="ml-2 text-gray-600">Loading agent details...</span>
-            </div>
-          ) : agentData ? (
-            <div className="space-y-6">
-              {/* Basic Information */}
+            {isLoadingFactoryDetails ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600 mx-auto"></div>
+                  <p className="mt-2 text-gray-600">Loading factory details...</p>
+                </div>
+              </div>
+            ) : (() => {
+              const first = factoryLoanApplications[0] as any;
+              const factoryName = factoryDetails?.name || factoryDetails?.factoryName || factoryDetails?.businessName || first?.factoryName || first?.factory?.name || 'N/A';
+              const factoryId = factoryDetails?.id || factoryDetails?.registrationNo || factoryDetails?.registrationNumber || first?.factoryId || first?.factory_id || loanData?.factoryId || 'N/A';
+              const totalApplications = factoryLoanApplications.length;
+              const lastCreated = factoryLoanApplications
+                .map((a: any) => new Date(a.created || a.submissionDate || a.requestDate || a.createdAt || 0).getTime())
+                .filter((t: number) => !Number.isNaN(t))
+                .sort((a: number, b: number) => b - a)[0];
+              const latestDate = lastCreated ? new Date(lastCreated).toLocaleDateString() : 'N/A';
+              const totalApproved = factoryLoanApplications.filter((a: any) => (a.status || '').includes('APPROVED') || (a.superAdminStatus || '') === 'approved').length;
+              const totalDisbursed = factoryLoanApplications.filter((a: any) => (a.status || '') === 'DISBURSED').length;
+              return (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-700 mb-1">Agent Full Name</p>
-                    <p className="text-lg font-medium text-gray-900">
-                      {agentData.fullName || agentData.fullLegalName || agentData.name || 'N/A'}
-                    </p>
+                      <p className="text-sm font-semibold text-gray-700 mb-1">Factory Name</p>
+                      <p className="text-lg font-medium text-gray-900">{factoryName}</p>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-700 mb-1">Username</p>
-                    <p className="text-lg font-medium text-gray-900">{agentData.username || 'N/A'}</p>
+                      <p className="text-sm font-semibold text-gray-700 mb-1">Factory ID</p>
+                      <p className="text-lg font-medium text-gray-900">{factoryId}</p>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-700 mb-1">Email</p>
-                    <p className="text-lg font-medium text-gray-900 flex items-center">
-                      <Mail className="w-4 h-4 mr-2 text-gray-500" />
-                      {agentData.email || 'N/A'}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-700 mb-1">Phone</p>
-                    <p className="text-lg font-medium text-gray-900 flex items-center">
-                      <Phone className="w-4 h-4 mr-2 text-gray-500" />
-                      {agentData.phone || 'N/A'}
-                    </p>
+                      <p className="text-sm font-semibold text-gray-700 mb-1">Latest Application Date</p>
+                      <p className="text-lg font-medium text-gray-900">{latestDate}</p>
                   </div>
                 </div>
                 <div className="space-y-4">
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-700 mb-1">Agent ID</p>
-                    <p className="text-lg font-medium text-gray-900">{agentData.agentId || agentData.id || 'N/A'}</p>
+                      <p className="text-sm font-semibold text-gray-700 mb-1">Total Applications</p>
+                      <p className="text-lg font-medium text-gray-900">{totalApplications}</p>
                   </div>
                   <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-700 mb-1">Agent Type</p>
-                    <p className="text-lg font-medium text-gray-900">{agentData.agentType || 'N/A'}</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-700 mb-1">Location</p>
-                    <p className="text-lg font-medium text-gray-900 flex items-center">
-                      <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                      {agentData.location || agentData.address || 'N/A'}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-700 mb-1">Approval Status</p>
-                    <p className="text-lg font-medium text-gray-900">
-                      {agentData.superAdminApprovalStatus || agentData.status || 'N/A'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bank Account Information */}
-              {agentData.documents && agentData.documents.length > 0 && (
-                <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-gray-900 flex items-center">
-                    <CreditCard className="w-5 h-5 mr-2 text-blue-600" />
-                    Bank Account Information
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {agentData.documents
-                      .filter((doc: any) => doc.type === 'bankAccount' || doc.documentType === 'bankAccount' || doc.category === 'bankAccount')
-                      .map((bankAccount: any, index: number) => (
-                        <div key={index} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <p className="text-sm font-semibold text-blue-700">Bank Account #{index + 1}</p>
-                            </div>
-                            <div className="space-y-1">
-                              <p className="text-sm text-gray-600">
-                                <span className="font-medium">Account Name:</span> {bankAccount.accountName || bankAccount.account_name || 'N/A'}
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                <span className="font-medium">Bank Name:</span> {bankAccount.bankName || bankAccount.bank_name || 'N/A'}
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                <span className="font-medium">Branch Name:</span> {bankAccount.branchName || bankAccount.branch_name || 'N/A'}
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                <span className="font-medium">Account Number:</span> {bankAccount.accountNumber || bankAccount.account_number || 'N/A'}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    {agentData.documents.filter((doc: any) => doc.type === 'bankAccount' || doc.documentType === 'bankAccount' || doc.category === 'bankAccount').length === 0 && (
-                      <div className="col-span-2 text-center py-4 text-gray-500">
-                        No bank account information available
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Tax and License Information */}
-              <div className="space-y-4">
-                <h4 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <FileText className="w-5 h-5 mr-2 text-green-600" />
-                  Tax & License Information
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <div className="space-y-2">
-                      <p className="text-sm font-semibold text-green-700 flex items-center">
-                        <Hash className="w-4 h-4 mr-2" />
-                        Tax Information
-                      </p>
-                      <div className="space-y-1">
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium">Tax ID Number:</span> {agentData.taxIdentificationNumber || agentData.taxId || agentData.tin || 'N/A'}
-                        </p>
-                      </div>
+                      <p className="text-sm font-semibold text-gray-700 mb-1">Approved</p>
+                      <p className="text-lg font-medium text-gray-900">{totalApproved}</p>
+                    </div>
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <p className="text-sm font-semibold text-gray-700 mb-1">Disbursed</p>
+                      <p className="text-lg font-medium text-gray-900">{totalDisbursed}</p>
                     </div>
                   </div>
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                    <div className="space-y-2">
-                      <p className="text-sm font-semibold text-green-700 flex items-center">
-                        <FileText className="w-4 h-4 mr-2" />
-                        License Information
-                      </p>
-                      <div className="space-y-1">
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium">License Number:</span> {agentData.licenseNumber || agentData.license_number || 'N/A'}
-                        </p>
-                        <p className="text-sm text-gray-600 flex items-center">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          <span className="font-medium">Expiry Date:</span> {agentData.licenseExpiryDate || agentData.license_expiry_date ? new Date(agentData.licenseExpiryDate || agentData.license_expiry_date).toLocaleDateString() : 'N/A'}
-                        </p>
+                  {/* Factory products section intentionally removed to avoid redundancy */}
                       </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Documents Summary */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 mb-2">Documents Summary</p>
-                <p className="text-lg font-medium text-gray-900">
-                  {agentData.documents ? `${agentData.documents.length} documents uploaded` : 'No documents available'}
-                </p>
-                {agentData.documents && agentData.documents.length > 0 && (
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-600">
-                      Document types: {agentData.documents.map((doc: any) => doc.type || doc.documentType || 'Unknown').join(', ')}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No agent data available</p>
-              <p className="text-sm text-gray-500">Agent ID: {loanData?.agentId || 'N/A'}</p>
-            </div>
-          )}
+                    );
+                  })()}
         </CardContent>
       </Card>
+      )}
 
-      {/* Factory Details */}
-      <Card className="border-l-4 border-l-green-500">
-        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
-          <CardTitle className="flex items-center text-green-900">
-            <Building2 className="w-5 h-5 mr-2" />
-            Factory Details
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6">
-          {factoryLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-              <span className="ml-2 text-gray-600">Loading factory details...</span>
-            </div>
-          ) : factoryData ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">Factory Name</p>
-                  <p className="text-lg font-medium text-gray-900">
-                    {factoryData.factoryName || factoryData.businessName || factoryData.name || 'N/A'}
-                  </p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">Factory Type</p>
-                  <p className="text-lg font-medium text-gray-900">
-                    {factoryData.factoryType || factoryData.industry || factoryData.industryType || factoryData.businessSector || 'N/A'}
-                  </p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">License Number</p>
-                  <p className="text-lg font-medium text-gray-900">
-                    {factoryData.licenseNumber || factoryData.businessLicense || 'N/A'}
-                  </p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">License Expiration</p>
-                  <p className="text-lg font-medium text-gray-900">
-                    {factoryData.licenseExpiryDate || factoryData.licenseExpirationDate || 'N/A'}
-                  </p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">TIN</p>
-                  <p className="text-lg font-medium text-gray-900">
-                    {factoryData.tinNumber || factoryData.tin || factoryData.taxId || 'N/A'}
-                  </p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">Email</p>
-                  <p className="text-lg font-medium text-gray-900 flex items-center">
-                    <Mail className="w-4 h-4 mr-2 text-gray-500" />
-                    {factoryData.email || factoryData.emailAddress || factoryData.contactEmail || 'N/A'}
-                  </p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">Phone</p>
-                  <p className="text-lg font-medium text-gray-900 flex items-center">
-                    <Phone className="w-4 h-4 mr-2 text-gray-500" />
-                    {factoryData.phone || factoryData.phoneNumber || factoryData.contactPhone || 'N/A'}
-                  </p>
+      {/* Transaction History (only for tracking detail) */}
+      {isFromTracking && (
+        <Card className="border-l-4 border-l-cyan-500">
+          <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50">
+            <CardTitle className="flex items-center text-cyan-900">
+              Transaction History
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
+            {isLoadingTransactions ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600 mx-auto"></div>
+                  <p className="mt-2 text-gray-600">Loading transactions...</p>
                 </div>
               </div>
-              <div className="space-y-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">Factory ID</p>
-                  <p className="text-lg font-medium text-gray-900">{factoryData.id || 'N/A'}</p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">Industry</p>
-                  <p className="text-lg font-medium text-gray-900">
-                    {factoryData.factoryType || factoryData.industry || factoryData.industryType || factoryData.businessSector || 'N/A'}
-                  </p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">Production Capacity</p>
-                  <p className="text-lg font-medium text-gray-900">
-                    {factoryData.productionCapacity || factoryData.capacity || 'N/A'}
-                  </p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 mb-1">Approval Status</p>
-                  <p className="text-lg font-medium text-gray-900">
-                    {factoryData.adminApprovalStatus || factoryData.status || 'N/A'}
-                  </p>
-                </div>
+            ) : transactions.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No transactions found for this loan application.
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No factory data available</p>
-              <p className="text-sm text-gray-500">Factory ID: {loanData?.factoryId || 'N/A'}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="text-left p-3 text-sm font-semibold text-gray-700">Transaction Reference</th>
+                      <th className="text-left p-3 text-sm font-semibold text-gray-700">Transaction Type</th>
+                      <th className="text-left p-3 text-sm font-semibold text-gray-700">Amount</th>
+                      <th className="text-left p-3 text-sm font-semibold text-gray-700">Payment Method</th>
+                      <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
+                      <th className="text-left p-3 text-sm font-semibold text-gray-700">Transaction Date</th>
+                      <th className="text-left p-3 text-sm font-semibold text-gray-700">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transactions.map((transaction) => (
+                      <tr key={transaction.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="p-3 text-sm text-gray-900">{transaction.transactionReference || 'N/A'}</td>
+                        <td className="p-3 text-sm text-gray-900">{transaction.transactionType?.replace(/_/g, ' ') || 'N/A'}</td>
+                        <td className="p-3 text-sm font-medium text-cyan-600">ETB {Number(transaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td className="p-3 text-sm text-gray-900">{transaction.paymentMethod?.replace(/_/g, ' ') || 'N/A'}</td>
+                        <td className="p-3">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            transaction.status === 'COMPLETED' 
+                              ? 'bg-cyan-100 text-cyan-800' 
+                              : transaction.status === 'PENDING'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : transaction.status === 'FAILED'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {transaction.status?.replace(/_/g, ' ') || 'N/A'}
+                          </span>
+                        </td>
+                        <td className="p-3 text-sm text-gray-900">
+                          {transaction.transactionDate 
+                            ? new Date(transaction.transactionDate).toLocaleDateString('en-US', { 
+                                year: 'numeric', 
+                                month: 'short', 
+                                day: 'numeric' 
+                              })
+                            : 'N/A'}
+                        </td>
+                        <td className="p-3 text-sm text-gray-600">{transaction.description || 'N/A'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Separate product cards removed; products are merged into their respective sections */}
 
       {/* Loan Rejection Dialog */}
       {showLoanRejectDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Reject Loan Application</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Reason for Rejection
-                </label>
-                <textarea
-                  value={loanRejectReason}
-                  onChange={(e) => setLoanRejectReason(e.target.value)}
-                  placeholder="Please provide a reason for rejecting this loan application..."
-                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                  rows={4}
-                />
+                <Label className="block text-sm font-medium text-gray-700 mb-3">
+                  Reason for Rejection *
+                </Label>
+                <div className="space-y-2">
+                  {rejectionReasons.map((reason) => (
+                    <div key={reason} className="flex items-center">
+                      <input
+                        type="radio"
+                        id={`reject-${reason}`}
+                        name="rejectionReason"
+                        value={reason}
+                        checked={selectedRejectionReason === reason}
+                        onChange={(e) => {
+                          setSelectedRejectionReason(e.target.value);
+                          if (e.target.value !== "Other") {
+                            setCustomRejectionReason("");
+                          }
+                        }}
+                        className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300"
+                      />
+                      <label
+                        htmlFor={`reject-${reason}`}
+                        className="ml-2 block text-sm text-gray-700 cursor-pointer"
+                      >
+                        {reason}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="flex justify-end space-x-3">
+              {selectedRejectionReason === "Other" && (
+                <div>
+                  <Label htmlFor="customRejectionReason" className="block text-sm font-medium text-gray-700 mb-2">
+                    Please specify the reason
+                  </Label>
+                  <Textarea
+                    id="customRejectionReason"
+                    value={customRejectionReason}
+                    onChange={(e) => setCustomRejectionReason(e.target.value)}
+                    placeholder="Enter the rejection reason..."
+                    className="w-full"
+                    rows={3}
+                  />
+                </div>
+              )}
+              <div className="flex justify-end space-x-3 pt-4">
                 <Button
                   variant="outline"
                   onClick={() => {
                     setShowLoanRejectDialog(false);
-                    setLoanRejectReason("");
+                    setSelectedRejectionReason("");
+                    setCustomRejectionReason("");
                   }}
                   disabled={isRejectingLoan}
                 >
@@ -820,8 +903,9 @@ const LoanDetailPage: React.FC = () => {
                 </Button>
                 <Button
                   onClick={handleRejectLoan}
-                  disabled={isRejectingLoan || !loanRejectReason.trim()}
+                  disabled={isRejectingLoan || !selectedRejectionReason || (selectedRejectionReason === "Other" && !customRejectionReason.trim())}
                   variant="destructive"
+                  className="bg-red-600 hover:bg-red-700"
                 >
                   {isRejectingLoan ? (
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -837,10 +921,17 @@ const LoanDetailPage: React.FC = () => {
       {/* Loan Approval Dialog */}
       {showLoanApproveDialog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Approve Loan Application</h3>
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {isLoadingProduct ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600 mx-auto"></div>
+                  <p className="mt-2 text-gray-600">Loading product details...</p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-6">
                 <div>
                   <Label htmlFor="approvedAmount" className="block text-sm font-medium text-gray-700 mb-2">
                     Approved Amount (ETB) *
@@ -857,84 +948,55 @@ const LoanDetailPage: React.FC = () => {
                     required
                   />
                 </div>
-                <div>
-                  <Label htmlFor="interestRate" className="block text-sm font-medium text-gray-700 mb-2">
-                    Interest Rate (%) *
-                  </Label>
-                  <Input
-                    id="interestRate"
-                    type="number"
-                    value={interestRate}
-                    onChange={(e) => setInterestRate(Number(e.target.value))}
-                    placeholder="Enter interest rate"
-                    className="w-full"
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="processingFeePercentage" className="block text-sm font-medium text-gray-700 mb-2">
-                    Processing Fee Percentage (%) *
-                  </Label>
-                  <Input
-                    id="processingFeePercentage"
-                    type="number"
-                    value={processingFeePercentage}
-                    onChange={(e) => setProcessingFeePercentage(Number(e.target.value))}
-                    placeholder="Enter processing fee percentage"
-                    className="w-full"
-                    min="0"
-                    step="0.01"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="processingFeeFactor" className="block text-sm font-medium text-gray-700 mb-2">
-                    Processing Fee Factor *
-                  </Label>
-                  <Input
-                    id="processingFeeFactor"
-                    type="number"
-                    value={processingFeeFactor}
-                    onChange={(e) => setProcessingFeeFactor(Number(e.target.value))}
-                    placeholder="Enter processing fee factor"
-                    className="w-full"
-                    min="0"
-                    step="0.01"
-                    required
-                  />
+                
+                {/* Display auto-populated values from product */}
+                {loanProduct && (
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Product Details (Auto-filled from {loanProduct.name}):</p>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Interest Rate:</span>
+                        <span className="font-medium text-gray-900">{loanProduct.defaultInterestRate || 0}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Processing Fee:</span>
+                        <span className="font-medium text-gray-900">
+                          {loanProduct.processingFeeType === 'PERCENTAGE' 
+                            ? `${loanProduct.processingFeeValue || 0}%` 
+                            : `ETB ${(loanProduct.processingFeeValue || 0).toLocaleString()}`
+                          }
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="flex justify-end space-x-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowLoanApproveDialog(false);
+                      setApprovedAmount(loanData?.approvedAmount || loanData?.requestedAmount || 0);
+                    }}
+                    disabled={isApprovingLoan}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSubmitLoanApproval}
+                    disabled={isApprovingLoan || approvedAmount <= 0}
+                    className="bg-cyan-500 hover:bg-cyan-600 text-white"
+                  >
+                    {isApprovingLoan ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    ) : (
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                    )}
+                    {isApprovingLoan ? 'Approving...' : 'Approve Loan'}
+                  </Button>
                 </div>
               </div>
-              <div className="flex justify-end space-x-3">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowLoanApproveDialog(false);
-                    // Reset form fields
-                    setApprovedAmount(loanData?.approvedAmount || loanData?.requestedAmount || 0);
-                    setInterestRate(loanData?.interestRate || 0);
-                    setProcessingFeePercentage(0);
-                    setProcessingFeeFactor(0);
-                  }}
-                  disabled={isApprovingLoan}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSubmitLoanApproval}
-                  disabled={isApprovingLoan || approvedAmount <= 0 || interestRate < 0 || processingFeePercentage < 0 || processingFeeFactor < 0}
-                  className="bg-cyan-500 hover:bg-cyan-600 text-white"
-                >
-                  {isApprovingLoan ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  ) : (
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                  )}
-                  {isApprovingLoan ? 'Approving...' : 'Approve Loan'}
-                </Button>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       )}
