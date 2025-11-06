@@ -9,8 +9,8 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      "/api": {
-        target: "http://10.8.100.39:5005",
+      "/api/files": {
+        target: "http://10.8.100.39:5001",
         changeOrigin: true,
         secure: false,
       },
@@ -18,7 +18,13 @@ export default defineConfig({
         target: "http://10.8.100.39:5001",
         changeOrigin: true,
         secure: false,
+        rewrite: (path) => path.replace(/^\/files/, '/api/files'), // Convert /files to /api/files
       },
+      "/api": {
+        target: "http://10.8.100.39:5005",
+        changeOrigin: true,
+        secure: false,
+      }
     },
   },
 })

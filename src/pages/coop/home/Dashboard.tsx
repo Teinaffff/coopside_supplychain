@@ -1,7 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Loader from "../../../common/Loader";
 import {
-  superAdminStatsData,
   superAdminRecentActivities,
   systemMetricsData,
 } from "../../../common/data/data";
@@ -39,11 +38,139 @@ import {
   TrendingUp,
   Users,
   Building2,
-  UserCheck
+  UserCheck,
+  DollarSign,
+  Coins
 } from "lucide-react";
+import { useInstitutions } from "../hooks/useInstitutions";
+import { useAgents } from "../hooks/use-Agents";
+import API from "../../../config/axios-config";
+import { toast } from "react-hot-toast";
 
 const Dashboard: React.FC = () => {
-  const [loading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [statsData, setStatsData] = useState<any[]>([]);
+  const [entityDistribution, setEntityDistribution] = useState<any[]>([]);
+  const [usersCount, setUsersCount] = useState<number>(0);
+  const [consumersCount, setConsumersCount] = useState<number>(0);
+
+  const { institutions, isLoading: institutionsLoading } = useInstitutions();
+  const { agents, isLoading: agentsLoading } = useAgents();
+
+  // Fetch users count
+  useEffect(() => {
+    const fetchUsersCount = async () => {
+      try {
+        const response = await API.get("/v1/users");
+        const users = response.data?.data || response.data || [];
+        setUsersCount(Array.isArray(users) ? users.length : 0);
+      } catch (error: any) {
+        console.error("Error fetching users:", error);
+        setUsersCount(0);
+      }
+    };
+    fetchUsersCount();
+  }, []);
+
+  // Fetch consumers count
+  useEffect(() => {
+    const fetchConsumersCount = async () => {
+      try {
+        const response = await API.get("/v1/consumers");
+        const consumers = response.data?.data || response.data || [];
+        setConsumersCount(Array.isArray(consumers) ? consumers.length : 0);
+      } catch (error: any) {
+        console.error("Error fetching consumers:", error);
+        setConsumersCount(0);
+      }
+    };
+    fetchConsumersCount();
+  }, []);
+
+  // Calculate stats from real data
+  useEffect(() => {
+    if (!institutionsLoading && !agentsLoading) {
+      const totalInstitutions = institutions?.length || 0;
+      const activeInstitutions = institutions?.filter((i: any) => i.status === "Approved" && i.adminStatus === "Approved").length || 0;
+      const pendingInstitutions = institutions?.filter((i: any) => i.status === "Pending" || i.adminStatus === "Pending").length || 0;
+
+      const totalAgents = agents?.length || 0;
+      const activeAgents = agents?.filter((a: any) => a.status === "Approved" && a.adminStatus === "Approved").length || 0;
+      
+      // Calculate new agents this month
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      const newAgentsThisMonth = agents?.filter((a: any) => {
+        if (!a.form?.createdAt) return false;
+        try {
+          const createdDate = new Date(a.form.createdAt);
+          return createdDate.getMonth() === currentMonth && createdDate.getFullYear() === currentYear;
+        } catch {
+          return false;
+        }
+      }).length || 0;
+
+      const totalUsers = usersCount + consumersCount + totalInstitutions + totalAgents;
+
+      setStatsData([
+        {
+          title: "Total Users",
+          value: totalUsers.toLocaleString(),
+          change: 0,
+          trend: "up",
+          icon: Users,
+          color: "cyan",
+          primaryLabel: "Active Users",
+          secondaryValue: (activeInstitutions + activeAgents).toLocaleString(),
+          secondaryLabel: "Active Entities",
+        },
+        {
+          title: "Institutions",
+          value: totalInstitutions,
+          change: 0,
+          trend: "up",
+          icon: DollarSign,
+          color: "cyan",
+          primaryLabel: "Active",
+          secondaryValue: pendingInstitutions,
+          secondaryLabel: "Pending Review",
+        },
+        {
+          title: "Agents",
+          value: totalAgents,
+          change: 0,
+          trend: "up",
+          icon: Coins,
+          color: "cyan",
+          primaryLabel: "Active",
+          secondaryValue: newAgentsThisMonth,
+          secondaryLabel: "New This Month",
+        },
+        {
+          title: "System Health",
+          value: "99.8%",
+          change: 0.2,
+          trend: "up",
+          icon: TrendingUp,
+          color: "cyan",
+          primaryLabel: "Uptime",
+          secondaryValue: "2.1s",
+          secondaryLabel: "Avg Response",
+        },
+      ]);
+
+      // Calculate entity distribution
+      const totalEntities = totalAgents + totalInstitutions + consumersCount;
+      const distribution = totalEntities > 0 ? [
+        { type: "Agents", count: totalAgents, percentage: Math.round((totalAgents / totalEntities) * 100) },
+        { type: "Consumers", count: consumersCount, percentage: Math.round((consumersCount / totalEntities) * 100) },
+        { type: "Institutions", count: totalInstitutions, percentage: Math.round((totalInstitutions / totalEntities) * 100) },
+      ] : [];
+      setEntityDistribution(distribution);
+
+      setLoading(false);
+    }
+  }, [institutions, agents, institutionsLoading, agentsLoading, usersCount, consumersCount]);
 
   const recentActivities = useMemo(() => superAdminRecentActivities.slice(0, 5), []);
 
@@ -101,7 +228,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <DashboardStats statsData={superAdminStatsData as any} />
+      <DashboardStats statsData={statsData} />
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -114,7 +241,7 @@ const Dashboard: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <EntityDistributionChart data={systemMetricsData.entityDistribution} />
+            <EntityDistributionChart data={entityDistribution.length > 0 ? entityDistribution : systemMetricsData.entityDistribution} />
           </CardContent>
         </Card>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Eye, Download, File, CheckCircle, XCircle } from "lucide-react";
+import { FileText, Eye, Download, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "../../../../common/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../../common/ui/card";
 import { Badge } from "../../../../common/ui/badge";
@@ -25,24 +25,29 @@ interface Document {
 }
 
 interface DocumentPreviewProps {
-  documents: Document[];
+  documents?: Document[];
+  userId?: number | string;
   title?: string;
   onDocumentUpdate?: (documentId: string | number, status: "Approved" | "Pending" | "Rejected") => void;
+  entityStatus?: "Approved" | "Pending" | "Rejected"; // Entity super admin status
+  entityAdminStatus?: "Approved" | "Pending" | "Rejected"; // Entity partner/admin status
 }
 
 const DocumentPreview: React.FC<DocumentPreviewProps> = ({ 
-  documents, 
+  documents: documentsProp, 
+  userId,
   title = "Documents",
-  onDocumentUpdate
+  onDocumentUpdate,
+  entityStatus,
+  entityAdminStatus
 }) => {
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
-    documents.length > 0 ? documents[0] : null
-  );
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [documentBlobUrls, setDocumentBlobUrls] = useState<Record<string, string>>({});
   const [loadingDocuments, setLoadingDocuments] = useState<Set<string>>(new Set());
   const [failedDocuments, setFailedDocuments] = useState<Set<string>>(new Set());
   const [processingDocuments, setProcessingDocuments] = useState<Set<string | number>>(new Set());
-  const [documentsList, setDocumentsList] = useState<Document[]>(documents);
+  const [documentsList, setDocumentsList] = useState<Document[]>(documentsProp || []);
+  const [loadingDocumentsList, setLoadingDocumentsList] = useState<boolean>(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
 
@@ -53,6 +58,9 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     
     setLoadingDocuments(prev => new Set(prev).add(docId));
     
+    // Handle different URL formats - always use relative path for authenticated API calls
+    let fetchUrl = document.url;
+    
     try {
       console.log('[FETCH DOCUMENT] Fetching document with auth:', document.url);
       console.log('[FETCH DOCUMENT] Document details:', {
@@ -62,31 +70,18 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         fileType: document.fileType
       });
       
-      // Handle different URL formats - always use relative path for authenticated API calls
-      let fetchUrl = document.url;
-      
       if (document.url.startsWith('http://') || document.url.startsWith('https://')) {
         // Full URL - extract relative path for API call
         try {
           const urlObj = new URL(document.url);
           // Get the pathname, which should be relative to the backend
           fetchUrl = urlObj.pathname + urlObj.search; // Include query params if any
-          // If the pathname doesn't start with /api, we might need to handle it differently
-          // But first, try to see if the pathname already includes the API prefix
-          if (fetchUrl.startsWith('/api')) {
-            // Remove /api prefix since API instance already has baseURL
-            fetchUrl = fetchUrl.replace(/^\/api/, '');
-          }
         } catch (e) {
           // If URL parsing fails, try to extract pathname manually
           console.warn('[FETCH DOCUMENT] Failed to parse URL, attempting to extract path:', document.url);
           const match = document.url.match(/https?:\/\/[^\/]+(\/.*)/);
           if (match && match[1]) {
             fetchUrl = match[1];
-            // Remove /api prefix if present
-            if (fetchUrl.startsWith('/api')) {
-              fetchUrl = fetchUrl.replace(/^\/api/, '');
-            }
           } else {
             fetchUrl = document.url;
           }
@@ -95,6 +90,8 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         // Relative path - ensure it starts with /
         if (!document.url.startsWith('/')) {
           fetchUrl = `/${document.url}`;
+        } else {
+          fetchUrl = document.url;
         }
       }
       
@@ -102,13 +99,22 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       console.log('[FETCH DOCUMENT] Original URL:', document.url);
       console.log('[FETCH DOCUMENT] Base URL:', baseURL);
       console.log('[FETCH DOCUMENT] Using fetch URL:', fetchUrl);
-      console.log('[FETCH DOCUMENT] Full URL will be:', baseURL + fetchUrl);
       
-      // If files are served outside the API prefix, build absolute URL without /api
+      // Check if this is a file path that should use the files server
+      // The API returns fileUrl as /files/agents/11/filename.png (relative path)
+      // The server expects /api/files/agents/11/filename.png
+      // Vite proxy is configured to:
+      // - Forward /api/files/* to http://10.8.100.39:5001/api/files/*
+      // - Forward /files/* to http://10.8.100.39:5001/api/files/* (rewrites /files to /api/files)
+      const isApiFilesPath = fetchUrl.startsWith('/api/files/');
       const isFilesPath = fetchUrl.startsWith('/files/');
       let blobResp: Blob;
-      if (isFilesPath) {
-        // Use browser fetch to hit Vite proxy on /files and avoid CORS, attach token manually
+      
+      if (isApiFilesPath || isFilesPath) {
+        // Use browser fetch to hit Vite proxy on /api/files or /files and avoid CORS, attach token manually
+        // Vite proxy will forward:
+        // - /api/files/* to http://10.8.100.39:5001/api/files/*
+        // - /files/* to http://10.8.100.39:5001/api/files/* (rewritten)
         const token = localStorage.getItem('accessToken');
         const res = await fetch(fetchUrl, {
           headers: {
@@ -124,6 +130,11 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         }
         blobResp = await res.blob();
       } else {
+        // For other API endpoints, use Axios API instance
+        // Remove /api prefix if present since API instance already has baseURL
+        if (fetchUrl.startsWith('/api')) {
+          fetchUrl = fetchUrl.replace(/^\/api/, '');
+        }
         const response = await API.get(fetchUrl, {
           responseType: 'blob',
           headers: {
@@ -135,7 +146,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       }
       
       console.log('[FETCH DOCUMENT] Loaded document blob:', {
-        source: fetchUrl.startsWith('/files/') ? 'proxy-fetch' : 'axios',
+        source: (isApiFilesPath || isFilesPath) ? 'proxy-fetch' : 'axios',
         size: (blobResp as any)?.size,
         type: (blobResp as any)?.type,
       });
@@ -182,17 +193,80 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     }
   };
 
-  // Update documents list when props change
+  // Fetch documents from API if userId is provided
   useEffect(() => {
-    setDocumentsList(documents);
-    // Update selected document if it exists in new documents list
-    if (selectedDocument) {
-      const updatedDoc = documents.find(doc => doc.id === selectedDocument.id);
-      if (updatedDoc) {
-        setSelectedDocument(updatedDoc);
+    const fetchDocumentsFromAPI = async () => {
+      if (!userId) return;
+      
+      setLoadingDocumentsList(true);
+      try {
+        const docs = await documentService.getUserDocuments(userId);
+        // Transform documents to match DocumentPreview format
+        const transformedDocs = docs.map((doc: any) => {
+          // Use relative path from API - DocumentPreview will handle authenticated fetching
+          // The API returns fileUrl as a relative path like "/files/factories/19/..."
+          const constructedUrl = doc.fileUrl || doc.url || '';
+          
+          // Map status: API returns status as partner status
+          const partnerStatus = doc.status || 'Pending';
+          // Check for superAdminStatus field (if API returns it)
+          const superAdminStatus = doc.superAdminStatus || doc.superAdminApprovalStatus || undefined;
+          
+          // Normalize status values
+          const normalizeStatus = (s: string): "Approved" | "Pending" | "Rejected" => {
+            const upper = s?.toUpperCase();
+            if (upper === "APPROVED") return "Approved";
+            if (upper === "REJECTED") return "Rejected";
+            return "Pending";
+          };
+
+          return {
+            id: doc.id || doc.documentId,
+            name: doc.name || doc.documentName || `Document ${doc.id}`,
+            type: doc.type || doc.documentType || 'Document',
+            uploadedAt: doc.uploadedAt || doc.createdAt || new Date().toISOString(),
+            status: normalizeStatus(partnerStatus), // Keep for backward compatibility
+            partnerStatus: normalizeStatus(partnerStatus),
+            superAdminStatus: superAdminStatus ? normalizeStatus(superAdminStatus) : undefined,
+            url: constructedUrl,
+            size: doc.size || (doc.fileSize ? `${(doc.fileSize / 1024 / 1024).toFixed(1)} MB` : 'Unknown'),
+            fileType: doc.fileType || doc.mimeType
+          };
+        });
+        
+        setDocumentsList(transformedDocs);
+        // Set first document as selected if available
+        if (transformedDocs.length > 0 && !selectedDocument) {
+          setSelectedDocument(transformedDocs[0]);
+        }
+      } catch (error: any) {
+        console.error("Error fetching documents from API:", error);
+        toast.error(error?.response?.data?.message || "Failed to load documents");
+      } finally {
+        setLoadingDocumentsList(false);
+      }
+    };
+
+    if (userId) {
+      fetchDocumentsFromAPI();
+    }
+  }, [userId]);
+
+  // Update documents list when props change (for backward compatibility)
+  useEffect(() => {
+    if (documentsProp) {
+      setDocumentsList(documentsProp);
+      // Update selected document if it exists in new documents list
+      if (selectedDocument) {
+        const updatedDoc = documentsProp.find(doc => doc.id === selectedDocument.id);
+        if (updatedDoc) {
+          setSelectedDocument(updatedDoc);
+        }
+      } else if (documentsProp.length > 0) {
+        setSelectedDocument(documentsProp[0]);
       }
     }
-  }, [documents]);
+  }, [documentsProp]);
 
   // Fetch document when selected - auto-load for viewing
   useEffect(() => {
@@ -201,6 +275,33 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       fetchDocumentWithAuth(selectedDocument);
     }
   }, [selectedDocument?.id]);
+
+  // If entity is approved by super admin, consider all documents approved (for now)
+  useEffect(() => {
+    if (entityStatus === "Approved") {
+      setDocumentsList(prevList => {
+        const updatedList = prevList.map(doc => {
+          // Only update if document doesn't already have superAdminStatus set
+          if (!doc.superAdminStatus || doc.superAdminStatus === "Pending") {
+            return { ...doc, superAdminStatus: "Approved" as const };
+          }
+          return doc;
+        });
+        
+        // Only update if there are changes
+        const hasChanges = updatedList.some((doc, index) => 
+          doc.superAdminStatus !== prevList[index]?.superAdminStatus
+        );
+        
+        return hasChanges ? updatedList : prevList;
+      });
+      
+      // Update selected document if it exists
+      if (selectedDocument && (!selectedDocument.superAdminStatus || selectedDocument.superAdminStatus === "Pending")) {
+        setSelectedDocument({ ...selectedDocument, superAdminStatus: "Approved" } as Document);
+      }
+    }
+  }, [entityStatus, selectedDocument]);
 
   // Handle document approval
   const handleApprove = async (document: Document) => {
@@ -218,15 +319,25 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       }
       await documentService.approveDocument(documentId);
       
-      // Update document status (super admin status)
-      const updatedList = documentsList.map(doc => 
-        doc.id === document.id ? { ...doc, superAdminStatus: "Approved" as const } : doc
-      );
+      // Update document status (super admin status) - normalize ID comparison
+      const updatedList = documentsList.map(doc => {
+        const docId = typeof doc.id === 'string' ? parseInt(doc.id, 10) : doc.id;
+        const targetId = typeof document.id === 'string' ? parseInt(document.id, 10) : document.id;
+        return docId === targetId ? { ...doc, superAdminStatus: "Approved" as const } : doc;
+      });
       setDocumentsList(updatedList);
       
-      // Update selected document if it's the one being approved
-      if (selectedDocument?.id === document.id) {
-        setSelectedDocument({ ...selectedDocument, superAdminStatus: "Approved" } as Document);
+      // Update selected document - find the updated document from the list
+      const targetId = typeof document.id === 'string' ? parseInt(document.id, 10) : document.id;
+      const updatedDocument = updatedList.find(doc => {
+        const docId = typeof doc.id === 'string' ? parseInt(doc.id, 10) : doc.id;
+        return docId === targetId;
+      });
+      if (updatedDocument) {
+        const selectedId = selectedDocument ? (typeof selectedDocument.id === 'string' ? parseInt(selectedDocument.id, 10) : selectedDocument.id) : null;
+        if (selectedId === targetId || !selectedDocument) {
+          setSelectedDocument(updatedDocument);
+        }
       }
       
       // Notify parent component
@@ -264,15 +375,25 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       }
       await documentService.rejectDocument(documentId, reason);
       
-      // Update document status (super admin status)
-      const updatedList = documentsList.map(doc => 
-        doc.id === document.id ? { ...doc, superAdminStatus: "Rejected" as const } : doc
-      );
+      // Update document status (super admin status) - normalize ID comparison
+      const updatedList = documentsList.map(doc => {
+        const docId = typeof doc.id === 'string' ? parseInt(doc.id, 10) : doc.id;
+        const targetId = typeof document.id === 'string' ? parseInt(document.id, 10) : document.id;
+        return docId === targetId ? { ...doc, superAdminStatus: "Rejected" as const } : doc;
+      });
       setDocumentsList(updatedList);
       
-      // Update selected document if it's the one being rejected
-      if (selectedDocument?.id === document.id) {
-        setSelectedDocument({ ...selectedDocument, superAdminStatus: "Rejected" } as Document);
+      // Update selected document - find the updated document from the list
+      const targetId = typeof document.id === 'string' ? parseInt(document.id, 10) : document.id;
+      const updatedDocument = updatedList.find(doc => {
+        const docId = typeof doc.id === 'string' ? parseInt(doc.id, 10) : doc.id;
+        return docId === targetId;
+      });
+      if (updatedDocument) {
+        const selectedId = selectedDocument ? (typeof selectedDocument.id === 'string' ? parseInt(selectedDocument.id, 10) : selectedDocument.id) : null;
+        if (selectedId === targetId || !selectedDocument) {
+          setSelectedDocument(updatedDocument);
+        }
       }
       
       // Notify parent component
@@ -328,18 +449,13 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     
     // If document has URL, fetch it first to ensure we have authentication
     if (document.url) {
+      let fetchUrl = document.url;
       try {
         setLoadingDocuments(prev => new Set(prev).add(docId));
-        
-        let fetchUrl = document.url;
         if (document.url.startsWith('http://') || document.url.startsWith('https://')) {
           try {
             const urlObj = new URL(document.url);
-            fetchUrl = urlObj.pathname;
-            // Remove /api prefix if present since API instance already has baseURL
-            if (fetchUrl.startsWith('/api')) {
-              fetchUrl = fetchUrl.replace(/^\/api/, '');
-            }
+            fetchUrl = urlObj.pathname + urlObj.search;
           } catch (e) {
             fetchUrl = document.url;
           }
@@ -347,14 +463,18 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
           // Relative path - ensure it starts with /
           if (!document.url.startsWith('/')) {
             fetchUrl = `/${document.url}`;
+          } else {
+            fetchUrl = document.url;
           }
         }
         
+        // Check if this is a file path that should use the files server
+        const isApiFilesPath = fetchUrl.startsWith('/api/files/');
         const isFilesPath = fetchUrl.startsWith('/files/');
         let blobResp: Blob;
-        let statusCode: number | undefined;
         
-        if (isFilesPath) {
+        if (isApiFilesPath || isFilesPath) {
+          // Use browser fetch to hit Vite proxy on /api/files or /files
           const token = localStorage.getItem('accessToken');
           const res = await fetch(fetchUrl, {
             headers: {
@@ -362,7 +482,6 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
               ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
             },
           });
-          statusCode = res.status;
           if (!res.ok) {
             const err: any = new Error(`HTTP ${res.status}: ${res.statusText}`);
             err.status = res.status;
@@ -371,6 +490,10 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
           }
           blobResp = await res.blob();
         } else {
+          // For other API endpoints, use Axios API instance
+          if (fetchUrl.startsWith('/api')) {
+            fetchUrl = fetchUrl.replace(/^\/api/, '');
+          }
           const response = await API.get(fetchUrl, {
             responseType: 'blob',
             headers: {
@@ -436,18 +559,13 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     
     // If document has URL, fetch it first to ensure we have authentication
     if (document.url) {
+      let fetchUrl = document.url;
       try {
         setLoadingDocuments(prev => new Set(prev).add(docId));
-        
-        let fetchUrl = document.url;
         if (document.url.startsWith('http://') || document.url.startsWith('https://')) {
           try {
             const urlObj = new URL(document.url);
             fetchUrl = urlObj.pathname + urlObj.search; // Include query params if any
-            // Remove /api prefix if present since API instance already has baseURL
-            if (fetchUrl.startsWith('/api')) {
-              fetchUrl = fetchUrl.replace(/^\/api/, '');
-            }
             console.log('[DOWNLOAD DOCUMENT] Extracted path from full URL:', {
               original: document.url,
               pathname: fetchUrl
@@ -460,12 +578,18 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
           // Relative path - ensure it starts with /
           if (!document.url.startsWith('/')) {
             fetchUrl = `/${document.url}`;
+          } else {
+            fetchUrl = document.url;
           }
         }
         
+        // Check if this is a file path that should use the files server
+        const isApiFilesPath = fetchUrl.startsWith('/api/files/');
         const isFilesPath = fetchUrl.startsWith('/files/');
         let blobResp: Blob;
-        if (isFilesPath) {
+        
+        if (isApiFilesPath || isFilesPath) {
+          // Use browser fetch to hit Vite proxy on /api/files or /files
           const token = localStorage.getItem('accessToken');
           const res = await fetch(fetchUrl, {
             headers: {
@@ -481,6 +605,10 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
           }
           blobResp = await res.blob();
         } else {
+          // For other API endpoints, use Axios API instance
+          if (fetchUrl.startsWith('/api')) {
+            fetchUrl = fetchUrl.replace(/^\/api/, '');
+          }
           const response = await API.get(fetchUrl, {
             responseType: 'blob',
             headers: {
@@ -535,6 +663,27 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
     }
   };
 
+  if (loadingDocumentsList) {
+    return (
+      <Card className="dark:bg-slate-800 dark:border-slate-700">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
+            <FileText className="w-5 h-5" />
+            <span>{title}</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+              <p className="text-gray-600 dark:text-slate-400">Loading documents...</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (documentsList.length === 0) {
     return (
       <Card className="dark:bg-slate-800 dark:border-slate-700">
@@ -572,10 +721,10 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
             <div className="space-y-0">
               {/* Table Header */}
               <div className="grid grid-cols-10 gap-4 py-2 px-3 text-xs font-medium text-gray-500 dark:text-slate-400 border-b border-gray-200 dark:border-slate-600">
-                <div className="col-span-4">Document Type</div>
-                <div className="col-span-3">File Name</div>
-                  <div className="col-span-2">Partner Status</div>
-                <div className="col-span-1">Uploaded Date</div>
+                <div className="col-span-4">File Name</div>
+                <div className="col-span-2">Partner Status</div>
+                <div className="col-span-2">Super Admin Status</div>
+                <div className="col-span-2">Uploaded Date</div>
               </div>
               
               {/* Table Rows */}
@@ -590,15 +739,15 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                   onClick={() => setSelectedDocument(doc)}
                 >
                   <div className="col-span-4 text-sm font-medium text-gray-900 dark:text-slate-100 truncate">
-                    {doc.type}
-                  </div>
-                  <div className="col-span-3 text-sm text-gray-600 dark:text-slate-300 truncate">
                     {doc.name}
                   </div>
                   <div className="col-span-2">
                     {getStatusBadge(doc.partnerStatus || doc.status || "Pending")}
                   </div>
-                  <div className="col-span-1 text-sm text-gray-500 dark:text-slate-400">
+                  <div className="col-span-2">
+                    {doc.superAdminStatus ? getStatusBadge(doc.superAdminStatus) : getStatusBadge("Pending")}
+                  </div>
+                  <div className="col-span-2 text-sm text-gray-500 dark:text-slate-400">
                     {formatDate(doc.uploadedAt)}
                   </div>
                 </div>
@@ -611,36 +760,12 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       {/* Right Panel - Document Preview */}
       <div>
         <Card className="dark:bg-slate-800 dark:border-slate-700">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
-              <FileText className="w-5 h-5" />
-              <span>Document Preview</span>
-            </CardTitle>
-          </CardHeader>
           <CardContent>
             {selectedDocument ? (
               <div className="space-y-4">
                 {/* Document Info Card */}
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
-                      Document
-                    </h3>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-blue-800 dark:text-blue-200 font-medium">
-                      {selectedDocument.name}
-                    </p>
-                    <p className="text-sm text-blue-600 dark:text-blue-300">
-                      {formatDate(selectedDocument.uploadedAt)}
-                    </p>
-                    {selectedDocument.size && (
-                      <p className="text-xs text-blue-500 dark:text-blue-400">
-                        Size: {selectedDocument.size}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex space-x-3 mt-4">
+                  <div className="flex space-x-3">
                     <Button
                       variant="outline"
                       size="sm"
@@ -660,29 +785,23 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                       Download
                     </Button>
                   </div>
-                  {/* Status Information */}
-                  <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-800 space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-blue-800 dark:text-blue-200">Partner Status:</span>
-                      {getStatusBadge((selectedDocument.partnerStatus || selectedDocument.status || "Pending"))}
+                  {/* Warning Message */}
+                  {(selectedDocument.partnerStatus || selectedDocument.status || "Pending") !== "Approved" && (
+                    <div className="mt-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                      <p className="text-xs text-yellow-800 dark:text-yellow-200">
+                        ⚠️ <strong>Partner Approval Required:</strong> The partner must approve this document before super admin can approve or reject it.
+                      </p>
                     </div>
-                    {selectedDocument.superAdminStatus !== undefined && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium text-blue-800 dark:text-blue-200">Super Admin Status:</span>
-                        {getStatusBadge(selectedDocument.superAdminStatus)}
-                      </div>
-                    )}
-                    {(selectedDocument.partnerStatus || selectedDocument.status || "Pending") !== "Approved" && (
-                      <div className="mt-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-                        <p className="text-xs text-yellow-800 dark:text-yellow-200">
-                          ⚠️ <strong>Partner Approval Required:</strong> The partner must approve this document before super admin can approve or reject it.
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                  )}
 
-                  {/* Approve/Reject Actions - Only show if partner has approved and super admin hasn't processed */}
+                  {/* Approve/Reject Actions - Only show if:
+                      1. Partner has approved the document
+                      2. Entity is approved by partner
+                      3. Entity is NOT approved by super admin yet (if entity is approved, all documents are considered approved)
+                      4. Super admin hasn't processed this document yet */}
                   {((selectedDocument.partnerStatus || selectedDocument.status || "Pending") === "Approved" && 
+                    entityAdminStatus === "Approved" &&
+                    entityStatus !== "Approved" &&
                     (selectedDocument.superAdminStatus === undefined || selectedDocument.superAdminStatus === "Pending")) && (
                     <div className="flex space-x-3 mt-4 pt-4 border-t border-blue-200 dark:border-blue-800">
                       <Button
@@ -720,7 +839,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                 {/* Document Preview Area */}
                 <div className="bg-gray-100 dark:bg-slate-700 rounded-lg p-4">
                   {selectedDocument.url ? (
-                    <div className="w-full h-96">
+                    <div className="w-full h-96 overflow-y-auto">
                       {loadingDocuments.has(selectedDocument.id.toString()) ? (
                         <div className="h-full flex items-center justify-center">
                           <div className="text-center">
@@ -729,7 +848,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                           </div>
                         </div>
                       ) : selectedDocument.type?.toLowerCase().includes('pdf') || selectedDocument.fileType === 'application/pdf' ? (
-                        <div className="w-full h-full">
+                        <div className="w-full h-full overflow-y-auto">
                           {documentBlobUrls[selectedDocument.id.toString()] ? (
                             <DocViewer
                               documents={[{
@@ -802,7 +921,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                           )}
                         </div>
                       ) : selectedDocument.type?.toLowerCase().includes('image') || selectedDocument.fileType?.startsWith('image/') ? (
-                        <div className="w-full h-full">
+                        <div className="w-full h-full overflow-y-auto">
                           {documentBlobUrls[selectedDocument.id.toString()] ? (
                             <img
                               src={documentBlobUrls[selectedDocument.id.toString()]}
@@ -894,32 +1013,6 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                       </div>
                     </div>
                   )}
-                </div>
-
-                {/* All Documents Thumbnails */}
-                <div className="mt-6">
-                  <h4 className="text-sm font-medium text-gray-700 dark:text-slate-300 mb-3">
-                    All Documents ({documentsList.length} files)
-                  </h4>
-                  <div className="flex space-x-3">
-                    {documentsList.map((doc, index) => (
-                      <div
-                        key={doc.id || index}
-                        className={`w-16 h-16 rounded-lg border-2 cursor-pointer transition-all duration-200 flex items-center justify-center ${
-                          selectedDocument?.id === doc.id || (selectedDocument === null && index === 0)
-                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                            : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500'
-                        }`}
-                        onClick={() => setSelectedDocument(doc)}
-                      >
-                        <File className={`w-6 h-6 ${
-                          selectedDocument?.id === doc.id || (selectedDocument === null && index === 0)
-                            ? 'text-blue-600 dark:text-blue-400'
-                            : 'text-gray-500 dark:text-slate-400'
-                        }`} />
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
             ) : (

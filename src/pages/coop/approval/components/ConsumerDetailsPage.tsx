@@ -29,6 +29,7 @@ import {
 } from "../../../../common/ui/tabs";
 import { Textarea } from "../../../../common/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../common/ui/select";
+import { Label } from "../../../../common/ui/label";
 import API from "../../../../config/axios-config";
 import { toast } from "react-hot-toast";
 import { useConsumers } from "../../hooks/useConsumers";
@@ -597,12 +598,25 @@ const ConsumerDetailsPage: React.FC = () => {
   const isConsumerPending = normalizedConsumerStatus === "" || normalizedConsumerStatus === "PENDING";
   const isConsumerProcessed = isConsumerApproved || isConsumerRejected;
   
+  // Check document statuses
+  const hasRejectedDocuments = consumerDocuments.some(
+    (doc: any) => doc.superAdminStatus === "Rejected"
+  );
+  const allDocumentsApproved = consumerDocuments.length > 0 && consumerDocuments.every(
+    (doc: any) => doc.superAdminStatus === "Approved"
+  );
+  const hasDocuments = consumerDocuments.length > 0;
+
   // Check if consumer can be approved/rejected
-  // SIMPLIFIED: Only check if partner approved the consumer
-  // If partner approved → super admin can approve/reject (regardless of institution status)
-  // Can approve: if partner approved consumer AND super admin hasn't processed yet (pending or empty)
-  // Can reject: if partner approved consumer AND (super admin hasn't processed yet OR already approved)
-  const canApprove = isConsumerApprovedByPartner && isConsumerPending;
+  // 1. Partner must have approved the consumer
+  // 2. Consumer must be pending (not already processed by super admin)
+  // 3. For approval: All documents must be approved by super admin (or no documents)
+  // 4. Cannot approve if any document is rejected
+  const canApprove = isConsumerApprovedByPartner && 
+                     isConsumerPending && 
+                     !hasRejectedDocuments && 
+                     (allDocumentsApproved || !hasDocuments);
+  
   const canReject = isConsumerApprovedByPartner && (isConsumerPending || isConsumerApproved);
 
   console.log("[CONSUMER DETAILS] Action permissions:", {
@@ -660,17 +674,19 @@ const ConsumerDetailsPage: React.FC = () => {
           description="Please provide a reason for rejecting this consumer:"
           content={
             <div className="mt-4 space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Select a reason:
-                </label>
+              <div className="space-y-3">
+                <Label htmlFor="reject-reason">Select rejection reason:</Label>
                 <div className="space-y-2">
                   {rejectionReasons.map((reason) => (
-                    <div key={reason} className="flex items-center">
+                    <label
+                      key={reason}
+                      htmlFor={`reject-reason-${reason}`}
+                      className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer"
+                    >
                       <input
                         type="radio"
-                        id={`reject-${reason}`}
-                        name="rejectionReason"
+                        id={`reject-reason-${reason}`}
+                        name="reject-reason"
                         value={reason}
                         checked={selectedRejectReason === reason}
                         onChange={(e) => {
@@ -679,25 +695,19 @@ const ConsumerDetailsPage: React.FC = () => {
                             setCustomReason("");
                           }
                         }}
-                        className="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300 dark:border-gray-600 dark:bg-slate-800"
+                        className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-slate-600"
                       />
-                      <label
-                        htmlFor={`reject-${reason}`}
-                        className="ml-2 block text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
-                      >
-                        {reason}
-                      </label>
-                    </div>
+                      <span className="text-sm text-gray-700 dark:text-slate-300">{reason}</span>
+                    </label>
                   ))}
                 </div>
               </div>
               {selectedRejectReason === "Other" && (
-                <div>
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                    Custom reason:
-                  </label>
+                <div className="space-y-2">
+                  <Label htmlFor="custom-reason">Please specify the reason:</Label>
                   <Textarea
-                    placeholder="Enter custom rejection reason..."
+                    id="custom-reason"
+                    placeholder="Please specify the reason..."
                     value={customReason}
                     onChange={(e) => setCustomReason(e.target.value)}
                     className="w-full"
@@ -880,6 +890,20 @@ const ConsumerDetailsPage: React.FC = () => {
           )}
         </div>
         
+        {/* Warning messages */}
+        {!canApprove && canReject && (
+          <div className="mb-6 p-4 bg-red-100 dark:bg-red-900/40 border-2 border-red-300 dark:border-red-700 rounded-lg shadow-md">
+            <div className="text-sm text-red-900 dark:text-red-100 font-semibold">
+              {hasRejectedDocuments 
+                ? "Cannot approve consumer: One or more documents have been rejected by super admin. All documents must be approved to approve the consumer."
+                : hasDocuments && !allDocumentsApproved
+                ? "Cannot approve consumer: All documents must be approved by super admin before the consumer can be approved."
+                : "Cannot approve consumer at this time."
+              }
+            </div>
+          </div>
+        )}
+        
         {(!canApprove && !canReject) && (
           <div className="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/40 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg shadow-md">
             <div className="text-sm text-yellow-900 dark:text-yellow-100 font-semibold">
@@ -1051,11 +1075,15 @@ const ConsumerDetailsPage: React.FC = () => {
             <DocumentPreview 
                 documents={consumerDocuments}
               title="Consumer Documents"
+                entityStatus={consumer?.status as "Approved" | "Pending" | "Rejected" | undefined}
+                entityAdminStatus={consumer?.adminStatus as "Approved" | "Pending" | "Rejected" | undefined}
                 onDocumentUpdate={(documentId, status) => {
-                  // Update the document in local state
-                  setConsumerDocuments(prev => prev.map(doc => 
-                    doc.id === documentId ? { ...doc, status } : doc
-                  ));
+                  // Update the document in local state - update superAdminStatus
+                  setConsumerDocuments(prev => prev.map(doc => {
+                    const docId = typeof doc.id === 'string' ? parseInt(doc.id, 10) : doc.id;
+                    const targetId = typeof documentId === 'string' ? parseInt(documentId, 10) : documentId;
+                    return docId === targetId ? { ...doc, superAdminStatus: status as "Approved" | "Pending" | "Rejected" } : doc;
+                  }));
                 }}
               />
             )}

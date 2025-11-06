@@ -32,7 +32,6 @@ import { Textarea } from "../../../../common/ui/textarea";
 import { useAgents } from "../../hooks/use-Agents";
 import { toast } from "react-hot-toast";
 import { Label } from "../../../../common/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../common/ui/select";
 import documentService from "../../../../services/documentService";
 
 // Reusable Error State Component
@@ -263,8 +262,28 @@ const AgentDetailsPage: React.FC = () => {
     }
   };
 
-  // Check if agent can be approved/rejected (only if partner has approved)
-  const canApproveOrReject = agent?.adminStatus === "Approved" && agent?.status === "Pending";
+  // Check document statuses
+  const hasRejectedDocuments = agentDocuments.some(
+    (doc: any) => doc.superAdminStatus === "Rejected"
+  );
+  const allDocumentsApproved = agentDocuments.length > 0 && agentDocuments.every(
+    (doc: any) => doc.superAdminStatus === "Approved"
+  );
+  const hasDocuments = agentDocuments.length > 0;
+
+  // Check if agent can be approved/rejected
+  // 1. Partner must have approved the agent
+  // 2. Agent must be pending (not already processed by super admin)
+  // 3. For approval: All documents must be approved by super admin (or no documents)
+  // 4. Cannot approve if any document is rejected
+  const canApprove = agent?.adminStatus === "Approved" && 
+                     agent?.status === "Pending" && 
+                     !hasRejectedDocuments && 
+                     (allDocumentsApproved || !hasDocuments);
+  
+  const canReject = agent?.adminStatus === "Approved" && agent?.status === "Pending";
+  
+  const canApproveOrReject = canApprove || canReject;
 
   // Loading state
   if (isLoading) {
@@ -317,20 +336,28 @@ const AgentDetailsPage: React.FC = () => {
           description="Please select a reason for rejecting this agent:"
           content={
             <div className="mt-4 space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="reject-reason">Select rejection reason:</Label>
-                <Select value={selectedRejectReason} onValueChange={setSelectedRejectReason}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a reason for rejection" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {rejectionReasons.map((reason) => (
-                      <SelectItem key={reason} value={reason}>
-                        {reason}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2">
+                  {rejectionReasons.map((reason) => (
+                    <label
+                      key={reason}
+                      htmlFor={`reject-reason-${reason}`}
+                      className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        id={`reject-reason-${reason}`}
+                        name="reject-reason"
+                        value={reason}
+                        checked={selectedRejectReason === reason}
+                        onChange={(e) => setSelectedRejectReason(e.target.value)}
+                        className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-slate-600"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-slate-300">{reason}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
               
               {selectedRejectReason === "Other" && (
@@ -431,20 +458,34 @@ const AgentDetailsPage: React.FC = () => {
           <Button
             variant="destructive"
             onClick={() => setOpenReject(true)}
-            disabled={!canApproveOrReject || isRejecting}
+            disabled={!canReject || isRejecting}
           >
             <XCircle className="w-4 h-4 mr-2" />
             {isRejecting ? "Rejecting..." : "Reject"}
           </Button>
           <Button
             onClick={() => setOpenApprove(true)}
-            disabled={!canApproveOrReject || isApproving}
+            disabled={!canApprove || isApproving}
             className="bg-cyan-600 hover:bg-cyan-700"
           >
             <CheckCircle className="w-4 h-4 mr-2" />
             {isApproving ? "Approving..." : "Approve"}
           </Button>
         </div>
+        
+        {/* Warning messages */}
+        {!canApprove && canReject && (
+          <div className="mb-6 p-4 bg-red-100 dark:bg-red-900/40 border-2 border-red-300 dark:border-red-700 rounded-lg shadow-md">
+            <div className="text-sm text-red-900 dark:text-red-100 font-semibold">
+              {hasRejectedDocuments 
+                ? "Cannot approve agent: One or more documents have been rejected by super admin. All documents must be approved to approve the agent."
+                : hasDocuments && !allDocumentsApproved
+                ? "Cannot approve agent: All documents must be approved by super admin before the agent can be approved."
+                : "Cannot approve agent at this time."
+              }
+            </div>
+          </div>
+        )}
         
         {!canApproveOrReject && (
           <div className="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/40 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg shadow-md">
@@ -568,11 +609,15 @@ const AgentDetailsPage: React.FC = () => {
             <DocumentPreview 
               documents={documentsLoading ? [] : agentDocuments}
               title="Agent Documents"
+              entityStatus={agent?.status as "Approved" | "Pending" | "Rejected" | undefined}
+              entityAdminStatus={agent?.adminStatus as "Approved" | "Pending" | "Rejected" | undefined}
               onDocumentUpdate={(documentId, status) => {
-                // Update the document in local state
-                setAgentDocuments(prev => prev.map(doc => 
-                  doc.id === documentId ? { ...doc, status } : doc
-                ));
+                // Update the document in local state - update superAdminStatus
+                setAgentDocuments(prev => prev.map(doc => {
+                  const docId = typeof doc.id === 'string' ? parseInt(doc.id, 10) : doc.id;
+                  const targetId = typeof documentId === 'string' ? parseInt(documentId, 10) : documentId;
+                  return docId === targetId ? { ...doc, superAdminStatus: status as "Approved" | "Pending" | "Rejected" } : doc;
+                }));
               }}
             />
           </TabsContent>

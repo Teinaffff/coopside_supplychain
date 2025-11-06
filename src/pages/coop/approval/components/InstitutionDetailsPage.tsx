@@ -37,13 +37,7 @@ import {
 import { Textarea } from "../../../../common/ui/textarea";
 import { Input } from "../../../../common/ui/input";
 import { Label } from "../../../../common/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../../common/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../common/ui/select";
 import { useInstitutions } from "../../hooks/useInstitutions";
 import { toast } from "react-hot-toast";
 import API from "../../../../config/axios-config";
@@ -185,6 +179,8 @@ const InstitutionDetailsPage: React.FC = () => {
   const [superAdminStatusFilter, setSuperAdminStatusFilter] = useState<string>("All");
   const [institutionDocuments, setInstitutionDocuments] = useState<any[]>([]);
   const [documentsLoading, setDocumentsLoading] = useState(false);
+  const [institutionData, setInstitutionData] = useState<any>(null);
+  const [institutionLoading, setInstitutionLoading] = useState(false);
 
   const {
     institutions,
@@ -200,20 +196,94 @@ const InstitutionDetailsPage: React.FC = () => {
   console.log("[INSTITUTION DETAILS] URL ID:", id, "Parsed as number:", numId);
   
   // Find the institution by matching both string and number IDs
-  const institution = institutions?.find((institution: any) => {
+  const institutionFromList = institutions?.find((institution: any) => {
     const institutionNumId = typeof institution?.id === 'number' ? institution.id : parseInt(institution?.id, 10);
     console.log("[INSTITUTION DETAILS] Comparing:", { institutionId: institutionNumId, urlId: numId });
     return institutionNumId === numId;
   });
+
+  // Use institution from list or from direct fetch
+  const institution = institutionFromList || institutionData;
   
+  // Fetch institution directly if not found in list
+  useEffect(() => {
+    const fetchInstitutionDirectly = async () => {
+      // Only fetch if we have an ID, institutions have loaded, and institution is not found
+      if (!numId || isLoading || institutionFromList) return;
+      
+      setInstitutionLoading(true);
+      try {
+        const response = await API.get(`/v1/institutions/${numId}`);
+        const data = response.data?.data || response.data;
+        
+        if (data) {
+          // Transform the data to match the expected format
+          const statusMap: Record<string, any> = {
+            APPROVED: "Approved",
+            PENDING: "Pending",
+            REJECTED_BY_ADMIN: "Rejected",
+            REJECTED: "Rejected",
+          };
+          
+          const transformedInstitution = {
+            id: data.id,
+            name: data.fullLegalName || data.username || `Institution ${data.id}`,
+            type: "institution" as const,
+            status: statusMap[data.superAdminApprovalStatus] || "Pending",
+            adminStatus: statusMap[data.adminApprovalStatus] || "Pending",
+            onboardingStatus: data.onboardingStatus,
+            docs: [],
+            form: {
+              ...data,
+              phone: data.contactPhone || data.phone || data.phoneNumber || "",
+              email: data.contactEmail || data.email || data.emailAddress || "",
+              yearOfEstablishment: data.yearOfEstablishment || data.establishmentYear || "",
+              businessSector: data.businessSector || data.sector || "",
+              tin: data.tin || data.taxId || "",
+              currentCapital: data.currentCapital || data.capital || "",
+              permanentEmployees: data.permanentEmployees || data.permanentStaff || "",
+              contractualEmployees: data.contractualEmployees || data.contractualStaff || "",
+              licenceNumber: data.licenceNumber || data.licenseNumber || data.businessLicenseNumber || "",
+              licenceExpiryDate: data.licenceExpiryDate || data.licenseExpiryDate || data.businessLicenseExpiryDate || "",
+              mainOfficeAddress: data.mainOfficeAddress || data.address || data.officeAddress || "",
+              registrationNumber: data.registrationNumber || data.businessRegistrationNumber || data.registrationId || data.regNumber || "",
+              totalBranches: data.totalBranches || data.branches || data.totalBranchCount || data.branchCount || data.numberOfBranches || "",
+              totalAssetValuation: data.totalAssetValuation || data.assetValuation || data.totalAssets || data.assetValue || data.capitalValue || "",
+              approvedBy: data.approvedBy || data.approvedByUser || "",
+              rejectedBy: data.rejectedBy || data.rejectedByUser || "",
+              approvedAt: data.approvedAt || data.approvedDate || "",
+              rejectedAt: data.rejectedAt || data.rejectedDate || "",
+              createdAt: data.createdAt || data.createdDate || "",
+              bankAccounts: data.bankAccounts || data.bankAccountInfos || data.bankDetails || [],
+              appUserDocuments: data.appUserDocuments || [],
+              isActive: data.isActive !== undefined ? data.isActive : true,
+              isDeleted: data.isDeleted !== undefined ? data.isDeleted : false,
+              role: data.role || null,
+            },
+          };
+          
+          setInstitutionData(transformedInstitution);
+        }
+      } catch (error: any) {
+        console.error("[INSTITUTION DETAILS] Error fetching institution directly:", error);
+        toast.error("Failed to load institution details");
+      } finally {
+        setInstitutionLoading(false);
+      }
+    };
+
+    fetchInstitutionDirectly();
+  }, [numId, isLoading, institutionFromList]);
+
   // Debug logging
   console.log("[INSTITUTION DETAILS] All institutions:", institutions);
   console.log("[INSTITUTION DETAILS] URL ID from params:", id, "Type:", typeof id);
   console.log("[INSTITUTION DETAILS] Parsed numeric ID:", numId);
   console.log("[INSTITUTION DETAILS] Available institutions with IDs:", institutions?.map(i => ({ id: i.id, numericId: typeof i.id === 'string' ? parseInt(i.id, 10) : i.id, name: i.name })));
-  console.log("[INSTITUTION DETAILS] Found institution:", institution);
-  console.log("[INSTITUTION DETAILS] Institution ID from data:", institution?.id, "Type:", typeof institution?.id);
-  console.log("[INSTITUTION DETAILS] Is loading:", isLoading);
+  console.log("[INSTITUTION DETAILS] Found institution from list:", institutionFromList);
+  console.log("[INSTITUTION DETAILS] Institution from direct fetch:", institutionData);
+  console.log("[INSTITUTION DETAILS] Final institution:", institution);
+  console.log("[INSTITUTION DETAILS] Is loading:", isLoading, "Institution loading:", institutionLoading);
 
   // Fetch documents for the institution
   useEffect(() => {
@@ -466,11 +536,31 @@ const InstitutionDetailsPage: React.FC = () => {
   };
   
 
-  // Check if institution can be approved/rejected (only if partner has approved)
-  const canApproveOrReject = institution?.adminStatus === "Approved" && institution?.status === "Pending";
+  // Check document statuses
+  const hasRejectedDocuments = institutionDocuments.some(
+    (doc: any) => doc.superAdminStatus === "Rejected"
+  );
+  const allDocumentsApproved = institutionDocuments.length > 0 && institutionDocuments.every(
+    (doc: any) => doc.superAdminStatus === "Approved"
+  );
+  const hasDocuments = institutionDocuments.length > 0;
+
+  // Check if institution can be approved/rejected
+  // 1. Partner must have approved the institution
+  // 2. Institution must be pending (not already processed by super admin)
+  // 3. For approval: All documents must be approved by super admin (or no documents)
+  // 4. Cannot approve if any document is rejected
+  const canApprove = institution?.adminStatus === "Approved" && 
+                     institution?.status === "Pending" && 
+                     !hasRejectedDocuments && 
+                     (allDocumentsApproved || !hasDocuments);
+  
+  const canReject = institution?.adminStatus === "Approved" && institution?.status === "Pending";
+  
+  const canApproveOrReject = canApprove || canReject;
 
   // Loading state
-  if (isLoading) {
+  if (isLoading || institutionLoading) {
     return <Loader />;
   }
 
@@ -479,6 +569,8 @@ const InstitutionDetailsPage: React.FC = () => {
     return <ErrorState onBack={handleBack} />;
   }
 
+  // Ensure form exists, if not create empty object (use optional chaining for safety)
+  const institutionForm = institution.form || {};
 
   const getStatusBadge = (status: string) => {
     const statusUpper = status?.toUpperCase();
@@ -520,20 +612,28 @@ const InstitutionDetailsPage: React.FC = () => {
           description="Please select a reason for rejecting this institution:"
           content={
             <div className="mt-4 space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="reject-reason">Select rejection reason:</Label>
-                <Select value={selectedRejectReason} onValueChange={setSelectedRejectReason}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a reason for rejection" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {rejectionReasons.map((reason) => (
-                      <SelectItem key={reason} value={reason}>
-                        {reason}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2">
+                  {rejectionReasons.map((reason) => (
+                    <label
+                      key={reason}
+                      htmlFor={`reject-reason-${reason}`}
+                      className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer"
+                    >
+                      <input
+                        type="radio"
+                        id={`reject-reason-${reason}`}
+                        name="reject-reason"
+                        value={reason}
+                        checked={selectedRejectReason === reason}
+                        onChange={(e) => setSelectedRejectReason(e.target.value)}
+                        className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-slate-600"
+                      />
+                      <span className="text-sm text-gray-700 dark:text-slate-300">{reason}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
               
               {selectedRejectReason === "Other" && (
@@ -653,20 +753,34 @@ const InstitutionDetailsPage: React.FC = () => {
           <Button
             variant="destructive"
             onClick={() => setOpenReject(true)}
-            disabled={!canApproveOrReject || isRejecting}
+            disabled={!canReject || isRejecting}
           >
             <XCircle className="w-4 h-4 mr-2" />
             {isRejecting ? "Rejecting..." : "Reject"}
           </Button>
           <Button
             onClick={() => setOpenApprove(true)}
-            disabled={!canApproveOrReject || isApproving}
+            disabled={!canApprove || isApproving}
             className="bg-cyan-600 hover:bg-cyan-700"
           >
             <CheckCircle className="w-4 h-4 mr-2" />
             {isApproving ? "Approving..." : "Approve"}
           </Button>
         </div>
+        
+        {/* Warning messages */}
+        {!canApprove && canReject && (
+          <div className="mb-6 p-4 bg-red-100 dark:bg-red-900/40 border-2 border-red-300 dark:border-red-700 rounded-lg shadow-md">
+            <div className="text-sm text-red-900 dark:text-red-100 font-semibold">
+              {hasRejectedDocuments 
+                ? "Cannot approve institution: One or more documents have been rejected by super admin. All documents must be approved to approve the institution."
+                : hasDocuments && !allDocumentsApproved
+                ? "Cannot approve institution: All documents must be approved by super admin before the institution can be approved."
+                : "Cannot approve institution at this time."
+              }
+            </div>
+          </div>
+        )}
         
         {!canApproveOrReject && (
           <div className="mb-6 p-4 bg-yellow-100 dark:bg-yellow-900/40 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg shadow-md">
@@ -833,11 +947,15 @@ const InstitutionDetailsPage: React.FC = () => {
             <DocumentPreview 
                 documents={institutionDocuments}
               title="Institution Documents"
+                entityStatus={institution?.status as "Approved" | "Pending" | "Rejected" | undefined}
+                entityAdminStatus={institution?.adminStatus as "Approved" | "Pending" | "Rejected" | undefined}
                 onDocumentUpdate={(documentId, status) => {
-                  // Update the document in local state
-                  setInstitutionDocuments(prev => prev.map(doc => 
-                    doc.id === documentId ? { ...doc, status } : doc
-                  ));
+                  // Update the document in local state - update superAdminStatus
+                  setInstitutionDocuments(prev => prev.map(doc => {
+                    const docId = typeof doc.id === 'string' ? parseInt(doc.id, 10) : doc.id;
+                    const targetId = typeof documentId === 'string' ? parseInt(documentId, 10) : documentId;
+                    return docId === targetId ? { ...doc, superAdminStatus: status as "Approved" | "Pending" | "Rejected" } : doc;
+                  }));
                 }}
               />
             )}
