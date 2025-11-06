@@ -4,7 +4,7 @@ import { Card } from "../../../../common/ui/card";
 import { Button } from "../../../../common/ui/button";
 import { Input } from "../../../../common/ui/input";
 import { Badge } from "../../../../common/ui/badge";
-import { Plus, Search, Edit, Trash2, ToggleLeft, ToggleRight, Filter, X, MoreHorizontal } from "lucide-react";
+import { Plus, Search, Edit, ToggleLeft, ToggleRight, Filter, X, MoreHorizontal } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../../../../common/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../common/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../../../common/ui/dropdown-menu";
@@ -13,7 +13,6 @@ import LoanProductFormNew from "./LoanProductFormNew";
 import { 
   useLoanProducts, 
   useCreateLoanProduct, 
-  useDeleteLoanProduct,
   useActivateLoanProduct,
   useDeactivateLoanProduct,
   useCheckLoanProductCode
@@ -24,15 +23,12 @@ const LoanProductManagementNew = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [productToDelete, setProductToDelete] = useState<LoanProduct | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<LoanProductFilters>({});
 
   // API hooks
   const { loanProducts, isLoading } = useLoanProducts(filters);
   const createMutation = useCreateLoanProduct();
-  const deleteMutation = useDeleteLoanProduct();
   const activateMutation = useActivateLoanProduct();
   const deactivateMutation = useDeactivateLoanProduct();
   const checkCodeMutation = useCheckLoanProductCode();
@@ -57,24 +53,6 @@ const LoanProductManagementNew = () => {
       setIsCreateModalOpen(false);
     } catch (error: any) {
       console.error('Error creating product:', error);
-    }
-  };
-
-
-  const openDeleteModal = (product: LoanProduct) => {
-    setProductToDelete(product);
-    setIsDeleteModalOpen(true);
-  };
-
-  const handleDeleteProduct = async () => {
-    if (!productToDelete) return;
-    
-    try {
-      await deleteMutation.mutateAsync(productToDelete.id);
-      setIsDeleteModalOpen(false);
-      setProductToDelete(null);
-    } catch (error) {
-      console.error('Error deleting product:', error);
     }
   };
 
@@ -429,17 +407,6 @@ const LoanProductManagementNew = () => {
                               <Edit className="w-4 h-4" />
                               Update
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openDeleteModal(product);
-                              }}
-                              className="flex items-center gap-2 text-red-600 focus:text-red-600"
-                              disabled={deleteMutation.isPending}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Delete
-                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -451,68 +418,6 @@ const LoanProductManagementNew = () => {
           </table>
         </div>
       </Card>
-
-
-      {/* Delete Confirmation Modal */}
-      <Dialog open={isDeleteModalOpen} onOpenChange={(open) => {
-        setIsDeleteModalOpen(open);
-        if (!open) {
-          setProductToDelete(null);
-        }
-      }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Trash2 className="w-5 h-5 text-red-600" />
-              Delete Loan Product
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-gray-600 dark:text-gray-400">
-              Are you sure you want to delete this loan product? This action cannot be undone.
-            </p>
-            {productToDelete && (
-              <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                <p className="font-medium text-gray-900 dark:text-white">{productToDelete.name}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{productToDelete.code}</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 line-clamp-2">
-                  {productToDelete.description}
-                </p>
-              </div>
-            )}
-            <div className="flex justify-end gap-2 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsDeleteModalOpen(false);
-                  setProductToDelete(null);
-                }}
-                disabled={deleteMutation.isPending}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDeleteProduct}
-                disabled={deleteMutation.isPending}
-                className="flex items-center gap-2"
-              >
-                {deleteMutation.isPending ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="w-4 h-4" />
-                    Delete Product
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

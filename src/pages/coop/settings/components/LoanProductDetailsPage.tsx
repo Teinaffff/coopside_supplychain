@@ -3,18 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card } from '../../../../common/ui/card';
 import { Button } from '../../../../common/ui/button';
 import { Badge } from '../../../../common/ui/badge';
-import { ArrowLeft, Edit, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
-import { useLoanProduct, useDeleteLoanProduct, useActivateLoanProduct, useDeactivateLoanProduct } from '../../hooks/useLoanProducts';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../../../common/ui/dialog';
-import { useState } from 'react';
+import { ArrowLeft, Edit, ToggleLeft, ToggleRight } from 'lucide-react';
+import { useLoanProduct, useActivateLoanProduct, useDeactivateLoanProduct } from '../../hooks/useLoanProducts';
 
 const LoanProductDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const { loanProduct, isLoading, error } = useLoanProduct(Number(id));
-  const deleteMutation = useDeleteLoanProduct();
   const activateMutation = useActivateLoanProduct();
   const deactivateMutation = useDeactivateLoanProduct();
 
@@ -29,17 +25,6 @@ const LoanProductDetailsPage = () => {
       }
     } catch (error) {
       console.error('Error toggling product status:', error);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!loanProduct) return;
-    
-    try {
-      await deleteMutation.mutateAsync(loanProduct.id);
-      navigate('/coop/settings');
-    } catch (error) {
-      console.error('Error deleting product:', error);
     }
   };
 
@@ -147,14 +132,6 @@ const LoanProductDetailsPage = () => {
                   <ToggleLeft className="w-4 h-4 text-green-600" />
                 )}
                 {loanProduct.isActive ? 'Deactivate' : 'Activate'}
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => setIsDeleteModalOpen(true)}
-                className="flex items-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/20"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete
               </Button>
             </div>
           </div>
@@ -369,54 +346,6 @@ const LoanProductDetailsPage = () => {
           </Card>
         </div>
       </div>
-
-      {/* Delete Confirmation Modal */}
-      <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Trash2 className="w-5 h-5 text-red-600" />
-              Delete Loan Product
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <p className="text-gray-600 dark:text-gray-400">
-              Are you sure you want to delete this loan product? This action cannot be undone.
-            </p>
-            <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-              <p className="font-medium text-gray-900 dark:text-white">{loanProduct.name}</p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">{loanProduct.code}</p>
-            </div>
-            <div className="flex justify-end gap-2 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setIsDeleteModalOpen(false)}
-                disabled={deleteMutation.isPending}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={deleteMutation.isPending}
-                className="flex items-center gap-2"
-              >
-                {deleteMutation.isPending ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="w-4 h-4" />
-                    Delete Product
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
