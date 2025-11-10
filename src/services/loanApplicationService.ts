@@ -247,8 +247,22 @@ class LoanApplicationService {
   // Get loan applications by factory
   async getLoanApplicationsByFactory(factoryId: string): Promise<LoanApplication[]> {
     try {
+      console.log(`[API] Fetching loan applications for factory: ${factoryId}`);
       const response = await API.get(`/v1/loan-applications/factory/${factoryId}`);
-      return response.data;
+      console.log('[API] Factory loan applications response:', {
+        status: response.status,
+        dataType: typeof response.data,
+        isArray: Array.isArray(response.data),
+        dataStructure: response.data?.data ? 'nested (response.data.data)' : 'direct (response.data)'
+      });
+      
+      // Handle both nested and direct response structures
+      const applications = Array.isArray(response.data) 
+        ? response.data 
+        : (response.data?.data || response.data || []);
+      
+      console.log('[API] Returning', applications.length, 'factory loan applications');
+      return applications;
     } catch (error) {
       console.error('Error fetching loan applications by factory:', error);
       throw error;

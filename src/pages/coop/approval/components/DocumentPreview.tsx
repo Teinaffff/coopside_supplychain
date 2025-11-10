@@ -104,11 +104,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       console.log('[FETCH DOCUMENT] Using fetch URL:', fetchUrl);
       console.log('[FETCH DOCUMENT] Is Production:', isProduction);
       
-      // Check if this is a file path that should use the files server
-      // The API returns fileUrl as /files/agents/11/filename.png (relative path)
-      // The server expects /api/files/agents/11/filename.png
-      // In development: Vite proxy forwards /api/files/* and /files/* to http://10.8.100.39:5001/api/files/*
-      // In production: Need to use full URL directly to http://10.8.100.39:5001/api/files/*
+      
       const isApiFilesPath = fetchUrl.startsWith('/api/files/');
       const isFilesPath = fetchUrl.startsWith('/files/');
       let blobResp: Blob;

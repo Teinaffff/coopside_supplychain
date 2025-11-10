@@ -5,12 +5,14 @@ import { Button } from "../../../common/ui/button";
 import { Input } from "../../../common/ui/input";
 import { Label } from "../../../common/ui/label";
 import { Textarea } from "../../../common/ui/textarea";
-import { CheckCircle, X } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../common/ui/tabs";
+import { CheckCircle, X, FileText } from "lucide-react";
 import loanApplicationService, { LoanApplication } from "../../../services/loanApplicationService";
 import { toast } from "react-hot-toast";
 import API from "../../../config/axios-config";
 import factoryService from "../../../services/factoryService";
 import loanProductService from "../../../services/loanProductService";
+import agentService from "../../../services/agentService";
 
 const LoanDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +21,8 @@ const LoanDetailPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [loanData, setLoanData] = useState<LoanApplication | null>(null);
   const [agentLoanApplications, setAgentLoanApplications] = useState<LoanApplication[]>([]);
+  const [agentDetails, setAgentDetails] = useState<any>(null);
+  const [isLoadingAgentDetails, setIsLoadingAgentDetails] = useState(false);
   const [factoryLoanApplications, setFactoryLoanApplications] = useState<LoanApplication[]>([]);
   const [factoryDetails, setFactoryDetails] = useState<any>(null);
   const [isLoadingFactoryDetails, setIsLoadingFactoryDetails] = useState(false);
@@ -35,6 +39,9 @@ const LoanDetailPage: React.FC = () => {
   const [approvedAmount, setApprovedAmount] = useState<number>(0);
   const [loanProduct, setLoanProduct] = useState<any>(null);
   const [isLoadingProduct, setIsLoadingProduct] = useState(false);
+  
+  // Active tab state
+  const [activeTab, setActiveTab] = useState<string>("products");
   
   // Rejection reasons options
   const rejectionReasons = [
@@ -95,6 +102,39 @@ const LoanDetailPage: React.FC = () => {
   const fetchAgentData = async (agentId: string) => {
     if (!agentId) return;
     
+    // Fetch agent details from /v1/agents/{id}
+    setIsLoadingAgentDetails(true);
+    try {
+      console.log("=== FETCHING AGENT DETAILS ===");
+      console.log("Agent ID:", agentId);
+      const agent = await agentService.getAgentById(agentId);
+      console.log("Agent Details API Response:", agent);
+      
+      // Handle different response structures
+      const agentData = (agent as any)?.data || agent;
+      setAgentDetails(agentData);
+      console.log("Processed Agent Details:", agentData);
+      
+      // Update loanData with borrower name from agent details
+      if (agentData) {
+        const borrowerName = agentData.fullName || agentData.fullLegalName || agentData.name || agentData.username || '';
+        if (borrowerName) {
+          setLoanData(prev => {
+            if (prev) {
+              return { ...prev, borrowerName };
+            }
+            return prev;
+          });
+          console.log("Updated borrower name from agent details:", borrowerName);
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to load agent details:", e);
+      setAgentDetails(null);
+    } finally {
+      setIsLoadingAgentDetails(false);
+    }
+    
     // Load agent's loan applications to derive financial fields
     try {
       const apps = await loanApplicationService.getLoanApplicationsByAgent(agentId);
@@ -114,13 +154,27 @@ const LoanDetailPage: React.FC = () => {
   const fetchFactoryLoans = async (factoryId: string) => {
     if (!factoryId) return;
     try {
+      console.log("=== FETCHING FACTORY LOAN APPLICATIONS ===");
+      console.log("Factory ID:", factoryId);
       const apps = await loanApplicationService.getLoanApplicationsByFactory(factoryId);
+      console.log("Factory Loan Applications API Response:", apps);
+      
+      // Handle different response structures
+      let factoryApps: any[] = [];
       if (Array.isArray(apps)) {
-        setFactoryLoanApplications(apps);
-      } else if (apps) {
+        factoryApps = apps;
+      } else if (apps && (apps as any).data) {
         const maybeArray = (apps as any).data;
-        if (Array.isArray(maybeArray)) setFactoryLoanApplications(maybeArray);
+        if (Array.isArray(maybeArray)) {
+          factoryApps = maybeArray;
+        }
+      } else if (apps) {
+        // If it's a single object, wrap it in an array
+        factoryApps = [apps];
       }
+      
+      console.log("Processed Factory Loan Applications:", factoryApps);
+      setFactoryLoanApplications(factoryApps);
     } catch (e) {
       console.warn("Failed to load factory loan applications:", e);
       setFactoryLoanApplications([]);
@@ -156,48 +210,23 @@ const LoanDetailPage: React.FC = () => {
     }
   };
 
-  // Function to fetch loan data from all loan applications API
+  // Function to fetch loan data from /v1/loan-applications/{applicationNumber} API
   const fetchLoanData = async (loanId: string) => {
     if (!loanId) return;
     
     console.log("=== FETCHING LOAN DATA ===");
-    console.log("Loan ID:", loanId);
+    console.log("Loan ID/Application Number:", loanId);
     
     setIsLoading(true);
     try {
-      console.log("Calling loanApplicationService.getAllLoanApplicationsWithAgentData...");
-      const allLoans = await loanApplicationService.getAllLoanApplicationsWithAgentData();
-      console.log("All Loans API Response with Agent Data:", allLoans);
-      
-      // Find the specific loan by application number or ID
-      const loan = allLoans.find((l: any) => 
-        l.applicationNumber === loanId || 
-        l.id === loanId || 
-        l.applicationNumber === loanId.toString()
-      );
-      
-      if (!loan) {
-        throw new Error(`Loan with ID ${loanId} not found`);
-      }
+      console.log("Calling loanApplicationService.getLoanApplicationByNumber...");
+      const loan = await loanApplicationService.getLoanApplicationByNumber(loanId);
+      console.log("Loan Application API Response:", loan);
       
       console.log("Found Loan:", loan);
       console.log("Found loan status:", loan.status);
       console.log("Found loan superAdminStatus:", loan.superAdminStatus);
-      console.log("Loan amount fields:", {
-        requestedAmount: (loan as any).requestedAmount,
-        amount: (loan as any).amount,
-        loanAmount: (loan as any).loanAmount,
-        request_amount: (loan as any).request_amount,
-        requestAmount: (loan as any).requestAmount,
-        principalAmount: (loan as any).principalAmount,
-        principal_amount: (loan as any).principal_amount,
-        totalAmount: (loan as any).totalAmount,
-        total_amount: (loan as any).total_amount,
-        // Check nested objects
-        loanDetails: (loan as any).loanDetails,
-        financialDetails: (loan as any).financialDetails,
-        applicationDetails: (loan as any).applicationDetails
-      });
+      console.log("Loan factoryId:", (loan as any).factoryId || (loan as any).factory_id || (loan as any).factory?.id);
       
       // Transform API data to match our expected format with proper field mapping
       const transformedLoan: LoanApplication = {
@@ -230,18 +259,24 @@ const LoanDetailPage: React.FC = () => {
       console.log("Transformed Loan Data:", transformedLoan);
       setLoanData(transformedLoan);
       
-      // Processed status data removed; keeping only base loan details for this page
-      
-      // Fetch agent and factory data
+      // Fetch agent data
       if (transformedLoan.agentId) {
         console.log("Fetching agent data for ID:", transformedLoan.agentId);
         fetchAgentData(transformedLoan.agentId.toString());
       }
-      if (transformedLoan.factoryId) {
-        console.log("Fetching factory loan applications for ID:", transformedLoan.factoryId);
-        fetchFactoryLoans(transformedLoan.factoryId.toString());
-        fetchFactoryDetails(transformedLoan.factoryId.toString());
+      
+      // Fetch factory loan applications using factory ID from the loan application
+      const factoryId = transformedLoan.factoryId;
+      if (factoryId) {
+        console.log("Fetching factory loan applications for factory ID:", factoryId);
+        fetchFactoryLoans(factoryId.toString());
+        fetchFactoryDetails(factoryId.toString());
+      } else {
+        console.warn("No factory ID found in loan application");
+        setFactoryLoanApplications([]);
+        setFactoryDetails(null);
       }
+      
       // Transactions will be fetched via useEffect when loanData is set and isFromTracking is true
       
       console.log("Loan data loaded successfully");
@@ -276,6 +311,8 @@ const LoanDetailPage: React.FC = () => {
       };
       
       setLoanData(fallbackLoan);
+      setFactoryLoanApplications([]);
+      setFactoryDetails(null);
       
       toast.error(`API failed, showing basic details for ${loanId}`);
     } finally {
@@ -541,10 +578,38 @@ const LoanDetailPage: React.FC = () => {
     return '';
   };
 
+  // Calculate total amount for products
+  const calculateTotalAmount = () => {
+    return agentProducts.reduce((total: number, p: any) => {
+      const productTotal = p.productTotalPrice || (p.productUnitPrice || 0) * (p.productQuantity || 1);
+      return total + (productTotal || 0);
+    }, 0);
+  };
+
+  // Calculate days remaining until license expiry date
+  const calculateLicenseDaysRemaining = (expiryDate: string) => {
+    if (!expiryDate) return null;
+    
+    try {
+      const expiry = new Date(expiryDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      expiry.setHours(0, 0, 0, 0);
+      
+      const diffTime = expiry.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      return diffDays;
+    } catch (error) {
+      console.error("Error calculating license expiry days:", error);
+      return null;
+    }
+  };
+
   return (
-    <div className="space-y-6 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">
           <Button
             variant="outline"
@@ -554,11 +619,14 @@ const LoanDetailPage: React.FC = () => {
             ← Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Loan Application Details</h1>
-            <p className="text-gray-600">Application {loanData?.applicationNumber}</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              {loanData?.borrowerName && loanData.borrowerName !== 'N/A' 
+                ? `${loanData.borrowerName} - Loan Application`
+                : 'Loan Application'}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">Application {loanData?.applicationNumber}</p>
           </div>
         </div>
-        
         
         {/* Action Buttons */}
         <div className="flex items-center space-x-3">
@@ -588,127 +656,297 @@ const LoanDetailPage: React.FC = () => {
 
       {/* Status Message Banner */}
       {!isFromTracking && !canApproveOrReject && loanData && getDisabledReason() && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded mb-6">
           <p className="text-sm text-yellow-800">{getDisabledReason()}</p>
         </div>
       )}
 
       {/* Loan Application Details */}
-      <Card className="border-l-4 border-l-cyan-500">
-        <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50">
-          <CardTitle className="flex items-center text-cyan-900">
+      <Card className="mb-6 border-l-4 border-l-cyan-500 dark:bg-slate-800 dark:border-slate-700">
+        <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:bg-slate-700">
+          <CardTitle className="flex items-center text-cyan-900 dark:text-white">
             Loan Application Details
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 mb-1">Application Number</p>
-                <p className="text-lg font-medium text-gray-900">{loanData?.applicationNumber}</p>
+            {/* Left Column */}
+            <div className="space-y-4">
+              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Application Number</p>
+                <p className="text-lg font-medium text-gray-900 dark:text-white">{loanData?.applicationNumber || 'N/A'}</p>
               </div>
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm font-semibold text-gray-700 mb-1">Requested Amount</p>
-              <p className="text-xl font-bold text-cyan-600">ETB {loanData?.requestedAmount?.toLocaleString()}</p>
+              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Borrower Name</p>
+                <p className="text-lg font-medium text-gray-900 dark:text-white">{loanData?.borrowerName || 'N/A'}</p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 mb-1">Borrower Name</p>
-                <p className="text-lg font-medium text-gray-900">{loanData?.borrowerName}</p>
+              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Product Name</p>
+                <p className="text-lg font-medium text-gray-900 dark:text-white">{loanData?.loanTypeName || loanData?.loanType || 'N/A'}</p>
               </div>
-            {isFromTracking && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 mb-1">Approved Amount</p>
-                <p className="text-xl font-bold text-cyan-600">
-                  {derivedApprovedAmount !== undefined ? `ETB ${Number(derivedApprovedAmount).toLocaleString()}` : 'N/A'}
-                </p>
+              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Status</p>
+                <p className="text-lg font-medium text-gray-900 dark:text-white">{loanData?.status?.replace(/_/g, ' ') || 'N/A'}</p>
               </div>
-            )}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 mb-1">Product Code</p>
-                <p className="text-lg font-medium text-gray-900">{loanData?.loanTypeCode || 'N/A'}</p>
-              </div>
-            {isFromTracking && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 mb-1">Interest Rate</p>
-                <p className="text-lg font-medium text-gray-900">
-                  {derivedInterestRate !== undefined ? `${derivedInterestRate}%` : 'N/A'}
-                </p>
-              </div>
-            )}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 mb-1">Product Name</p>
-                <p className="text-lg font-medium text-gray-900">{loanData?.loanTypeName || loanData?.loanType}</p>
-              </div>
-            {isFromTracking && (
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 mb-1">Processing Fee</p>
-                <p className="text-lg font-medium text-gray-900">
-                  {derivedProcessingFee !== undefined ? `ETB ${Number(derivedProcessingFee).toLocaleString()}` : 'N/A'}
-                </p>
-              </div>
-            )}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 mb-1">Purpose</p>
-                <p className="text-lg font-medium text-gray-900">{loanData?.purpose}</p>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 mb-1">Status</p>
-                <p className="text-lg font-medium text-gray-900">{loanData?.status?.replace(/_/g, ' ')}</p>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 mb-1">Tenure</p>
-                <p className="text-lg font-medium text-gray-900">{loanData?.tenure} months</p>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 mb-1">Request Date</p>
-                <p className="text-lg font-medium text-gray-900">
+              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Request Date</p>
+                <p className="text-lg font-medium text-gray-900 dark:text-white">
                   {loanData?.requestDate ? new Date(loanData.requestDate).toLocaleDateString() : 'N/A'}
                 </p>
               </div>
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 mb-1">Submission Date</p>
-                <p className="text-lg font-medium text-gray-900">
+              </div>
+            
+            {/* Right Column */}
+            <div className="space-y-4">
+              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Requested Amount</p>
+                <p className="text-xl font-bold text-cyan-600 dark:text-cyan-400">ETB {loanData?.requestedAmount?.toLocaleString() || '0.00'}</p>
+              </div>
+              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Product Code</p>
+                <p className="text-lg font-medium text-gray-900 dark:text-white">{loanData?.loanTypeCode || 'N/A'}</p>
+              </div>
+              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Purpose</p>
+                <p className="text-lg font-medium text-gray-900 dark:text-white">{loanData?.purpose || 'N/A'}</p>
+              </div>
+              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Tenure</p>
+                <p className="text-lg font-medium text-gray-900 dark:text-white">{loanData?.tenure || 12} months</p>
+              </div>
+              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Submission Date</p>
+                <p className="text-lg font-medium text-gray-900 dark:text-white">
                   {loanData?.submissionDate ? new Date(loanData.submissionDate).toLocaleDateString() : 'N/A'}
                 </p>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Products Section */}
-      {agentProducts.length > 0 && (
-        <Card className="border-l-4 border-l-cyan-500">
-          <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50">
-            <CardTitle className="flex items-center text-cyan-900">
-              Products
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="space-y-2">
-              {agentProducts.map((p: any, idx: number) => (
-                <div key={idx} className="flex items-center justify-between text-sm text-gray-700 bg-white p-4 rounded-lg border border-gray-200 hover:bg-gray-50">
-                  <span className="font-medium">{p.productName || p.name} × {p.productQuantity || p.quantity || 1}</span>
-                  <span className="font-medium text-gray-900">ETB {(p.productTotalPrice || (p.productUnitPrice || 0) * (p.productQuantity || 1)).toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Factory Details */}
-      {(factoryDetails || (factoryLoanApplications && factoryLoanApplications.length > 0)) && (
-        <Card className="border-l-4 border-l-cyan-500">
-          <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50">
-            <CardTitle className="flex items-center text-cyan-900">
-              Factory Details
-          </CardTitle>
-        </CardHeader>
+      {/* Tabbed Sections */}
+      <Card className="dark:bg-slate-800 dark:border-slate-700">
         <CardContent className="p-6">
-            {isLoadingFactoryDetails ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className={`grid w-full ${isFromTracking ? 'grid-cols-5' : 'grid-cols-4'} mb-6 dark:bg-slate-700`}>
+              <TabsTrigger 
+                value="agent-details"
+                className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
+              >
+                Agent Details
+              </TabsTrigger>
+              <TabsTrigger 
+                value="tin-registry"
+                className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
+              >
+                TIN Registry
+              </TabsTrigger>
+              <TabsTrigger 
+                value="manufacturer-details"
+                className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
+              >
+                Manufacturer Details
+              </TabsTrigger>
+              <TabsTrigger 
+                value="products"
+                className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
+              >
+                Products
+              </TabsTrigger>
+            {isFromTracking && (
+                <TabsTrigger 
+                  value="transaction-history"
+                  className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
+                >
+                  Transaction History
+                </TabsTrigger>
+              )}
+            </TabsList>
+
+            {/* Agent Details Tab */}
+            <TabsContent value="agent-details" className="space-y-4">
+              {isLoadingAgentDetails ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600 mx-auto"></div>
+                    <p className="mt-2 text-gray-600 dark:text-gray-400">Loading agent details...</p>
+                  </div>
+                </div>
+              ) : agentDetails ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Gender</p>
+                    <p className="text-lg font-medium text-gray-900 dark:text-white">
+                      {agentDetails?.gender || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Email</p>
+                    <p className="text-lg font-medium text-gray-900 dark:text-white">
+                      {agentDetails?.email || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Agent Type</p>
+                    <p className="text-lg font-medium text-gray-900 dark:text-white">
+                      {agentDetails?.agentType || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">ID Number</p>
+                    <p className="text-lg font-medium text-gray-900 dark:text-white">
+                      {agentDetails?.idNumber || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Address</p>
+                    <p className="text-lg font-medium text-gray-900 dark:text-white">
+                      {(() => {
+                        const city = agentDetails?.address?.city || agentDetails?.city || '';
+                        const country = agentDetails?.address?.country || agentDetails?.country || '';
+                        if (city && country) {
+                          return `${city}, ${country}`;
+                        } else if (city) {
+                          return city;
+                        } else if (country) {
+                          return country;
+                        }
+                        return 'N/A';
+                      })()}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Registration Number</p>
+                    <p className="text-lg font-medium text-gray-900 dark:text-white">
+                      {agentDetails?.registrationNumber || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">License Number</p>
+                    <p className="text-lg font-medium text-gray-900 dark:text-white">
+                      {agentDetails?.licenseNumber || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">License Expiry Date</p>
+                    {agentDetails?.licenseExpiryDate ? (() => {
+                      const expiryDate = new Date(agentDetails.licenseExpiryDate);
+                      const daysRemaining = calculateLicenseDaysRemaining(agentDetails.licenseExpiryDate);
+                      const isExpired = daysRemaining !== null && daysRemaining < 0;
+                      const isExpiringSoon = daysRemaining !== null && daysRemaining >= 0 && daysRemaining <= 30;
+                      
+                      return (
+                        <div>
+                          <p className="text-lg font-medium text-gray-900 dark:text-white">
+                            {expiryDate.toLocaleDateString()}
+                          </p>
+                          {daysRemaining !== null && (
+                            <div className="mt-2">
+                              {isExpired ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400">
+                                  Expired {Math.abs(daysRemaining)} day{daysRemaining !== -1 ? 's' : ''} ago
+                                </span>
+                              ) : isExpiringSoon ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400">
+                                  {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400">
+                                  {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })() : (
+                      <p className="text-lg font-medium text-gray-900 dark:text-white">N/A</p>
+                    )}
+                  </div>
+                  {/* Bank Information */}
+                  {agentDetails?.bankAccountInfos && Array.isArray(agentDetails.bankAccountInfos) && agentDetails.bankAccountInfos.length > 0 && (
+                    <>
+                      {agentDetails.bankAccountInfos.map((account: any, index: number) => (
+                        <div key={account?.id || index} className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 rounded-lg p-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Left Column */}
+                            <div className="space-y-3">
+                              <div>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Bank Name</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {account?.bankName || 'N/A'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Account Number</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {account?.accountNumber || 'N/A'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Account Name</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {account?.accountName || 'N/A'}
+                                </p>
+                                {account?.isPrimary && (
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 mt-1.5">
+                                    Primary Account
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {/* Right Column */}
+                            <div className="space-y-3">
+                              <div>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Branch Name</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {account?.branchName || 'N/A'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Swift Code</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {account?.swiftCode || 'N/A'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">IBAN</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {account?.iban || 'N/A'}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                  <p className="text-lg font-medium mb-2">No Agent Details Available</p>
+                  <p className="text-sm">Agent information will be displayed here when available</p>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* TIN Registry Tab */}
+            <TabsContent value="tin-registry" className="space-y-4">
+              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                <p className="text-lg font-medium mb-2">TIN Registry Information</p>
+                <p className="text-sm">TIN registry details will be displayed here</p>
+              </div>
+            </TabsContent>
+
+            {/* Manufacturer Details Tab */}
+            <TabsContent value="manufacturer-details" className="space-y-4">
+              {factoryDetails || (factoryLoanApplications && factoryLoanApplications.length > 0) ? (
+                isLoadingFactoryDetails ? (
               <div className="flex items-center justify-center py-8">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600 mx-auto"></div>
-                  <p className="mt-2 text-gray-600">Loading factory details...</p>
+                      <p className="mt-2 text-gray-600 dark:text-gray-400">Loading factory details...</p>
                 </div>
               </div>
             ) : (() => {
@@ -726,96 +964,166 @@ const LoanDetailPage: React.FC = () => {
               return (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                      <p className="text-sm font-semibold text-gray-700 mb-1">Factory Name</p>
-                      <p className="text-lg font-medium text-gray-900">{factoryName}</p>
+                        <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Factory Name</p>
+                          <p className="text-lg font-medium text-gray-900 dark:text-white">{factoryName}</p>
                   </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                      <p className="text-sm font-semibold text-gray-700 mb-1">Factory ID</p>
-                      <p className="text-lg font-medium text-gray-900">{factoryId}</p>
+                        <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Factory ID</p>
+                          <p className="text-lg font-medium text-gray-900 dark:text-white">{factoryId}</p>
                   </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                      <p className="text-sm font-semibold text-gray-700 mb-1">Latest Application Date</p>
-                      <p className="text-lg font-medium text-gray-900">{latestDate}</p>
+                        <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Latest Application Date</p>
+                          <p className="text-lg font-medium text-gray-900 dark:text-white">{latestDate}</p>
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                      <p className="text-sm font-semibold text-gray-700 mb-1">Total Applications</p>
-                      <p className="text-lg font-medium text-gray-900">{totalApplications}</p>
+                        <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Total Applications</p>
+                          <p className="text-lg font-medium text-gray-900 dark:text-white">{totalApplications}</p>
                   </div>
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                      <p className="text-sm font-semibold text-gray-700 mb-1">Approved</p>
-                      <p className="text-lg font-medium text-gray-900">{totalApproved}</p>
+                        <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Approved</p>
+                          <p className="text-lg font-medium text-gray-900 dark:text-white">{totalApproved}</p>
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <p className="text-sm font-semibold text-gray-700 mb-1">Disbursed</p>
-                      <p className="text-lg font-medium text-gray-900">{totalDisbursed}</p>
+                        <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Disbursed</p>
+                          <p className="text-lg font-medium text-gray-900 dark:text-white">{totalDisbursed}</p>
                     </div>
                   </div>
-                  {/* Factory products section intentionally removed to avoid redundancy */}
                       </div>
                     );
-                  })()}
+                })()
+              ) : (
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                  <p className="text-lg font-medium mb-2">No Manufacturer Details Available</p>
+                  <p className="text-sm">Manufacturer information will be displayed here when available</p>
+                </div>
+              )}
+            </TabsContent>
+
+            {/* Products Tab */}
+            <TabsContent value="products" className="space-y-4">
+              <Card className="dark:bg-slate-800 dark:border-slate-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center dark:text-white">
+                    <FileText className="w-5 h-5 mr-2" />
+                    Products
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {agentProducts.length > 0 ? (
+                    <div className="space-y-4">
+                      {/* Products Table */}
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse">
+                          <thead>
+                            <tr className="bg-gray-50 dark:bg-slate-700 border-b border-gray-200 dark:border-slate-600">
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Product Name</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Category</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Quantity</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Unit Price</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Total Price</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {agentProducts.map((p: any, idx: number) => {
+                              const productName = p.productName || p.name || 'N/A';
+                              const category = p.category || p.productCategory || 'N/A';
+                              const quantity = p.productQuantity || p.quantity || 1;
+                              const unitPrice = p.productUnitPrice || p.unitPrice || 0;
+                              const totalPrice = p.productTotalPrice || (unitPrice * quantity);
+                              
+                              return (
+                                <tr key={idx} className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700">
+                                  <td className="p-3 text-sm text-gray-900 dark:text-white">{productName}</td>
+                                  <td className="p-3 text-sm text-gray-900 dark:text-white">{category}</td>
+                                  <td className="p-3 text-sm text-gray-900 dark:text-white">{quantity}</td>
+                                  <td className="p-3 text-sm text-gray-900 dark:text-white">ETB {unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                  <td className="p-3 text-sm text-gray-900 dark:text-white">ETB {totalPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      
+                      {/* Total Amount Summary */}
+                      <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-slate-600">
+                        <div className="flex items-center space-x-4">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Amount:</span>
+                          <span className="text-lg font-bold text-gray-900 dark:text-white">
+                            ETB {calculateTotalAmount().toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                      <p className="text-lg font-medium mb-2">No Products Available</p>
+                      <p className="text-sm">Product information will be displayed here when available</p>
+                    </div>
+                  )}
         </CardContent>
       </Card>
-      )}
+            </TabsContent>
 
-      {/* Transaction History (only for tracking detail) */}
+            {/* Transaction History Tab (only for tracking detail) */}
       {isFromTracking && (
-        <Card className="border-l-4 border-l-cyan-500">
-          <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50">
-            <CardTitle className="flex items-center text-cyan-900">
+              <TabsContent value="transaction-history" className="space-y-4">
+                <Card className="dark:bg-slate-800 dark:border-slate-700">
+                  <CardHeader>
+                    <CardTitle className="flex items-center dark:text-white">
               Transaction History
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+                  <CardContent>
             {isLoadingTransactions ? (
               <div className="flex items-center justify-center py-8">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600 mx-auto"></div>
-                  <p className="mt-2 text-gray-600">Loading transactions...</p>
+                          <p className="mt-2 text-gray-600 dark:text-gray-400">Loading transactions...</p>
                 </div>
               </div>
             ) : transactions.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 No transactions found for this loan application.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="text-left p-3 text-sm font-semibold text-gray-700">Transaction Reference</th>
-                      <th className="text-left p-3 text-sm font-semibold text-gray-700">Transaction Type</th>
-                      <th className="text-left p-3 text-sm font-semibold text-gray-700">Amount</th>
-                      <th className="text-left p-3 text-sm font-semibold text-gray-700">Payment Method</th>
-                      <th className="text-left p-3 text-sm font-semibold text-gray-700">Status</th>
-                      <th className="text-left p-3 text-sm font-semibold text-gray-700">Transaction Date</th>
-                      <th className="text-left p-3 text-sm font-semibold text-gray-700">Description</th>
+                            <tr className="bg-gray-50 dark:bg-slate-700 border-b border-gray-200 dark:border-slate-600">
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Transaction Reference</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Transaction Type</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Amount</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Payment Method</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Status</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Transaction Date</th>
+                              <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Description</th>
                     </tr>
                   </thead>
                   <tbody>
                     {transactions.map((transaction) => (
-                      <tr key={transaction.id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="p-3 text-sm text-gray-900">{transaction.transactionReference || 'N/A'}</td>
-                        <td className="p-3 text-sm text-gray-900">{transaction.transactionType?.replace(/_/g, ' ') || 'N/A'}</td>
-                        <td className="p-3 text-sm font-medium text-cyan-600">ETB {Number(transaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td className="p-3 text-sm text-gray-900">{transaction.paymentMethod?.replace(/_/g, ' ') || 'N/A'}</td>
+                              <tr key={transaction.id} className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700">
+                                <td className="p-3 text-sm text-gray-900 dark:text-white">{transaction.transactionReference || 'N/A'}</td>
+                                <td className="p-3 text-sm text-gray-900 dark:text-white">{transaction.transactionType?.replace(/_/g, ' ') || 'N/A'}</td>
+                                <td className="p-3 text-sm font-medium text-cyan-600 dark:text-cyan-400">ETB {Number(transaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                <td className="p-3 text-sm text-gray-900 dark:text-white">{transaction.paymentMethod?.replace(/_/g, ' ') || 'N/A'}</td>
                         <td className="p-3">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             transaction.status === 'COMPLETED' 
-                              ? 'bg-cyan-100 text-cyan-800' 
+                                      ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400' 
                               : transaction.status === 'PENDING'
-                              ? 'bg-yellow-100 text-yellow-800'
+                                      ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
                               : transaction.status === 'FAILED'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-gray-100 text-gray-800'
+                                      ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                                      : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
                           }`}>
                             {transaction.status?.replace(/_/g, ' ') || 'N/A'}
                           </span>
                         </td>
-                        <td className="p-3 text-sm text-gray-900">
+                                <td className="p-3 text-sm text-gray-900 dark:text-white">
                           {transaction.transactionDate 
                             ? new Date(transaction.transactionDate).toLocaleDateString('en-US', { 
                                 year: 'numeric', 
@@ -824,7 +1132,7 @@ const LoanDetailPage: React.FC = () => {
                               })
                             : 'N/A'}
                         </td>
-                        <td className="p-3 text-sm text-gray-600">{transaction.description || 'N/A'}</td>
+                                <td className="p-3 text-sm text-gray-600 dark:text-gray-400">{transaction.description || 'N/A'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -833,7 +1141,11 @@ const LoanDetailPage: React.FC = () => {
             )}
           </CardContent>
         </Card>
+              </TabsContent>
       )}
+          </Tabs>
+        </CardContent>
+      </Card>
 
       {/* Separate product cards removed; products are merged into their respective sections */}
 
