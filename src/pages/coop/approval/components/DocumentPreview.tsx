@@ -96,27 +96,48 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
       }
       
       const baseURL = (import.meta as any).env.VITE_BACKEND_URL || "/api";
+      const isProduction = (import.meta as any).env.PROD;
+      const filesServerURL = (import.meta as any).env.VITE_FILES_SERVER_URL || "http://10.8.100.39:5001";
+      
       console.log('[FETCH DOCUMENT] Original URL:', document.url);
       console.log('[FETCH DOCUMENT] Base URL:', baseURL);
       console.log('[FETCH DOCUMENT] Using fetch URL:', fetchUrl);
+      console.log('[FETCH DOCUMENT] Is Production:', isProduction);
       
       // Check if this is a file path that should use the files server
       // The API returns fileUrl as /files/agents/11/filename.png (relative path)
       // The server expects /api/files/agents/11/filename.png
-      // Vite proxy is configured to:
-      // - Forward /api/files/* to http://10.8.100.39:5001/api/files/*
-      // - Forward /files/* to http://10.8.100.39:5001/api/files/* (rewrites /files to /api/files)
+      // In development: Vite proxy forwards /api/files/* and /files/* to http://10.8.100.39:5001/api/files/*
+      // In production: Need to use full URL directly to http://10.8.100.39:5001/api/files/*
       const isApiFilesPath = fetchUrl.startsWith('/api/files/');
       const isFilesPath = fetchUrl.startsWith('/files/');
       let blobResp: Blob;
       
       if (isApiFilesPath || isFilesPath) {
-        // Use browser fetch to hit Vite proxy on /api/files or /files and avoid CORS, attach token manually
-        // Vite proxy will forward:
-        // - /api/files/* to http://10.8.100.39:5001/api/files/*
-        // - /files/* to http://10.8.100.39:5001/api/files/* (rewritten)
+        // Construct the full URL for file requests
+        let fullFileUrl = fetchUrl;
+        
+        if (isProduction) {
+          // In production, use full URL to files server
+          // Convert /files/* to /api/files/* and prepend files server URL
+          if (isFilesPath) {
+            fullFileUrl = `${filesServerURL}/api${fetchUrl}`;
+          } else if (isApiFilesPath) {
+            fullFileUrl = `${filesServerURL}${fetchUrl}`;
+          }
+        } else {
+          // In development, use relative URL (Vite proxy will handle it)
+          // Convert /files/* to /api/files/* for consistency
+          if (isFilesPath) {
+            fullFileUrl = `/api${fetchUrl}`;
+          }
+        }
+        
+        console.log('[FETCH DOCUMENT] Full file URL:', fullFileUrl);
+        
+        // Use browser fetch to hit Vite proxy (dev) or files server (prod), attach token manually
         const token = localStorage.getItem('accessToken');
-        const res = await fetch(fetchUrl, {
+        const res = await fetch(fullFileUrl, {
           headers: {
             'Accept': 'application/pdf, image/*, */*',
             ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
@@ -474,9 +495,28 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         let blobResp: Blob;
         
         if (isApiFilesPath || isFilesPath) {
-          // Use browser fetch to hit Vite proxy on /api/files or /files
+          // Construct the full URL for file requests
+          const isProduction = (import.meta as any).env.PROD;
+          const filesServerURL = (import.meta as any).env.VITE_FILES_SERVER_URL || "http://10.8.100.39:5001";
+          let fullFileUrl = fetchUrl;
+          
+          if (isProduction) {
+            // In production, use full URL to files server
+            if (isFilesPath) {
+              fullFileUrl = `${filesServerURL}/api${fetchUrl}`;
+            } else if (isApiFilesPath) {
+              fullFileUrl = `${filesServerURL}${fetchUrl}`;
+            }
+          } else {
+            // In development, use relative URL (Vite proxy will handle it)
+            if (isFilesPath) {
+              fullFileUrl = `/api${fetchUrl}`;
+            }
+          }
+          
+          // Use browser fetch to hit Vite proxy (dev) or files server (prod)
           const token = localStorage.getItem('accessToken');
-          const res = await fetch(fetchUrl, {
+          const res = await fetch(fullFileUrl, {
             headers: {
               'Accept': 'application/pdf, image/*, */*',
               ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
@@ -589,9 +629,28 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({
         let blobResp: Blob;
         
         if (isApiFilesPath || isFilesPath) {
-          // Use browser fetch to hit Vite proxy on /api/files or /files
+          // Construct the full URL for file requests
+          const isProduction = (import.meta as any).env.PROD;
+          const filesServerURL = (import.meta as any).env.VITE_FILES_SERVER_URL || "http://10.8.100.39:5001";
+          let fullFileUrl = fetchUrl;
+          
+          if (isProduction) {
+            // In production, use full URL to files server
+            if (isFilesPath) {
+              fullFileUrl = `${filesServerURL}/api${fetchUrl}`;
+            } else if (isApiFilesPath) {
+              fullFileUrl = `${filesServerURL}${fetchUrl}`;
+            }
+          } else {
+            // In development, use relative URL (Vite proxy will handle it)
+            if (isFilesPath) {
+              fullFileUrl = `/api${fetchUrl}`;
+            }
+          }
+          
+          // Use browser fetch to hit Vite proxy (dev) or files server (prod)
           const token = localStorage.getItem('accessToken');
-          const res = await fetch(fetchUrl, {
+          const res = await fetch(fullFileUrl, {
             headers: {
               'Accept': 'application/pdf, image/*, */*',
               ...(token ? { 'Authorization': `Bearer ${token}` } : {}),

@@ -53,6 +53,7 @@ const Dashboard: React.FC = () => {
   const [entityDistribution, setEntityDistribution] = useState<any[]>([]);
   const [usersCount, setUsersCount] = useState<number>(0);
   const [consumersCount, setConsumersCount] = useState<number>(0);
+  const [loanMonitoringData, setLoanMonitoringData] = useState<any[]>([]);
 
   const { institutions, isLoading: institutionsLoading } = useInstitutions();
   const { agents, isLoading: agentsLoading } = useAgents();
@@ -85,6 +86,37 @@ const Dashboard: React.FC = () => {
       }
     };
     fetchConsumersCount();
+  }, []);
+
+  // Fetch loan monitoring stats
+  useEffect(() => {
+    const fetchLoanMonitoringStats = async () => {
+      try {
+        const response = await API.get("/v1/loan-applications/stats/monitoring");
+        const stats = response.data?.data || response.data || {};
+        
+        // Transform API response to chart format
+        // Always show all statuses, even if count is 0, so they're visible when data increases
+        const chartData = [
+          { status: "Approved", count: stats.approved || 0, amount: 0 },
+          { status: "Repaid", count: stats.repaid || 0, amount: 0 },
+          { status: "Pending Partner", count: stats.pendingPartnerApproval || 0, amount: 0 },
+          { status: "Overdue", count: stats.overdue || 0, amount: 0 },
+          { status: "Pending Agent ", count: stats.pendingAgentConfirmation || 0, amount: 0 },
+          { status: "Disbursed", count: stats.disbursed || 0, amount: 0 },
+          { status: "Total Pending", count: stats.totalPending || 0, amount: 0 },
+          { status: "Partner Approved", count: stats.partnerApproved || 0, amount: 0 },
+          { status: "Pending Admin ", count: stats.pendingSuperAdminApproval || 0, amount: 0 },
+        ];
+        
+        setLoanMonitoringData(chartData);
+      } catch (error: any) {
+        console.error("Error fetching loan monitoring stats:", error);
+        // Fallback to static data on error
+        setLoanMonitoringData(systemMetricsData.loanMonitoring);
+      }
+    };
+    fetchLoanMonitoringStats();
   }, []);
 
   // Calculate stats from real data
@@ -254,7 +286,7 @@ const Dashboard: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <LoanMonitoringChart data={systemMetricsData.loanMonitoring} />
+            <LoanMonitoringChart data={loanMonitoringData.length > 0 ? loanMonitoringData : systemMetricsData.loanMonitoring} />
           </CardContent>
         </Card>
       </div>

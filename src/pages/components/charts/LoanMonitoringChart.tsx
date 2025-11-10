@@ -10,21 +10,14 @@ interface LoanMonitoringChartProps {
 }
 
 const LoanMonitoringChart: React.FC<LoanMonitoringChartProps> = ({ data }) => {
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "approved":
-        return "#06b6d4";
-      case "pending":
-        return "#fbbf24";
-      case "rejected":
-        return "#f87171";
-      case "disbursed":
-        return "#a5b4fc";
-      case "overdue":
-        return "#fca5a5";
-      default:
-        return "#94a3b8";
-    }
+  // Use cyan blue as leading color and orange as secondary
+  const cyanBlue = "#00BCD4"; // true cyan blue
+  const orange = "#f97316"; // orange
+  
+  const getStatusColor = (index: number) => {
+    // Alternate between cyan blue (leading) and orange
+    // Start with cyan blue for index 0, then alternate
+    return index % 2 === 0 ? cyanBlue : orange;
   };
 
   return (
@@ -60,7 +53,7 @@ const LoanMonitoringChart: React.FC<LoanMonitoringChartProps> = ({ data }) => {
           />
           <Bar dataKey="count" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={getStatusColor(entry.status)} />
+              <Cell key={`cell-${index}`} fill={getStatusColor(index)} />
             ))}
           </Bar>
         </BarChart>
