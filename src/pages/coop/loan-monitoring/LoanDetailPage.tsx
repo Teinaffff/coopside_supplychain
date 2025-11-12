@@ -6,13 +6,15 @@ import { Input } from "../../../common/ui/input";
 import { Label } from "../../../common/ui/label";
 import { Textarea } from "../../../common/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../common/ui/tabs";
-import { CheckCircle, X, FileText } from "lucide-react";
+import { CheckCircle, X, FileText, TrendingUp } from "lucide-react";
 import loanApplicationService, { LoanApplication } from "../../../services/loanApplicationService";
 import { toast } from "react-hot-toast";
 import API from "../../../config/axios-config";
 import factoryService from "../../../services/factoryService";
 import loanProductService from "../../../services/loanProductService";
 import agentService from "../../../services/agentService";
+import creditScoreService, { CreditScoreResponse } from "../../../services/creditScoreService";
+import { calculateLoanApproval, getRiskLevelColor, getDecisionColor } from "../../../utils/loanApprovalDecisionTree";
 
 const LoanDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,6 +41,12 @@ const LoanDetailPage: React.FC = () => {
   const [approvedAmount, setApprovedAmount] = useState<number>(0);
   const [loanProduct, setLoanProduct] = useState<any>(null);
   const [isLoadingProduct, setIsLoadingProduct] = useState(false);
+  
+  // Credit score state
+  const [creditScore, setCreditScore] = useState<CreditScoreResponse | null>(null);
+  const [isLoadingCreditScore, setIsLoadingCreditScore] = useState(false);
+  const [creditScoreError, setCreditScoreError] = useState<string | null>(null);
+  const [approvalDecision, setApprovalDecision] = useState<any>(null);
   
   // Active tab state
   const [activeTab, setActiveTab] = useState<string>("products");
@@ -98,6 +106,83 @@ const LoanDetailPage: React.FC = () => {
     }
   };
 
+  // Function to fetch credit score from http://10.8.100.39:5004/api/v1/credit-score
+  const fetchCreditScore = async (agentId: string) => {
+    if (!agentId) {
+      console.warn("Cannot fetch credit score: Agent ID is missing");
+      setCreditScore(null);
+      setCreditScoreError("Agent ID is missing");
+      return;
+    }
+    
+    setIsLoadingCreditScore(true);
+    setCreditScoreError(null); // Clear previous errors
+    try {
+      console.log("=== FETCHING CREDIT SCORE ===");
+      console.log("Agent ID to fetch credit score:", agentId);
+      console.log("Calling POST http://10.8.100.39:5004/api/v1/credit-score with body: { agentId:", agentId, "}");
+      
+      const creditScoreData = await creditScoreService.getCreditScore(agentId);
+      
+      console.log("Credit Score API Response:", creditScoreData);
+      console.log("Credit Score Amount:", creditScoreData.creditScore);
+      console.log("Risk Level:", creditScoreData.riskLevel);
+      
+      // Set credit score regardless of value (0 is a valid score, just indicates high risk)
+      setCreditScore(creditScoreData);
+      setCreditScoreError(null); // Clear any previous errors
+      console.log("✅ Credit score successfully fetched and set:", creditScoreData.creditScore);
+      
+      // Calculate approval decision if loan data is available
+      // Use current loanData from state
+      const currentLoanData = loanData;
+      if (currentLoanData && currentLoanData.requestedAmount) {
+        const decision = calculateLoanApproval(
+          creditScoreData.creditScore,
+          creditScoreData.riskLevel,
+          currentLoanData.requestedAmount
+        );
+        setApprovalDecision(decision);
+        console.log("Approval Decision calculated:", decision);
+      } else {
+        console.log("Loan data not yet available, approval decision will be calculated when loan data is set");
+      }
+    } catch (e: any) {
+      console.error("❌ Failed to load credit score:", e);
+      const errorMessage = e?.response?.data?.message || e?.message || "Unknown error occurred";
+      const errorStatus = e?.response?.status;
+      const errorCode = e?.code;
+      
+      console.error("Error details:", {
+        message: errorMessage,
+        status: errorStatus,
+        code: errorCode,
+        response: e?.response?.data,
+        url: e?.config?.url,
+        method: e?.config?.method,
+        data: e?.config?.data
+      });
+      
+      // Set user-friendly error message
+      let userFriendlyError = "Failed to load credit score";
+      if (errorCode === "ECONNREFUSED" || errorCode === "ERR_NETWORK") {
+        userFriendlyError = "Cannot connect to credit score service. Please check your network connection.";
+      } else if (errorStatus === 404) {
+        userFriendlyError = "Credit score service not found. Please contact support.";
+      } else if (errorStatus === 500) {
+        userFriendlyError = "Credit score service error. Please try again later.";
+      } else if (errorMessage) {
+        userFriendlyError = `Error: ${errorMessage}`;
+      }
+      
+      setCreditScore(null);
+      setCreditScoreError(userFriendlyError);
+      // Don't show error toast as credit score is optional, but log it
+    } finally {
+      setIsLoadingCreditScore(false);
+    }
+  };
+
   // Function to fetch agent data
   const fetchAgentData = async (agentId: string) => {
     if (!agentId) return;
@@ -149,6 +234,10 @@ const LoanDetailPage: React.FC = () => {
       console.warn("Failed to load agent loan applications:", e);
       setAgentLoanApplications([]);
     }
+    
+    // Fetch credit score for the agent
+    console.log("📊 About to fetch credit score for agent:", agentId);
+    fetchCreditScore(agentId);
   };
 
   const fetchFactoryLoans = async (factoryId: string) => {
@@ -221,48 +310,74 @@ const LoanDetailPage: React.FC = () => {
     try {
       console.log("Calling loanApplicationService.getLoanApplicationByNumber...");
       const loan = await loanApplicationService.getLoanApplicationByNumber(loanId);
-      console.log("Loan Application API Response:", loan);
+      console.log("Loan Application API Response (raw):", JSON.stringify(loan, null, 2));
+      console.log("Loan Application API Response keys:", Object.keys(loan || {}));
+      
+      // Debug: Check all possible agentId field names
+      const rawLoan = loan as any;
+      console.log("=== AGENT ID EXTRACTION DEBUG ===");
+      console.log("agentId:", rawLoan?.agentId);
+      console.log("agent_id:", rawLoan?.agent_id);
+      console.log("agent?.id:", rawLoan?.agent?.id);
+      console.log("borrowerId:", rawLoan?.borrowerId);
+      console.log("borrower_id:", rawLoan?.borrower_id);
+      console.log("borrower?.id:", rawLoan?.borrower?.id);
+      
+      // Extract agentId with comprehensive field checking
+      const extractedAgentId = rawLoan?.agentId || rawLoan?.agent_id || rawLoan?.agent?.id || 
+                               rawLoan?.borrowerId || rawLoan?.borrower_id || rawLoan?.borrower?.id ||
+                               rawLoan?.userId || rawLoan?.user_id || rawLoan?.user?.id;
+      
+      console.log("Extracted Agent ID (final):", extractedAgentId);
+      console.log("Extracted Agent ID type:", typeof extractedAgentId);
       
       console.log("Found Loan:", loan);
       console.log("Found loan status:", loan.status);
       console.log("Found loan superAdminStatus:", loan.superAdminStatus);
-      console.log("Loan factoryId:", (loan as any).factoryId || (loan as any).factory_id || (loan as any).factory?.id);
+      console.log("Loan factoryId:", rawLoan?.factoryId || rawLoan?.factory_id || rawLoan?.factory?.id);
       
       // Transform API data to match our expected format with proper field mapping
       const transformedLoan: LoanApplication = {
-        applicationNumber: (loan as any).applicationNumber || (loan as any).id || loanId,
-        loanType: (loan as any).loanTypeName || (loan as any).loanType || (loan as any).type || 'Goods Purchase Financing',
-        status: (loan as any).status || 'PENDING_PARTNER_APPROVAL',
+        applicationNumber: rawLoan?.applicationNumber || rawLoan?.id || loanId,
+        loanType: rawLoan?.loanTypeName || rawLoan?.loanType || rawLoan?.type || 'Goods Purchase Financing',
+        status: rawLoan?.status || 'PENDING_PARTNER_APPROVAL',
         // CRITICAL: Preserve superAdminStatus and agentStatus to correctly show separate statuses
         // superAdminStatus represents Super Admin's decision, agentStatus represents Partner's decision
-        superAdminStatus: (loan as any).superAdminStatus || (loan as any).super_admin_status || undefined,
-        agentStatus: (loan as any).agentStatus || (loan as any).agent_status || (loan as any).partnerStatus || (loan as any).partner_status || undefined,
-        requestedAmount: (loan as any).requestedAmount || (loan as any).amount || (loan as any).loanAmount || (loan as any).request_amount || (loan as any).requestAmount || (loan as any).principalAmount || (loan as any).principal_amount || (loan as any).totalAmount || (loan as any).total_amount || (loan as any).loanDetails?.amount || (loan as any).financialDetails?.amount || (loan as any).applicationDetails?.amount || 0,
-        approvedAmount: (loan as any).approvedAmount || (loan as any).approved_amount || undefined,
-        tenure: (loan as any).tenure || (loan as any).duration || 12,
-        products: (loan as any).products || (loan as any).productCount || 0,
-        created: (loan as any).created || (loan as any).createdAt || (loan as any).date_created || new Date().toISOString(),
-        factoryId: (loan as any).factoryId || (loan as any).factory_id || (loan as any).factory?.id,
-        agentId: (loan as any).agentId || (loan as any).agent_id || (loan as any).agent?.id,
-        borrowerName: (loan as any).borrowerName || (loan as any).borrower_name || (loan as any).borrower?.name || 'N/A',
-        interestRate: (loan as any).interestRate || (loan as any).interest_rate || undefined,
-        purpose: (loan as any).purpose || (loan as any).description || 'N/A',
-        documents: (loan as any).documents || (loan as any).attachments || [],
-        riskScore: (loan as any).riskScore || (loan as any).risk_score || undefined,
+        superAdminStatus: rawLoan?.superAdminStatus || rawLoan?.super_admin_status || undefined,
+        agentStatus: rawLoan?.agentStatus || rawLoan?.agent_status || rawLoan?.partnerStatus || rawLoan?.partner_status || undefined,
+        requestedAmount: rawLoan?.requestedAmount || rawLoan?.amount || rawLoan?.loanAmount || rawLoan?.request_amount || rawLoan?.requestAmount || rawLoan?.principalAmount || rawLoan?.principal_amount || rawLoan?.totalAmount || rawLoan?.total_amount || rawLoan?.loanDetails?.amount || rawLoan?.financialDetails?.amount || rawLoan?.applicationDetails?.amount || 0,
+        approvedAmount: rawLoan?.approvedAmount || rawLoan?.approved_amount || undefined,
+        tenure: rawLoan?.tenure || rawLoan?.duration || 12,
+        products: rawLoan?.products || rawLoan?.productCount || 0,
+        created: rawLoan?.created || rawLoan?.createdAt || rawLoan?.date_created || new Date().toISOString(),
+        factoryId: rawLoan?.factoryId || rawLoan?.factory_id || rawLoan?.factory?.id,
+        agentId: extractedAgentId, // Use the comprehensively extracted agentId
+        borrowerName: rawLoan?.borrowerName || rawLoan?.borrower_name || rawLoan?.borrower?.name || 'N/A',
+        interestRate: rawLoan?.interestRate || rawLoan?.interest_rate || undefined,
+        purpose: rawLoan?.purpose || rawLoan?.description || 'N/A',
+        documents: rawLoan?.documents || rawLoan?.attachments || [],
+        riskScore: rawLoan?.riskScore || rawLoan?.risk_score || undefined,
         // Additional fields for better display
-        loanTypeCode: (loan as any).loanTypeCode || (loan as any).productCode || (loan as any).typeCode,
-        loanTypeName: (loan as any).loanTypeName || (loan as any).productName || (loan as any).loanType,
-        requestDate: (loan as any).requestDate || (loan as any).created || (loan as any).createdAt || (loan as any).date_created,
-        submissionDate: (loan as any).submissionDate || (loan as any).submittedAt || (loan as any).created,
+        loanTypeCode: rawLoan?.loanTypeCode || rawLoan?.productCode || rawLoan?.typeCode,
+        loanTypeName: rawLoan?.loanTypeName || rawLoan?.productName || rawLoan?.loanType,
+        requestDate: rawLoan?.requestDate || rawLoan?.created || rawLoan?.createdAt || rawLoan?.date_created,
+        submissionDate: rawLoan?.submissionDate || rawLoan?.submittedAt || rawLoan?.created,
       };
       
       console.log("Transformed Loan Data:", transformedLoan);
+      console.log("✅ Extracted Agent ID from loan application:", transformedLoan.agentId);
       setLoanData(transformedLoan);
       
-      // Fetch agent data
+      // Fetch agent data and credit score - CRITICAL: This must happen to get the credit score
       if (transformedLoan.agentId) {
-        console.log("Fetching agent data for ID:", transformedLoan.agentId);
-        fetchAgentData(transformedLoan.agentId.toString());
+        const agentIdString = transformedLoan.agentId.toString();
+        console.log("🚀 Fetching agent data and credit score for Agent ID:", agentIdString);
+        console.log("   → This will trigger: POST http://10.8.100.39:5004/api/v1/credit-score with { agentId:", agentIdString, "}");
+        fetchAgentData(agentIdString);
+      } else {
+        console.error("❌ No Agent ID found in loan application response. Cannot fetch credit score.");
+        console.error("   Available fields in loan response:", Object.keys(rawLoan || {}));
+        setCreditScore(null);
       }
       
       // Fetch factory loan applications using factory ID from the loan application
@@ -468,8 +583,32 @@ const LoanDetailPage: React.FC = () => {
       if (loanData.loanTypeCode) {
         fetchLoanProduct();
       }
+      
+      // Calculate approval decision if credit score is available
+      if (creditScore && loanData.requestedAmount) {
+        console.log("🔄 Recalculating approval decision with:", {
+          creditScore: creditScore.creditScore,
+          riskLevel: creditScore.riskLevel,
+          requestedAmount: loanData.requestedAmount
+        });
+        const decision = calculateLoanApproval(
+          creditScore.creditScore,
+          creditScore.riskLevel,
+          loanData.requestedAmount
+        );
+        setApprovalDecision(decision);
+        console.log("✅ Approval decision updated:", decision);
+        // Auto-populate approved amount based on decision if not already set
+        if (!loanData.approvedAmount && decision.approvedAmount > 0) {
+          setApprovedAmount(decision.approvedAmount);
+        }
+      } else if (creditScore && !loanData.requestedAmount) {
+        console.log("⚠️ Credit score available but loanData.requestedAmount is missing");
+      } else if (!creditScore && loanData.requestedAmount) {
+        console.log("⚠️ Loan data available but credit score not yet loaded");
+      }
     }
-  }, [loanData]);
+  }, [loanData, creditScore]);
 
   // Fetch transactions when on tracking page and loan data is available
   useEffect(() => {
@@ -702,6 +841,67 @@ const LoanDetailPage: React.FC = () => {
                 <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Requested Amount</p>
                 <p className="text-xl font-bold text-cyan-600 dark:text-cyan-400">ETB {loanData?.requestedAmount?.toLocaleString() || '0.00'}</p>
               </div>
+              {/* Credit Score Display */}
+              {isLoadingCreditScore ? (
+                <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Credit Score</p>
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-cyan-600 mr-2"></div>
+                    <p className="text-lg font-medium text-gray-600 dark:text-gray-400">Loading...</p>
+                  </div>
+                </div>
+              ) : creditScore ? (
+                <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Credit Score</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {typeof creditScore.creditScore === 'number' 
+                        ? creditScore.creditScore 
+                        : typeof creditScore.creditScore === 'string' 
+                          ? Number(creditScore.creditScore) || 0 
+                          : 0}
+                    </p>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRiskLevelColor(creditScore.riskLevel || 'HIGH')}`}>
+                      {typeof creditScore.riskLevel === 'string' ? creditScore.riskLevel : 'HIGH'} RISK
+                    </span>
+                  </div>
+                  {approvalDecision && (
+                    <div className="mt-2 pt-2 border-t border-gray-200 dark:border-slate-600">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Recommended Decision:</p>
+                      <div className="flex items-center justify-between">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getDecisionColor(approvalDecision.decision)}`}>
+                          {approvalDecision.decision.replace(/_/g, ' ')}
+                        </span>
+                        {approvalDecision.approvedAmount > 0 && (
+                          <span className="text-sm font-semibold text-cyan-600 dark:text-cyan-400">
+                            ETB {approvalDecision.approvedAmount.toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : loanData?.agentId ? (
+                <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Credit Score</p>
+                  <p className="text-sm text-red-600 dark:text-red-400 mb-2">
+                    {creditScoreError || "Unable to load credit score. Check console for details."}
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => {
+                      if (loanData?.agentId) {
+                        console.log("🔄 Manually retrying credit score fetch for agent:", loanData.agentId);
+                        fetchCreditScore(loanData.agentId.toString());
+                      }
+                    }}
+                  >
+                    Retry
+                  </Button>
+                </div>
+              ) : null}
               <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
                 <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Product Code</p>
                 <p className="text-lg font-medium text-gray-900 dark:text-white">{loanData?.loanTypeCode || 'N/A'}</p>
@@ -1244,6 +1444,66 @@ const LoanDetailPage: React.FC = () => {
               </div>
             ) : (
               <div className="space-y-6">
+                {/* Credit Score and Decision Tree Recommendation */}
+                {approvalDecision && (
+                  <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 p-4 rounded-lg">
+                    <div className="flex items-start mb-3">
+                      <TrendingUp className="w-5 h-5 text-cyan-600 dark:text-cyan-400 mr-2 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-cyan-900 dark:text-cyan-100 mb-1">
+                          Loan Approval Decision Tree Recommendation
+                        </p>
+                        <p className="text-xs text-cyan-700 dark:text-cyan-300 mb-2">
+                          {creditScore?.recommendation || approvalDecision.reason}
+                        </p>
+                        <div className="flex items-center space-x-4 mt-2">
+                          <div>
+                            <span className="text-xs text-cyan-600 dark:text-cyan-400">Credit Score: </span>
+                            <span className="text-sm font-bold text-cyan-900 dark:text-cyan-100">
+                              {creditScore?.creditScore && typeof creditScore.creditScore === 'number' 
+                                ? creditScore.creditScore 
+                                : creditScore?.creditScore && typeof creditScore.creditScore === 'string'
+                                  ? Number(creditScore.creditScore) || 0
+                                  : 0}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-xs text-cyan-600 dark:text-cyan-400">Risk Level: </span>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getRiskLevelColor(creditScore?.riskLevel || 'HIGH')}`}>
+                              {creditScore?.riskLevel && typeof creditScore.riskLevel === 'string' ? creditScore.riskLevel : 'HIGH'}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-xs text-cyan-600 dark:text-cyan-400">Recommended: </span>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getDecisionColor(approvalDecision.decision)}`}>
+                              {approvalDecision.decision.replace(/_/g, ' ')}
+                            </span>
+                          </div>
+                        </div>
+                        {approvalDecision.approvedAmount > 0 && (
+                          <div className="mt-2 pt-2 border-t border-cyan-200 dark:border-cyan-700">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-cyan-600 dark:text-cyan-400">Recommended Amount:</span>
+                              <span className="text-lg font-bold text-cyan-900 dark:text-cyan-100">
+                                ETB {approvalDecision.approvedAmount.toLocaleString()} ({approvalDecision.percentageApproved}%)
+                              </span>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="mt-2 w-full text-cyan-600 border-cyan-300 hover:bg-cyan-100"
+                              onClick={() => setApprovedAmount(approvalDecision.approvedAmount)}
+                            >
+                              Use Recommended Amount
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <div>
                   <Label htmlFor="approvedAmount" className="block text-sm font-medium text-gray-700 mb-2">
                     Approved Amount (ETB) *
@@ -1259,12 +1519,17 @@ const LoanDetailPage: React.FC = () => {
                     step="0.01"
                     required
                   />
+                  {loanData?.requestedAmount && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Requested: ETB {loanData.requestedAmount.toLocaleString()}
+                    </p>
+                  )}
                 </div>
                 
                 {/* Display auto-populated values from product */}
                 {loanProduct && (
                   <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                    <p className="text-sm font-semibold text-gray-700 mb-2">Product Details (Auto-filled from {loanProduct.name}):</p>
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Product Details:</p>
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Interest Rate:</span>
