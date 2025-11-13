@@ -79,11 +79,11 @@ const InfoField: React.FC<InfoFieldProps> = ({
   className = "",
 }) => (
   <div
-    className={`flex justify-between items-center p-3 bg-gray-50 dark:bg-slate-800 rounded-lg ${className}`}
+    className={`flex justify-between items-center p-2 bg-gray-50 dark:bg-slate-800 rounded-lg ${className}`}
   >
     <div className="flex items-center space-x-2">
       {icon && <span className="text-gray-500 dark:text-slate-400">{icon}</span>}
-      <span className="text-sm font-medium text-gray-600 dark:text-slate-300">
+      <span className="text-xs font-medium text-gray-600 dark:text-slate-300">
         {label}
       </span>
     </div>
@@ -285,8 +285,8 @@ const FactoryDetailsPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-6">
-      <Card className="px-5 pt-5 pb-10 dark:bg-slate-800 dark:border-slate-700">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-4">
+      <Card className="px-4 pt-4 pb-6 dark:bg-slate-800 dark:border-slate-700">
         {/* Approve Modal */}
         <AlertModal
           isOpen={openApprove}
@@ -357,22 +357,22 @@ const FactoryDetailsPage: React.FC = () => {
         <Button
           variant="ghost"
           onClick={handleBack}
-          className="mb-6 text-gray-600 hover:text-gray-900 dark:text-slate-300 dark:hover:text-slate-100"
+          className="mb-4 text-gray-600 hover:text-gray-900 dark:text-slate-300 dark:hover:text-slate-100"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Factories
         </Button>
 
         {/* Factory Header with Details */}
-        <Card className="dark:bg-slate-800 dark:border-slate-700 mb-6">
-          <CardHeader>
+        <Card className="dark:bg-slate-800 dark:border-slate-700 mb-4">
+          <CardHeader className="p-3">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold dark:text-slate-100 flex items-center">
-                  <Building2 className="w-6 h-6 mr-2" />
+                <h1 className="text-xl font-bold dark:text-slate-100 flex items-center">
+                  <Building2 className="w-5 h-5 mr-2" />
                   {factory.form.factoryName || factory.name}
                 </h1>
-                <p className="text-gray-600 dark:text-slate-400">
+                <p className="text-sm text-gray-600 dark:text-slate-400">
                   Factory Registration • ID: {factory.form.registrationNo || factory.id}
                 </p>
               </div>
@@ -381,9 +381,9 @@ const FactoryDetailsPage: React.FC = () => {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
+          <CardContent className="p-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-2">
                 <InfoField 
                   label="Factory Type" 
                   value={factory.form.factoryType || factory.form.industry || "N/A"} 
@@ -410,7 +410,7 @@ const FactoryDetailsPage: React.FC = () => {
                   icon={<Phone className="w-4 h-4" />}
                 />
               </div>
-              <div className="space-y-4">
+              <div className="space-y-2">
                 <InfoField 
                   label="Email" 
                   value={factory.form.email || "N/A"} 
@@ -432,7 +432,7 @@ const FactoryDetailsPage: React.FC = () => {
         </Card>
 
         {/* Action Buttons */}
-        <div className="flex justify-end space-x-4 mb-6">
+        <div className="flex justify-end space-x-4 mb-4">
           <Button
             variant="destructive"
             onClick={() => setOpenReject(true)}
@@ -453,7 +453,7 @@ const FactoryDetailsPage: React.FC = () => {
         
         {/* Warning messages */}
         {!canApprove && canReject && (
-          <div className="mb-6 p-4 bg-red-100 dark:bg-red-900/40 border-2 border-red-300 dark:border-red-700 rounded-lg shadow-md">
+          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/40 border-2 border-red-300 dark:border-red-700 rounded-lg shadow-md">
             <div className="text-sm text-red-900 dark:text-red-100 font-semibold">
               {hasRejectedDocuments 
                 ? "Cannot approve factory: One or more documents have been rejected by super admin. All documents must be approved to approve the factory."
@@ -467,7 +467,7 @@ const FactoryDetailsPage: React.FC = () => {
 
         {/* Tabbed Sections */}
         <Tabs defaultValue="details" className="w-full">
-           <TabsList className="grid w-full grid-cols-2 dark:bg-slate-700 mb-5">
+           <TabsList className="grid w-full grid-cols-2 dark:bg-slate-700 mb-3">
              <TabsTrigger
                value="details"
                className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
@@ -485,60 +485,60 @@ const FactoryDetailsPage: React.FC = () => {
           {/* Details Tab */}
           <TabsContent value="details">
             <Card className="dark:bg-slate-800 dark:border-slate-700">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2 dark:text-slate-100">
-                  <Building2 className="w-5 h-5" />
+              <CardHeader className="p-3">
+                <CardTitle className="flex items-center space-x-2 dark:text-slate-100 text-base">
+                  <Building2 className="w-4 h-4" />
                   <span>Factory Information</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
+              <CardContent className="p-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-2">
                     <InfoField 
                       label="Address" 
                       value={factory.form.address || factory.form.location || "N/A"} 
                       icon={<MapPin className="w-4 h-4" />}
                     />
                     {/* Bank Info Section */}
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-2 mb-3">
-                        <CreditCard className="w-5 h-5 text-blue-600" />
-                        <h4 className="text-lg font-semibold text-gray-900 dark:text-slate-100">Bank Information</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <CreditCard className="w-4 h-4 text-blue-600" />
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-slate-100">Bank Information</h4>
                       </div>
                       
                       {factory.form.bankAccounts && factory.form.bankAccounts.length > 0 ? (
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                           {factory.form.bankAccounts.map((bank: any, index: number) => (
-                            <div key={bank.id || index} className="bg-blue-50 dark:bg-slate-700 p-4 rounded-lg border border-blue-200 dark:border-slate-600">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div key={bank.id || index} className="bg-blue-50 dark:bg-slate-700 p-2 rounded-lg border border-blue-200 dark:border-slate-600">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                 <div>
-                                  <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Bank Name</p>
+                                  <p className="text-xs font-medium text-gray-600 dark:text-slate-400">Bank Name</p>
                                   <p className="text-sm text-gray-900 dark:text-slate-100">{bank.bankName || "N/A"}</p>
                                 </div>
                                 <div>
-                                  <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Account Number</p>
+                                  <p className="text-xs font-medium text-gray-600 dark:text-slate-400">Account Number</p>
                                   <p className="text-sm text-gray-900 dark:text-slate-100">{bank.accountNumber || "N/A"}</p>
                                 </div>
                                 <div>
-                                  <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Account Name</p>
+                                  <p className="text-xs font-medium text-gray-600 dark:text-slate-400">Account Name</p>
                                   <p className="text-sm text-gray-900 dark:text-slate-100">{bank.accountName || "N/A"}</p>
                                 </div>
                                 <div>
-                                  <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Branch</p>
+                                  <p className="text-xs font-medium text-gray-600 dark:text-slate-400">Branch</p>
                                   <p className="text-sm text-gray-900 dark:text-slate-100">{bank.bankBranch || "N/A"}</p>
                                 </div>
                                 <div>
-                                  <p className="text-sm font-medium text-gray-600 dark:text-slate-400">Swift Code</p>
+                                  <p className="text-xs font-medium text-gray-600 dark:text-slate-400">Swift Code</p>
                                   <p className="text-sm text-gray-900 dark:text-slate-100">{bank.swiftCode || "N/A"}</p>
                                 </div>
                                 <div>
-                                  <p className="text-sm font-medium text-gray-600 dark:text-slate-400">IBAN</p>
+                                  <p className="text-xs font-medium text-gray-600 dark:text-slate-400">IBAN</p>
                                   <p className="text-sm text-gray-900 dark:text-slate-100">{bank.iban || "N/A"}</p>
                                 </div>
                               </div>
                               {bank.isPrimary && (
-                                <div className="mt-2">
-                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200">
+                                <div className="mt-1">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200">
                                     Primary Account
                                   </span>
                                 </div>
@@ -547,8 +547,8 @@ const FactoryDetailsPage: React.FC = () => {
                           ))}
                         </div>
                       ) : (
-                        <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg border border-gray-200 dark:border-slate-600">
-                          <div className="text-center py-4 text-gray-500 dark:text-slate-400">
+                        <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg border border-gray-200 dark:border-slate-600">
+                          <div className="text-center py-2 text-sm text-gray-500 dark:text-slate-400">
                             No bank account information available
                           </div>
                         </div>
@@ -560,7 +560,7 @@ const FactoryDetailsPage: React.FC = () => {
                       icon={<User className="w-4 h-4" />}
                     />
                   </div>
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     <InfoField 
                       label="Created Date" 
                       value={factory.createdAt ? new Date(factory.createdAt).toLocaleDateString("en-US", {

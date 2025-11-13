@@ -69,9 +69,16 @@ class FactoryService {
       const response = await API.get(`/v1/factories/${factoryId}`);
       console.log('Factory API response:', response);
       console.log('Factory API response data:', response.data);
+      console.log('Factory API response.data.data:', response.data?.data);
+      console.log('Factory API response keys:', Object.keys(response.data || {}));
       
-      // Return the data directly - most APIs return the object directly
-      return response.data;
+      // Handle different response structures - check for nested data or direct data
+      const factoryData = response.data?.data || response.data;
+      console.log('Factory data to return:', factoryData);
+      console.log('Factory data keys:', Object.keys(factoryData || {}));
+      
+      // Return the data - handle both nested and direct response structures
+      return factoryData;
     } catch (error) {
       console.error('Error fetching factory by ID:', error);
       console.error('Factory ID attempted:', factoryId);

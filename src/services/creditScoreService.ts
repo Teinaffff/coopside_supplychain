@@ -7,12 +7,43 @@ export interface CreditScoreResponse {
   calculatedAt?: string;
   recommendation?: string; // Recommendation from API (e.g., "APPROVE WITH CONDITIONS - Consider lower amount or collateral")
   details?: {
+    // Breakdown fields (support both camelCase and snake_case)
+    accountAge?: number;
+    account_age?: number;
+    demographic?: number;
+    transactionBehavior?: number;
+    transaction_behavior?: number;
     paymentHistory?: number;
+    repayment_history?: number;
+    riskAdjustment?: number;
+    risk_adjustment?: number;
+    // Legacy fields
     creditUtilization?: number;
+    credit_history_length?: number;
     creditHistoryLength?: number;
     recentInquiries?: number;
     totalScore?: number;
   };
+  overallSummary?: string;
+  overall_summary?: string;
+  keyMetrics?: {
+    account_age?: string | number;
+    transaction_activity?: string | number;
+    loan_history?: string | number;
+  };
+  financialAnalysis?: {
+    total_transactions_analyzed?: number;
+    analysis_period?: string;
+    average_account_balance?: number;
+    total_credit_amount?: number;
+    total_debit_amount?: number;
+    transaction_pattern?: string;
+    active_loans?: number;
+    overdue_loans?: number;
+    total_repayment_history?: number;
+  };
+  accountOwnershipNote?: string;
+  account_ownership_note?: string;
 }
 
 class CreditScoreService {
@@ -102,8 +133,18 @@ class CreditScoreService {
       // Extract breakdown and recommendation from credit_score object
       const breakdown = creditScoreObj?.breakdown || responseData?.breakdown || responseData?.details || responseData?.scoreDetails;
       const recommendation = creditScoreObj?.recommendation || responseData?.recommendation;
+      const overallSummary = creditScoreObj?.overall_summary || responseData?.overall_summary || creditScoreObj?.overallSummary || responseData?.overallSummary;
+      const keyMetrics = creditScoreObj?.key_metrics || responseData?.key_metrics || creditScoreObj?.keyMetrics || responseData?.keyMetrics;
+      const financialAnalysis = creditScoreObj?.financial_analysis || responseData?.financial_analysis || creditScoreObj?.financialAnalysis || responseData?.financialAnalysis;
+      const accountOwnershipNote = creditScoreObj?.account_ownership_note || responseData?.account_ownership_note || creditScoreObj?.accountOwnershipNote || responseData?.accountOwnershipNote;
       
       console.log(`[CreditScoreService] Extracted recommendation:`, recommendation);
+      console.log(`[CreditScoreService] Extracted overall_summary:`, overallSummary);
+      console.log(`[CreditScoreService] Extracted key_metrics:`, keyMetrics);
+      console.log(`[CreditScoreService] Key metrics account_age:`, keyMetrics?.account_age, typeof keyMetrics?.account_age);
+      console.log(`[CreditScoreService] Key metrics transaction_activity:`, keyMetrics?.transaction_activity, typeof keyMetrics?.transaction_activity);
+      console.log(`[CreditScoreService] Key metrics loan_history:`, keyMetrics?.loan_history, typeof keyMetrics?.loan_history);
+      console.log(`[CreditScoreService] Extracted financial_analysis:`, financialAnalysis);
       
       const result = {
         creditScore: typeof creditScoreValue === 'number' ? creditScoreValue : Number(creditScoreValue) || 0, // This is credit_score.total_score from API
@@ -114,6 +155,12 @@ class CreditScoreService {
         calculatedAt: responseData?.timestamp || creditScoreObj?.calculatedAt || responseData?.calculatedAt || responseData?.calculated_at || new Date().toISOString(),
         recommendation: recommendation, // Use recommendation from API
         details: breakdown,
+        overallSummary: overallSummary,
+        overall_summary: overallSummary,
+        keyMetrics: keyMetrics,
+        financialAnalysis: financialAnalysis,
+        accountOwnershipNote: accountOwnershipNote,
+        account_ownership_note: accountOwnershipNote,
       };
       
       console.log(`[CreditScoreService] ✅ Returning credit score:`, result);

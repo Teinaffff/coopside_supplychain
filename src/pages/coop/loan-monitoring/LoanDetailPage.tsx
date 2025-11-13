@@ -6,7 +6,7 @@ import { Input } from "../../../common/ui/input";
 import { Label } from "../../../common/ui/label";
 import { Textarea } from "../../../common/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../../common/ui/tabs";
-import { CheckCircle, X, FileText, TrendingUp } from "lucide-react";
+import { CheckCircle, X, FileText, TrendingUp, ExternalLink, TrendingDown } from "lucide-react";
 import loanApplicationService, { LoanApplication } from "../../../services/loanApplicationService";
 import { toast } from "react-hot-toast";
 import API from "../../../config/axios-config";
@@ -26,7 +26,7 @@ const LoanDetailPage: React.FC = () => {
   const [agentDetails, setAgentDetails] = useState<any>(null);
   const [isLoadingAgentDetails, setIsLoadingAgentDetails] = useState(false);
   const [factoryLoanApplications, setFactoryLoanApplications] = useState<LoanApplication[]>([]);
-  const [factoryDetails, setFactoryDetails] = useState<any>(null);
+  const [factoryDetails, setFactoryDetails] = useState<any[]>([]);
   const [isLoadingFactoryDetails, setIsLoadingFactoryDetails] = useState(false);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
@@ -126,6 +126,10 @@ const LoanDetailPage: React.FC = () => {
       
       console.log("Credit Score API Response:", creditScoreData);
       console.log("Credit Score Amount:", creditScoreData.creditScore);
+      console.log("Key Metrics:", creditScoreData.keyMetrics);
+      console.log("Key Metrics account_age:", creditScoreData.keyMetrics?.account_age);
+      console.log("Key Metrics transaction_activity:", creditScoreData.keyMetrics?.transaction_activity);
+      console.log("Key Metrics loan_history:", creditScoreData.keyMetrics?.loan_history);
       console.log("Risk Level:", creditScoreData.riskLevel);
       
       // Set credit score regardless of value (0 is a valid score, just indicates high risk)
@@ -270,15 +274,44 @@ const LoanDetailPage: React.FC = () => {
     }
   };
 
-  const fetchFactoryDetails = async (factoryId: string) => {
-    if (!factoryId) return;
+  const fetchFactoryDetails = async (factoryIds: string[]) => {
+    if (!factoryIds || factoryIds.length === 0) {
+      setFactoryDetails([]);
+      return;
+    }
+    
     setIsLoadingFactoryDetails(true);
     try {
-      const factory = await factoryService.getFactoryById(factoryId);
-      setFactoryDetails(factory);
+      console.log("=== FETCHING FACTORY DETAILS ===");
+      console.log("Factory IDs to fetch:", factoryIds);
+      
+      // Fetch factory details for all factory IDs in parallel
+      const factoryPromises = factoryIds.map(async (factoryId) => {
+        try {
+          console.log(`Fetching factory details for ID: ${factoryId}`);
+          const factory = await factoryService.getFactoryById(factoryId);
+          console.log(`Successfully fetched factory ${factoryId}:`, factory);
+          console.log(`Factory ${factoryId} data structure:`, JSON.stringify(factory, null, 2));
+          console.log(`Factory ${factoryId} keys:`, Object.keys(factory || {}));
+          console.log(`Factory ${factoryId} name:`, factory?.name, factory?.factoryName, factory?.businessName);
+          return factory;
+        } catch (e) {
+          console.warn(`Failed to load factory details for ID ${factoryId}:`, e);
+          return null; // Return null for failed fetches, we'll filter them out
+        }
+      });
+      
+      const factories = await Promise.all(factoryPromises);
+      // Filter out null values (failed fetches)
+      const validFactories = factories.filter(factory => factory !== null);
+      
+      console.log(`Successfully fetched ${validFactories.length} out of ${factoryIds.length} factory details`);
+      console.log('All fetched factories:', validFactories);
+      console.log('Factory details state will be set to:', validFactories);
+      setFactoryDetails(validFactories);
     } catch (e) {
-      console.warn("Failed to load factory details:", e);
-      setFactoryDetails(null);
+      console.error("Error fetching factory details:", e);
+      setFactoryDetails([]);
     } finally {
       setIsLoadingFactoryDetails(false);
     }
@@ -335,6 +368,7 @@ const LoanDetailPage: React.FC = () => {
       console.log("Found loan status:", loan.status);
       console.log("Found loan superAdminStatus:", loan.superAdminStatus);
       console.log("Loan factoryId:", rawLoan?.factoryId || rawLoan?.factory_id || rawLoan?.factory?.id);
+      console.log("Loan factoryIds (array):", rawLoan?.factoryIds || rawLoan?.factory_ids || rawLoan?.factories);
       
       // Transform API data to match our expected format with proper field mapping
       const transformedLoan: LoanApplication = {
@@ -380,16 +414,45 @@ const LoanDetailPage: React.FC = () => {
         setCreditScore(null);
       }
       
-      // Fetch factory loan applications using factory ID from the loan application
+      // Extract factory IDs - could be single ID or array of IDs or array of factory objects
       const factoryId = transformedLoan.factoryId;
-      if (factoryId) {
-        console.log("Fetching factory loan applications for factory ID:", factoryId);
-        fetchFactoryLoans(factoryId.toString());
-        fetchFactoryDetails(factoryId.toString());
+      
+      // Try to get factory IDs from various possible fields
+      let factoryIdsArray: any = rawLoan?.factoryIds || rawLoan?.factory_ids || rawLoan?.factories;
+      
+      // If factories is an array of objects, extract IDs from them
+      if (Array.isArray(factoryIdsArray) && factoryIdsArray.length > 0) {
+        // Check if first element is an object with an id property
+        if (typeof factoryIdsArray[0] === 'object' && factoryIdsArray[0] !== null) {
+          factoryIdsArray = factoryIdsArray.map((f: any) => f?.id || f?.factoryId || f?.factory_id);
+        }
+      }
+      
+      // If no array found, try single factory ID
+      if (!factoryIdsArray || (Array.isArray(factoryIdsArray) && factoryIdsArray.length === 0)) {
+        const singleFactoryId = rawLoan?.factoryId || rawLoan?.factory_id || rawLoan?.factory?.id;
+        factoryIdsArray = singleFactoryId ? [singleFactoryId] : [];
+      }
+      
+      // Ensure factoryIdsArray is an array and filter out null/undefined values
+      const factoryIds: (string | number)[] = Array.isArray(factoryIdsArray) 
+        ? factoryIdsArray.filter((id: any) => id !== null && id !== undefined)
+        : [];
+      
+      console.log("Extracted Factory IDs:", factoryIds);
+      
+      if (factoryIds.length > 0) {
+        // Fetch factory details for all factory IDs
+        fetchFactoryDetails(factoryIds.map(id => id.toString()));
+        
+        // For factory loan applications, use the first factory ID (or we could fetch for all)
+        const firstFactoryId = factoryIds[0];
+        console.log("Fetching factory loan applications for factory ID:", firstFactoryId);
+        fetchFactoryLoans(firstFactoryId.toString());
       } else {
-        console.warn("No factory ID found in loan application");
+        console.warn("No factory IDs found in loan application");
         setFactoryLoanApplications([]);
-        setFactoryDetails(null);
+        setFactoryDetails([]);
       }
       
       // Transactions will be fetched via useEffect when loanData is set and isFromTracking is true
@@ -427,7 +490,7 @@ const LoanDetailPage: React.FC = () => {
       
       setLoanData(fallbackLoan);
       setFactoryLoanApplications([]);
-      setFactoryDetails(null);
+      setFactoryDetails([]);
       
       toast.error(`API failed, showing basic details for ${loanId}`);
     } finally {
@@ -746,9 +809,9 @@ const LoanDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-4">
           <Button
             variant="outline"
@@ -801,79 +864,79 @@ const LoanDetailPage: React.FC = () => {
       )}
 
       {/* Loan Application Details */}
-      <Card className="mb-6 border-l-4 border-l-cyan-500 dark:bg-slate-800 dark:border-slate-700">
-        <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:bg-slate-700">
-          <CardTitle className="flex items-center text-cyan-900 dark:text-white">
+      <Card className="mb-4 border-l-4 border-l-cyan-500 dark:bg-slate-800 dark:border-slate-700">
+        <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:bg-slate-700 p-3">
+          <CardTitle className="flex items-center text-cyan-900 dark:text-white text-base">
             Loan Application Details
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <CardContent className="p-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {/* Left Column */}
-            <div className="space-y-4">
-              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Application Number</p>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">{loanData?.applicationNumber || 'N/A'}</p>
+            <div className="space-y-2">
+              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Application Number</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{loanData?.applicationNumber || 'N/A'}</p>
               </div>
-              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Borrower Name</p>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">{loanData?.borrowerName || 'N/A'}</p>
+              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Borrower Name</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{loanData?.borrowerName || 'N/A'}</p>
               </div>
-              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Product Name</p>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">{loanData?.loanTypeName || loanData?.loanType || 'N/A'}</p>
+              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Product Name</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{loanData?.loanTypeName || loanData?.loanType || 'N/A'}</p>
               </div>
-              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Status</p>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">{loanData?.status?.replace(/_/g, ' ') || 'N/A'}</p>
+              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Status</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{loanData?.status?.replace(/_/g, ' ') || 'N/A'}</p>
               </div>
-              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Request Date</p>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">
+              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Request Date</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
                   {loanData?.requestDate ? new Date(loanData.requestDate).toLocaleDateString() : 'N/A'}
                 </p>
               </div>
               </div>
             
             {/* Right Column */}
-            <div className="space-y-4">
-              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Requested Amount</p>
-                <p className="text-xl font-bold text-cyan-600 dark:text-cyan-400">ETB {loanData?.requestedAmount?.toLocaleString() || '0.00'}</p>
+            <div className="space-y-2">
+              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Requested Amount</p>
+                <p className="text-base font-bold text-cyan-600 dark:text-cyan-400">ETB {loanData?.requestedAmount?.toLocaleString() || '0.00'}</p>
               </div>
               {/* Credit Score Display */}
               {isLoadingCreditScore ? (
-                <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Credit Score</p>
+                <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                  <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Credit Score</p>
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-cyan-600 mr-2"></div>
-                    <p className="text-lg font-medium text-gray-600 dark:text-gray-400">Loading...</p>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Loading...</p>
                   </div>
                 </div>
               ) : creditScore ? (
-                <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Credit Score</p>
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                  <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Credit Score</p>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">
                       {typeof creditScore.creditScore === 'number' 
                         ? creditScore.creditScore 
                         : typeof creditScore.creditScore === 'string' 
                           ? Number(creditScore.creditScore) || 0 
                           : 0}
                     </p>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRiskLevelColor(creditScore.riskLevel || 'HIGH')}`}>
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getRiskLevelColor(creditScore.riskLevel || 'HIGH')}`}>
                       {typeof creditScore.riskLevel === 'string' ? creditScore.riskLevel : 'HIGH'} RISK
                     </span>
                   </div>
                   {approvalDecision && (
-                    <div className="mt-2 pt-2 border-t border-gray-200 dark:border-slate-600">
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Recommended Decision:</p>
+                    <div className="mt-1 pt-1 border-t border-gray-200 dark:border-slate-600">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">Recommended Decision:</p>
                       <div className="flex items-center justify-between">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getDecisionColor(approvalDecision.decision)}`}>
                           {approvalDecision.decision.replace(/_/g, ' ')}
                         </span>
                         {approvalDecision.approvedAmount > 0 && (
-                          <span className="text-sm font-semibold text-cyan-600 dark:text-cyan-400">
+                          <span className="text-xs font-semibold text-cyan-600 dark:text-cyan-400">
                             ETB {approvalDecision.approvedAmount.toLocaleString()}
                           </span>
                         )}
@@ -882,15 +945,15 @@ const LoanDetailPage: React.FC = () => {
                   )}
                 </div>
               ) : loanData?.agentId ? (
-                <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Credit Score</p>
-                  <p className="text-sm text-red-600 dark:text-red-400 mb-2">
+                <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                  <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Credit Score</p>
+                  <p className="text-xs text-red-600 dark:text-red-400 mb-1">
                     {creditScoreError || "Unable to load credit score. Check console for details."}
                   </p>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="mt-2"
+                    className="mt-1"
                     onClick={() => {
                       if (loanData?.agentId) {
                         console.log("🔄 Manually retrying credit score fetch for agent:", loanData.agentId);
@@ -902,21 +965,21 @@ const LoanDetailPage: React.FC = () => {
                   </Button>
                 </div>
               ) : null}
-              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Product Code</p>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">{loanData?.loanTypeCode || 'N/A'}</p>
+              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Product Code</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{loanData?.loanTypeCode || 'N/A'}</p>
               </div>
-              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Purpose</p>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">{loanData?.purpose || 'N/A'}</p>
+              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Purpose</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{loanData?.purpose || 'N/A'}</p>
               </div>
-              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Tenure</p>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">{loanData?.tenure || 12} months</p>
+              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Tenure</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{loanData?.tenure || 12} months</p>
               </div>
-              <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Submission Date</p>
-                <p className="text-lg font-medium text-gray-900 dark:text-white">
+              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Submission Date</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
                   {loanData?.submissionDate ? new Date(loanData.submissionDate).toLocaleDateString() : 'N/A'}
                 </p>
               </div>
@@ -927,14 +990,29 @@ const LoanDetailPage: React.FC = () => {
 
       {/* Tabbed Sections */}
       <Card className="dark:bg-slate-800 dark:border-slate-700">
-        <CardContent className="p-6">
+        <CardContent className="p-3">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className={`grid w-full ${isFromTracking ? 'grid-cols-5' : 'grid-cols-4'} mb-6 dark:bg-slate-700`}>
+            <TabsList className={`grid w-full ${isFromTracking ? 'grid-cols-5' : 'grid-cols-4'} mb-3 dark:bg-slate-700`}>
               <TabsTrigger 
                 value="agent-details"
-                className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200"
+                className="dark:data-[state=active]:bg-slate-600 dark:text-slate-200 relative flex items-center gap-2"
               >
-                Agent Details
+                <span>Agent Details</span>
+                {agentDetails && (agentDetails?.id || loanData?.agentId) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const agentId = agentDetails?.id || loanData?.agentId;
+                      if (agentId) {
+                        navigate(`/coop/approval/agents/${agentId}`);
+                      }
+                    }}
+                    className="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-500 rounded transition-colors flex items-center justify-center"
+                    title="View Full Agent Details"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
+                  </button>
+                )}
               </TabsTrigger>
               <TabsTrigger 
                 value="tin-registry"
@@ -965,7 +1043,7 @@ const LoanDetailPage: React.FC = () => {
             </TabsList>
 
             {/* Agent Details Tab */}
-            <TabsContent value="agent-details" className="space-y-4">
+            <TabsContent value="agent-details" className="space-y-2">
               {isLoadingAgentDetails ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="text-center">
@@ -974,154 +1052,514 @@ const LoanDetailPage: React.FC = () => {
                   </div>
                 </div>
               ) : agentDetails ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Gender</p>
-                    <p className="text-lg font-medium text-gray-900 dark:text-white">
-                      {agentDetails?.gender || 'N/A'}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Email</p>
-                    <p className="text-lg font-medium text-gray-900 dark:text-white">
-                      {agentDetails?.email || 'N/A'}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Agent Type</p>
-                    <p className="text-lg font-medium text-gray-900 dark:text-white">
-                      {agentDetails?.agentType || 'N/A'}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">ID Number</p>
-                    <p className="text-lg font-medium text-gray-900 dark:text-white">
-                      {agentDetails?.idNumber || 'N/A'}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Address</p>
-                    <p className="text-lg font-medium text-gray-900 dark:text-white">
-                      {(() => {
-                        const city = agentDetails?.address?.city || agentDetails?.city || '';
-                        const country = agentDetails?.address?.country || agentDetails?.country || '';
-                        if (city && country) {
-                          return `${city}, ${country}`;
-                        } else if (city) {
-                          return city;
-                        } else if (country) {
-                          return country;
-                        }
-                        return 'N/A';
-                      })()}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Registration Number</p>
-                    <p className="text-lg font-medium text-gray-900 dark:text-white">
-                      {agentDetails?.registrationNumber || 'N/A'}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">License Number</p>
-                    <p className="text-lg font-medium text-gray-900 dark:text-white">
-                      {agentDetails?.licenseNumber || 'N/A'}
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                    <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">License Expiry Date</p>
-                    {agentDetails?.licenseExpiryDate ? (() => {
-                      const expiryDate = new Date(agentDetails.licenseExpiryDate);
-                      const daysRemaining = calculateLicenseDaysRemaining(agentDetails.licenseExpiryDate);
-                      const isExpired = daysRemaining !== null && daysRemaining < 0;
-                      const isExpiringSoon = daysRemaining !== null && daysRemaining >= 0 && daysRemaining <= 30;
-                      
-                      return (
-                        <div>
-                          <p className="text-lg font-medium text-gray-900 dark:text-white">
-                            {expiryDate.toLocaleDateString()}
-                          </p>
-                          {daysRemaining !== null && (
-                            <div className="mt-2">
-                              {isExpired ? (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400">
-                                  Expired {Math.abs(daysRemaining)} day{daysRemaining !== -1 ? 's' : ''} ago
-                                </span>
-                              ) : isExpiringSoon ? (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400">
-                                  {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400">
-                                  {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left
-                                </span>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {/* Left Column - Agent Details */}
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Gender</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {agentDetails?.gender || 'N/A'}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Agent Type</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {agentDetails?.agentType || 'N/A'}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">ID Number</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {agentDetails?.idNumber || 'N/A'}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">License Number</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {agentDetails?.licenseNumber || 'N/A'}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg md:col-span-2">
+                        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">License Expiry Date</p>
+                        {agentDetails?.licenseExpiryDate ? (() => {
+                          const expiryDate = new Date(agentDetails.licenseExpiryDate);
+                          const daysRemaining = calculateLicenseDaysRemaining(agentDetails.licenseExpiryDate);
+                          const isExpired = daysRemaining !== null && daysRemaining < 0;
+                          const isExpiringSoon = daysRemaining !== null && daysRemaining >= 0 && daysRemaining <= 30;
+                          
+                          return (
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                {expiryDate.toLocaleDateString()}
+                              </p>
+                              {daysRemaining !== null && (
+                                <div className="mt-1">
+                                  {isExpired ? (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400">
+                                      Expired {Math.abs(daysRemaining)} day{daysRemaining !== -1 ? 's' : ''} ago
+                                    </span>
+                                  ) : isExpiringSoon ? (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400">
+                                      {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400">
+                                      {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} left
+                                    </span>
+                                  )}
+                                </div>
                               )}
                             </div>
-                          )}
-                        </div>
-                      );
-                    })() : (
-                      <p className="text-lg font-medium text-gray-900 dark:text-white">N/A</p>
-                    )}
-                  </div>
-                  {/* Bank Information */}
-                  {agentDetails?.bankAccountInfos && Array.isArray(agentDetails.bankAccountInfos) && agentDetails.bankAccountInfos.length > 0 && (
-                    <>
-                      {agentDetails.bankAccountInfos.map((account: any, index: number) => (
-                        <div key={account?.id || index} className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 rounded-lg p-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Left Column */}
-                            <div className="space-y-3">
-                              <div>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Bank Name</p>
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                  {account?.bankName || 'N/A'}
-                                </p>
+                          );
+                        })() : (
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">N/A</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Bank Information */}
+                    {agentDetails?.bankAccountInfos && Array.isArray(agentDetails.bankAccountInfos) && agentDetails.bankAccountInfos.length > 0 && (
+                      <>
+                        {agentDetails.bankAccountInfos.map((account: any, index: number) => (
+                          <div key={account?.id || index} className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 rounded-lg p-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              {/* Left Column */}
+                              <div className="space-y-2">
+                                <div>
+                                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">Bank Name</p>
+                                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                    {account?.bankName || 'N/A'}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">Account Number</p>
+                                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                    {account?.accountNumber || 'N/A'}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">Account Name</p>
+                                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                    {account?.accountName || 'N/A'}
+                                  </p>
+                                  {account?.isPrimary && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400 mt-1">
+                                      Primary Account
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                              <div>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Account Number</p>
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                  {account?.accountNumber || 'N/A'}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Account Name</p>
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                  {account?.accountName || 'N/A'}
-                                </p>
-                                {account?.isPrimary && (
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 mt-1.5">
-                                    Primary Account
-                                  </span>
-                                )}
+                              {/* Right Column */}
+                              <div className="space-y-2">
+                                <div>
+                                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">Branch Name</p>
+                                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                    {account?.branchName || 'N/A'}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">Swift Code</p>
+                                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                    {account?.swiftCode || 'N/A'}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-0.5">IBAN</p>
+                                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                    {account?.iban || 'N/A'}
+                                  </p>
+                                </div>
                               </div>
                             </div>
-                            {/* Right Column */}
-                            <div className="space-y-3">
-                              <div>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Branch Name</p>
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                  {account?.branchName || 'N/A'}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Swift Code</p>
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                  {account?.swiftCode || 'N/A'}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">IBAN</p>
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                  {account?.iban || 'N/A'}
+                          </div>
+                        ))}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Right Column - Credit Score Analysis Block */}
+                  <div className="space-y-4">
+                    {creditScore ? (
+                      <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4 space-y-4">
+                        {/* Recommendation Banner */}
+                        {creditScore.recommendation && (
+                          <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 rounded-lg p-3 mb-4">
+                            <p className="text-sm font-semibold text-cyan-900 dark:text-cyan-200">
+                              {creditScore.recommendation}
+                            </p>
+                          </div>
+                        )}
+                        
+                        {/* Header with Overall Score and Risk Level */}
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Overall Credit Score</p>
+                            <div className="flex items-center gap-3">
+                              <div className="w-20 h-20 rounded-full border-4 border-cyan-500 dark:border-cyan-400 flex items-center justify-center bg-cyan-50 dark:bg-cyan-900/20">
+                                <p className="text-2xl font-bold text-cyan-600 dark:text-cyan-400">
+                                  {typeof creditScore.creditScore === 'number' 
+                                    ? creditScore.creditScore.toFixed(1)
+                                    : typeof creditScore.creditScore === 'string' 
+                                      ? Number(creditScore.creditScore).toFixed(1) || '0.0'
+                                      : '0.0'}%
                                 </p>
                               </div>
                             </div>
                           </div>
+                          <div className="text-right">
+                            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium ${getRiskLevelColor(creditScore.riskLevel || 'HIGH')}`}>
+                              {creditScore.riskLevel || 'HIGH'}-RISK
+                            </span>
+                          </div>
                         </div>
-                      ))}
-                    </>
-                  )}
+
+                        {/* Score Breakdown and Financial Analysis - Side by Side */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+                          {/* Left Column - Score Breakdown */}
+                          {creditScore.details && (
+                            <div className="space-y-3">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Score Breakdown</p>
+                              <div className="space-y-2">
+                                {(creditScore.details.accountAge !== undefined || creditScore.details.account_age !== undefined) && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Account Age</span>
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                      {(() => {
+                                        const value = creditScore.details.accountAge ?? creditScore.details.account_age;
+                                        return typeof value === 'number' ? value.toFixed(2) : value;
+                                      })()}%
+                                    </span>
+                                  </div>
+                                )}
+                                {creditScore.details.demographic !== undefined && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Demographic</span>
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                      {typeof creditScore.details.demographic === 'number' 
+                                        ? creditScore.details.demographic.toFixed(2) 
+                                        : creditScore.details.demographic}%
+                                    </span>
+                                  </div>
+                                )}
+                                {(creditScore.details.transactionBehavior !== undefined || creditScore.details.transaction_behavior !== undefined) && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Transaction Behavior</span>
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                      {(() => {
+                                        const value = creditScore.details.transactionBehavior ?? creditScore.details.transaction_behavior;
+                                        return typeof value === 'number' ? value.toFixed(2) : value;
+                                      })()}%
+                                    </span>
+                                  </div>
+                                )}
+                                {(creditScore.details.paymentHistory !== undefined || creditScore.details.repayment_history !== undefined) && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Repayment History</span>
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                      {(() => {
+                                        const value = creditScore.details.paymentHistory ?? creditScore.details.repayment_history;
+                                        return typeof value === 'number' ? value.toFixed(2) : value;
+                                      })()}%
+                                    </span>
+                                  </div>
+                                )}
+                                {(creditScore.details.riskAdjustment !== undefined || creditScore.details.risk_adjustment !== undefined) && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Risk Adjustment</span>
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                      {(() => {
+                                        const value = creditScore.details.riskAdjustment ?? creditScore.details.risk_adjustment;
+                                        return typeof value === 'number' ? value.toFixed(2) : value;
+                                      })()}%
+                                    </span>
+                                  </div>
+                                )}
+                                {/* Fallback for other breakdown fields */}
+                                {creditScore.details.creditHistoryLength !== undefined && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Credit History Length</span>
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                      {typeof creditScore.details.creditHistoryLength === 'number' 
+                                        ? creditScore.details.creditHistoryLength.toFixed(2) 
+                                        : creditScore.details.creditHistoryLength}%
+                                    </span>
+                                  </div>
+                                )}
+                                {creditScore.details.creditUtilization !== undefined && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Credit Utilization</span>
+                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                      {typeof creditScore.details.creditUtilization === 'number' 
+                                        ? creditScore.details.creditUtilization.toFixed(2) 
+                                        : creditScore.details.creditUtilization}%
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Right Column - Financial Analysis */}
+                          {creditScore.financialAnalysis && (
+                            <div className="space-y-3">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Financial Analysis</p>
+                              <div className="space-y-2">
+                                {creditScore.financialAnalysis.total_transactions_analyzed !== undefined && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Total Transactions Analyzed</span>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {creditScore.financialAnalysis.total_transactions_analyzed}
+                                    </span>
+                                  </div>
+                                )}
+                                {creditScore.financialAnalysis.analysis_period && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Analysis Period</span>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {creditScore.financialAnalysis.analysis_period}
+                                    </span>
+                                  </div>
+                                )}
+                                {creditScore.financialAnalysis.average_account_balance !== undefined && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Average Account Balance</span>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                      ETB {creditScore.financialAnalysis.average_account_balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                  </div>
+                                )}
+                                {creditScore.financialAnalysis.total_credit_amount !== undefined && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Total Credit Amount</span>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                      ETB {creditScore.financialAnalysis.total_credit_amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                  </div>
+                                )}
+                                {creditScore.financialAnalysis.total_debit_amount !== undefined && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Total Debit Amount</span>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                      ETB {creditScore.financialAnalysis.total_debit_amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                    </span>
+                                  </div>
+                                )}
+                                {creditScore.financialAnalysis.transaction_pattern && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Transaction Pattern</span>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {creditScore.financialAnalysis.transaction_pattern.replace(/_/g, ' ')}
+                                    </span>
+                                  </div>
+                                )}
+                                {creditScore.financialAnalysis.active_loans !== undefined && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Active Loans</span>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {creditScore.financialAnalysis.active_loans}
+                                    </span>
+                                  </div>
+                                )}
+                                {creditScore.financialAnalysis.overdue_loans !== undefined && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Overdue Loans</span>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {creditScore.financialAnalysis.overdue_loans}
+                                    </span>
+                                  </div>
+                                )}
+                                {creditScore.financialAnalysis.total_repayment_history !== undefined && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Total Repayment History</span>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {creditScore.financialAnalysis.total_repayment_history}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Strengths and Key Metrics - Side by Side */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                          {/* Left Column - Strengths */}
+                          <div>
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Strengths</p>
+                            <div className="space-y-2">
+                              {creditScore.creditScore >= 50 && (
+                                <div className="flex items-center gap-2">
+                                  <CheckCircle className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                                  <span className="text-sm text-gray-700 dark:text-gray-300">Established account</span>
+                                </div>
+                              )}
+                              {((creditScore.details?.transactionBehavior !== undefined && Number(creditScore.details.transactionBehavior) > 0) ||
+                                (creditScore.details?.transaction_behavior !== undefined && Number(creditScore.details.transaction_behavior) > 0)) && (
+                                <div className="flex items-center gap-2">
+                                  <CheckCircle className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                                  <span className="text-sm text-gray-700 dark:text-gray-300">Regular transactions</span>
+                                </div>
+                              )}
+                              {((creditScore.details?.paymentHistory !== undefined && Number(creditScore.details.paymentHistory) > 0) ||
+                                (creditScore.details?.repayment_history !== undefined && Number(creditScore.details.repayment_history) > 0)) && (
+                                <div className="flex items-center gap-2">
+                                  <CheckCircle className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                                  <span className="text-sm text-gray-700 dark:text-gray-300">Satisfactory repayment history</span>
+                                </div>
+                              )}
+                              {(!creditScore.details || Object.keys(creditScore.details).length === 0) && creditScore.creditScore >= 50 && (
+                                <div className="flex items-center gap-2">
+                                  <CheckCircle className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                                  <span className="text-sm text-gray-700 dark:text-gray-300">Good credit standing</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Right Column - Key Metrics */}
+                          {(creditScore.keyMetrics || creditScore.financialAnalysis || agentLoanApplications?.length > 0) && (
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Key Metrics</p>
+                              <div className="space-y-2">
+                                {/* Account Age - Always show if keyMetrics section exists */}
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-gray-700 dark:text-gray-300">Account Age</span>
+                                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                    {(() => {
+                                      // Try keyMetrics.account_age first
+                                      const keyMetricsValue = creditScore.keyMetrics?.account_age;
+                                      if (keyMetricsValue !== undefined && keyMetricsValue !== null && keyMetricsValue !== '') {
+                                        if (typeof keyMetricsValue === 'number') {
+                                          return `Active for ${keyMetricsValue} days`;
+                                        } else if (typeof keyMetricsValue === 'string' && keyMetricsValue.trim() !== '') {
+                                          return keyMetricsValue;
+                                        }
+                                      }
+                                      
+                                      // Fallback to creditHistoryLength from details
+                                      const creditHistoryValue = creditScore.details?.creditHistoryLength ?? creditScore.details?.credit_history_length;
+                                      if (creditHistoryValue !== undefined && creditHistoryValue !== null) {
+                                        if (typeof creditHistoryValue === 'number' && creditHistoryValue > 0) {
+                                          // If it's a percentage (0-100), convert to days
+                                          if (creditHistoryValue <= 100) {
+                                            const estimatedDays = Math.round(creditHistoryValue * 365 / 100);
+                                            return `Active for ${estimatedDays} days`;
+                                          } else {
+                                            // If it's already in days
+                                            return `Active for ${creditHistoryValue} days`;
+                                          }
+                                        }
+                                      }
+                                      
+                                      // Fallback to accountAge from breakdown
+                                      const breakdownAccountAge = creditScore.details?.accountAge ?? creditScore.details?.account_age;
+                                      if (breakdownAccountAge !== undefined && breakdownAccountAge !== null) {
+                                        if (typeof breakdownAccountAge === 'number' && breakdownAccountAge > 0) {
+                                          // If it's a percentage, convert to days
+                                          if (breakdownAccountAge <= 100) {
+                                            const estimatedDays = Math.round(breakdownAccountAge * 365 / 100);
+                                            return `Active for ${estimatedDays} days`;
+                                          } else {
+                                            return `Active for ${breakdownAccountAge} days`;
+                                          }
+                                        }
+                                      }
+                                      
+                                      return 'N/A';
+                                    })()}
+                                  </span>
+                                </div>
+                                {/* Transaction Activity */}
+                                {creditScore.keyMetrics?.transaction_activity !== undefined && creditScore.keyMetrics?.transaction_activity !== null ? (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Transactions</span>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {(() => {
+                                        const value = creditScore.keyMetrics.transaction_activity;
+                                        if (typeof value === 'number') {
+                                          return `${value} transactions analyzed`;
+                                        } else if (typeof value === 'string' && value.trim() !== '') {
+                                          return value;
+                                        }
+                                        return 'N/A';
+                                      })()}
+                                    </span>
+                                  </div>
+                                ) : creditScore.financialAnalysis?.total_transactions_analyzed !== undefined && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Transactions</span>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {creditScore.financialAnalysis.total_transactions_analyzed} transactions analyzed
+                                    </span>
+                                  </div>
+                                )}
+                                {/* Loan History */}
+                                {(creditScore.keyMetrics?.loan_history !== undefined && creditScore.keyMetrics?.loan_history !== null && creditScore.keyMetrics?.loan_history !== '') ? (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Loan History</span>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {typeof creditScore.keyMetrics.loan_history === 'number' 
+                                        ? `${creditScore.keyMetrics.loan_history} previous loan${creditScore.keyMetrics.loan_history !== 1 ? 's' : ''}`
+                                        : String(creditScore.keyMetrics.loan_history)}
+                                    </span>
+                                  </div>
+                                ) : (agentLoanApplications && agentLoanApplications.length > 0) && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">Loan History</span>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {agentLoanApplications.length} previous loan{agentLoanApplications.length !== 1 ? 's' : ''}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Overall Summary */}
+                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                          <div className="bg-gray-50 dark:bg-slate-700 rounded-lg p-3">
+                            <p className="text-sm text-gray-700 dark:text-gray-300">
+                              {creditScore.overallSummary || creditScore.overall_summary || 
+                                (creditScore.creditScore >= 75 
+                                  ? "Excellent financial health. Highly reliable candidate for credit."
+                                  : creditScore.creditScore >= 50
+                                    ? "Good financial health. Reliable candidate for credit."
+                                    : "Fair financial health. Consider additional verification.")}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Account Ownership Note */}
+                        {(creditScore.accountOwnershipNote || creditScore.account_ownership_note) && (
+                          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                              <p className="text-xs font-semibold text-yellow-900 dark:text-yellow-200 mb-1">Account Ownership Note</p>
+                              <p className="text-sm text-yellow-800 dark:text-yellow-300">
+                                {creditScore.accountOwnershipNote || creditScore.account_ownership_note}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : isLoadingCreditScore ? (
+                      <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-4">
+                        <div className="flex items-center justify-center py-8">
+                          <div className="text-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600 mx-auto"></div>
+                            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading credit score...</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : creditScoreError ? (
+                      <div className="bg-white dark:bg-slate-800 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                        <p className="text-sm text-red-600 dark:text-red-400">
+                          Unable to load credit score: {creditScoreError}
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-12 text-gray-500 dark:text-gray-400">
@@ -1141,59 +1579,116 @@ const LoanDetailPage: React.FC = () => {
 
             {/* Manufacturer Details Tab */}
             <TabsContent value="manufacturer-details" className="space-y-4">
-              {factoryDetails || (factoryLoanApplications && factoryLoanApplications.length > 0) ? (
-                isLoadingFactoryDetails ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600 mx-auto"></div>
-                      <p className="mt-2 text-gray-600 dark:text-gray-400">Loading factory details...</p>
-                </div>
-              </div>
-            ) : (() => {
-              const first = factoryLoanApplications[0] as any;
-              const factoryName = factoryDetails?.name || factoryDetails?.factoryName || factoryDetails?.businessName || first?.factoryName || first?.factory?.name || 'N/A';
-              const factoryId = factoryDetails?.id || factoryDetails?.registrationNo || factoryDetails?.registrationNumber || first?.factoryId || first?.factory_id || loanData?.factoryId || 'N/A';
-              const totalApplications = factoryLoanApplications.length;
-              const lastCreated = factoryLoanApplications
-                .map((a: any) => new Date(a.created || a.submissionDate || a.requestDate || a.createdAt || 0).getTime())
-                .filter((t: number) => !Number.isNaN(t))
-                .sort((a: number, b: number) => b - a)[0];
-              const latestDate = lastCreated ? new Date(lastCreated).toLocaleDateString() : 'N/A';
-              const totalApproved = factoryLoanApplications.filter((a: any) => (a.status || '').includes('APPROVED') || (a.superAdminStatus || '') === 'approved').length;
-              const totalDisbursed = factoryLoanApplications.filter((a: any) => (a.status || '') === 'DISBURSED').length;
-              return (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                        <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Factory Name</p>
-                          <p className="text-lg font-medium text-gray-900 dark:text-white">{factoryName}</p>
-                  </div>
-                        <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Factory ID</p>
-                          <p className="text-lg font-medium text-gray-900 dark:text-white">{factoryId}</p>
-                  </div>
-                        <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Latest Application Date</p>
-                          <p className="text-lg font-medium text-gray-900 dark:text-white">{latestDate}</p>
+              {isLoadingFactoryDetails ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600 mx-auto"></div>
+                    <p className="mt-2 text-gray-600 dark:text-gray-400">Loading factory details...</p>
                   </div>
                 </div>
+              ) : factoryDetails && factoryDetails.length > 0 ? (
                 <div className="space-y-4">
-                        <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Total Applications</p>
-                          <p className="text-lg font-medium text-gray-900 dark:text-white">{totalApplications}</p>
-                  </div>
-                        <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Approved</p>
-                          <p className="text-lg font-medium text-gray-900 dark:text-white">{totalApproved}</p>
-                    </div>
-                        <div className="bg-gray-50 dark:bg-slate-700 p-4 rounded-lg">
-                          <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Disbursed</p>
-                          <p className="text-lg font-medium text-gray-900 dark:text-white">{totalDisbursed}</p>
-                    </div>
-                  </div>
-                      </div>
+                  {factoryDetails.map((factory: any, index: number) => {
+                    // Debug logging
+                    console.log(`Rendering factory ${index}:`, factory);
+                    console.log(`Factory ${index} keys:`, Object.keys(factory || {}));
+                    console.log(`Factory ${index} form property:`, factory?.form);
+                    
+                    // Check if data is in a 'form' property (like in use-factories hook)
+                    const factoryData = factory?.form || factory;
+                    
+                    const factoryName = factoryData?.name || factoryData?.factoryName || factoryData?.businessName || 
+                                      factory?.name || factory?.factoryName || factory?.businessName || 'N/A';
+                    const factoryId = factoryData?.id || factoryData?.registrationNo || factoryData?.registrationNumber || 
+                                    factory?.id || factory?.registrationNo || factory?.registrationNumber || 'N/A';
+                    const factoryLocation = factoryData?.location || factoryData?.address || factoryData?.factoryLocation || 
+                                          factory?.location || factory?.address || factory?.factoryLocation || 'N/A';
+                    const factoryPhone = factoryData?.phone || factoryData?.phoneNumber || factoryData?.contactPhone || factoryData?.contact || 
+                                       factory?.phone || factory?.phoneNumber || factory?.contactPhone || factory?.contact || 'N/A';
+                    const factoryEmail = factoryData?.email || factoryData?.emailAddress || factoryData?.contactEmail || 
+                                       factory?.email || factory?.emailAddress || factory?.contactEmail || 'N/A';
+                    const factoryTin = factoryData?.tin || factoryData?.tinNumber || factoryData?.taxId || 
+                                     factory?.tin || factory?.tinNumber || factory?.taxId || 'N/A';
+                    const factoryIndustry = factoryData?.industry || factoryData?.industryType || factoryData?.businessSector || factoryData?.factoryType || 
+                                          factory?.industry || factory?.industryType || factory?.businessSector || factory?.factoryType || 'N/A';
+                    const factoryLicense = factoryData?.businessLicense || factoryData?.licenseNumber || 
+                                         factory?.businessLicense || factory?.licenseNumber || 'N/A';
+                    
+                    // Debug: Log extracted values
+                    console.log(`Factory ${index} extracted values:`, {
+                      factoryName,
+                      factoryId,
+                      factoryLocation,
+                      factoryPhone,
+                      factoryEmail,
+                      factoryTin,
+                      factoryIndustry,
+                      factoryLicense
+                    });
+                    
+                    // Get the actual factory ID for navigation
+                    const actualFactoryId = factory?.id || factoryData?.id || factoryId;
+                    
+                    return (
+                      <Card key={factoryId || index} className="dark:bg-slate-800 dark:border-slate-700">
+                        <CardHeader className="p-3">
+                          <CardTitle className="flex items-center dark:text-white text-base">
+                            <span>Factory {factoryDetails.length > 1 ? `#${index + 1}` : ''} Details</span>
+                            {actualFactoryId && actualFactoryId !== 'N/A' && (
+                              <button
+                                onClick={() => navigate(`/coop/approval/factories/${actualFactoryId}`)}
+                                className="ml-2 p-1 hover:bg-gray-200 dark:hover:bg-slate-700 rounded transition-colors"
+                                title="View factory details in Approval Management"
+                              >
+                                <ExternalLink className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+                              </button>
+                            )}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-3">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Factory Name</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">{factoryName}</p>
+                              </div>
+                              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Factory ID</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">{factoryId}</p>
+                              </div>
+                              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Location</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">{factoryLocation}</p>
+                              </div>
+                              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Phone</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">{factoryPhone}</p>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Email</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">{factoryEmail}</p>
+                              </div>
+                              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">TIN Number</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">{factoryTin}</p>
+                              </div>
+                              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Industry</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">{factoryIndustry}</p>
+                              </div>
+                              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">License Number</p>
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">{factoryLicense}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
                     );
-                })()
+                  })}
+                </div>
               ) : (
                 <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                   <p className="text-lg font-medium mb-2">No Manufacturer Details Available</p>
@@ -1203,15 +1698,15 @@ const LoanDetailPage: React.FC = () => {
             </TabsContent>
 
             {/* Products Tab */}
-            <TabsContent value="products" className="space-y-4">
+            <TabsContent value="products" className="space-y-2">
               <Card className="dark:bg-slate-800 dark:border-slate-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center dark:text-white">
-                    <FileText className="w-5 h-5 mr-2" />
+                <CardHeader className="p-3">
+                  <CardTitle className="flex items-center dark:text-white text-base">
+                    <FileText className="w-4 h-4 mr-2" />
                     Products
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-3">
                   {agentProducts.length > 0 ? (
                     <div className="space-y-4">
                       {/* Products Table */}
