@@ -83,9 +83,9 @@ const StatCard: React.FC<StatCardProps> = ({
             <div className={`rounded-xl ${bgClass} px-4 py-3 text-right shadow-sm ring-1 ring-black/5`}
             >
               {secondaryLabel ? (
-                <div className="text-[11px] uppercase tracking-wide opacity-80">{secondaryLabel}</div>
+                <div className="text-[11px] uppercase tracking-wide opacity-80 text-gray-900">{secondaryLabel}</div>
               ) : null}
-              <div className={`text-2xl font-extrabold ${textClass}`}>{secondaryValue}</div>
+              <div className={`text-2xl font-extrabold text-gray-900`}>{secondaryValue}</div>
             </div>
           ) : null}
         </div>

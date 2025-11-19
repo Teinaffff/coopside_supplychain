@@ -14,10 +14,28 @@ export interface LoanApprovalDecision {
 /**
  * Loan Approval Decision Tree
  * 
- * Decision Rules:
- * - LOW RISK (75-100): Auto-approve, 100% of request
- * - MEDIUM RISK (50-74): Approve with conditions, 60-80% of request
- * - HIGH RISK (0-49): Reject or require collateral, ≤ 40% of request
+ * Decision Rules based on Credit Score and Requested Loan Amount:
+ * 
+ * 1. High Credit Score (75-100):
+ *    - ≤ 50,000: 100% approve
+ *    - 50,001 – 100,000: 80% approve
+ *    - 100,001 – 200,000: 60% approve
+ *    - > 200,000: Manual review (40%)
+ * 
+ * 2. Medium Credit Score (50-74):
+ *    - ≤ 30,000: 70% approve
+ *    - 30,001 – 50,000: 50% approve
+ *    - 50,001 – 100,000: 30% approve
+ *    - > 100,000: Manual review (20%)
+ * 
+ * 3. Low Credit Score (30-49):
+ *    - ≤ 20,000: 40% approve
+ *    - 20,001 – 40,000: 25% approve
+ *    - > 40,000: Reject
+ * 
+ * 4. Very Low Credit Score (0-29):
+ *    - ≤ 10,000: 10% approve (or collateral required)
+ *    - > 10,000: Reject
  */
 export function calculateLoanApproval(
   creditScore: number,
@@ -43,46 +61,80 @@ export function calculateLoanApproval(
   let percentageApproved: number;
 
   // Decision Tree Logic
-  if (calculatedRiskLevel === "LOW") {
-    // LOW RISK: 75-100 credit score
-    // Auto-approve, 100% of request
-    decision = "APPROVE";
-    approvedAmount = loanAmountRequested;
-    percentageApproved = 100;
-    reason = `Auto-approved: Excellent credit score (${creditScore}). Low risk borrower qualifies for full requested amount.`;
-  } else if (calculatedRiskLevel === "MEDIUM") {
-    // MEDIUM RISK: 50-74 credit score
-    // Approve with conditions, 60-80% of request
-    // Calculate percentage based on credit score within the 50-74 range
-    // Higher scores (closer to 74) get closer to 80%, lower scores (closer to 50) get closer to 60%
-    const scoreRange = creditScore - 50; // 0-24
-    const percentageRange = 0.20; // 20% range (60% to 80%)
-    percentageApproved = 60 + (scoreRange / 24) * percentageRange * 100;
-    percentageApproved = Math.round(percentageApproved); // Round to nearest integer
-    
-    approvedAmount = Math.round((loanAmountRequested * percentageApproved) / 100);
-    decision = "APPROVE_WITH_CONDITIONS";
-    reason = `Approved with conditions: Medium risk credit score (${creditScore}). Approved ${percentageApproved}% of requested amount. Additional documentation or collateral may be required.`;
-  } else {
-    // HIGH RISK: 0-49 credit score
-    // Reject or require collateral, ≤ 40% of request
-    // Calculate percentage based on credit score within the 0-49 range
-    // Higher scores (closer to 49) get closer to 40%, lower scores (closer to 0) get closer to 0%
-    if (creditScore >= 30) {
-      // Scores 30-49: Approve with conditions, 20-40% of request
-      const scoreRange = creditScore - 30; // 0-19
-      const percentageRange = 0.20; // 20% range (20% to 40%)
-      percentageApproved = 20 + (scoreRange / 19) * percentageRange * 100;
-      percentageApproved = Math.round(percentageApproved);
-      approvedAmount = Math.round((loanAmountRequested * percentageApproved) / 100);
+  if (creditScore >= 75) {
+    // High Credit Score (75-100)
+    if (loanAmountRequested <= 50000) {
+      percentageApproved = 100;
+      decision = "APPROVE";
+      reason = `Auto-approved: Excellent credit score (${creditScore}). Low risk borrower qualifies for full requested amount (ETB ${loanAmountRequested.toLocaleString()}).`;
+    } else if (loanAmountRequested <= 100000) {
+      percentageApproved = 80;
+      decision = "APPROVE";
+      reason = `Approved: Excellent credit score (${creditScore}). Approved 80% of requested amount (ETB ${loanAmountRequested.toLocaleString()}).`;
+    } else if (loanAmountRequested <= 200000) {
+      percentageApproved = 60;
       decision = "APPROVE_WITH_CONDITIONS";
-      reason = `Approved with strict conditions: High risk credit score (${creditScore}). Approved ${percentageApproved}% of requested amount. Collateral and guarantor required.`;
+      reason = `Approved with conditions: Excellent credit score (${creditScore}). Approved 60% of requested amount (ETB ${loanAmountRequested.toLocaleString()}). Additional documentation may be required.`;
     } else {
-      // Scores 0-29: Reject
+      // > 200,000: Manual review (40%)
+      percentageApproved = 40;
+      decision = "APPROVE_WITH_CONDITIONS";
+      reason = `Manual review required: Excellent credit score (${creditScore}) but high loan amount (ETB ${loanAmountRequested.toLocaleString()}). Recommended approval: 40% of requested amount.`;
+    }
+    approvedAmount = Math.round((loanAmountRequested * percentageApproved) / 100);
+  } else if (creditScore >= 50) {
+    // Medium Credit Score (50-74)
+    if (loanAmountRequested <= 30000) {
+      percentageApproved = 70;
+      decision = "APPROVE_WITH_CONDITIONS";
+      reason = `Approved with conditions: Medium risk credit score (${creditScore}). Approved 70% of requested amount (ETB ${loanAmountRequested.toLocaleString()}). Additional documentation or collateral may be required.`;
+    } else if (loanAmountRequested <= 50000) {
+      percentageApproved = 50;
+      decision = "APPROVE_WITH_CONDITIONS";
+      reason = `Approved with conditions: Medium risk credit score (${creditScore}). Approved 50% of requested amount (ETB ${loanAmountRequested.toLocaleString()}). Additional documentation or collateral may be required.`;
+    } else if (loanAmountRequested <= 100000) {
+      percentageApproved = 30;
+      decision = "APPROVE_WITH_CONDITIONS";
+      reason = `Approved with conditions: Medium risk credit score (${creditScore}). Approved 30% of requested amount (ETB ${loanAmountRequested.toLocaleString()}). Additional documentation or collateral required.`;
+    } else {
+      // > 100,000: Manual review (20%)
+      percentageApproved = 20;
+      decision = "APPROVE_WITH_CONDITIONS";
+      reason = `Manual review required: Medium risk credit score (${creditScore}) with high loan amount (ETB ${loanAmountRequested.toLocaleString()}). Recommended approval: 20% of requested amount.`;
+    }
+    approvedAmount = Math.round((loanAmountRequested * percentageApproved) / 100);
+  } else if (creditScore >= 30) {
+    // Low Credit Score (30-49)
+    if (loanAmountRequested <= 20000) {
+      percentageApproved = 40;
+      decision = "APPROVE_WITH_CONDITIONS";
+      approvedAmount = Math.round((loanAmountRequested * percentageApproved) / 100);
+      reason = `Approved with strict conditions: High risk credit score (${creditScore}). Approved 40% of requested amount (ETB ${loanAmountRequested.toLocaleString()}). Collateral and guarantor required.`;
+    } else if (loanAmountRequested <= 40000) {
+      percentageApproved = 25;
+      decision = "APPROVE_WITH_CONDITIONS";
+      approvedAmount = Math.round((loanAmountRequested * percentageApproved) / 100);
+      reason = `Approved with strict conditions: High risk credit score (${creditScore}). Approved 25% of requested amount (ETB ${loanAmountRequested.toLocaleString()}). Collateral and guarantor required.`;
+    } else {
+      // > 40,000: Reject
       decision = "REJECT";
       approvedAmount = 0;
       percentageApproved = 0;
-      reason = `Rejected: Very high risk credit score (${creditScore}). Does not meet minimum credit requirements.`;
+      reason = `Rejected: High risk credit score (${creditScore}) and loan amount (ETB ${loanAmountRequested.toLocaleString()}) exceeds maximum limit for this risk category.`;
+    }
+  } else {
+    // Very Low Credit Score (0-29)
+    if (loanAmountRequested <= 10000) {
+      percentageApproved = 10;
+      decision = "APPROVE_WITH_CONDITIONS";
+      approvedAmount = Math.round((loanAmountRequested * percentageApproved) / 100);
+      reason = `Approved with strict conditions: Very high risk credit score (${creditScore}). Approved 10% of requested amount (ETB ${loanAmountRequested.toLocaleString()}). Collateral required.`;
+    } else {
+      // > 10,000: Reject
+      decision = "REJECT";
+      approvedAmount = 0;
+      percentageApproved = 0;
+      reason = `Rejected: Very high risk credit score (${creditScore}) and loan amount (ETB ${loanAmountRequested.toLocaleString()}) exceeds maximum limit. Does not meet minimum credit requirements.`;
     }
   }
 

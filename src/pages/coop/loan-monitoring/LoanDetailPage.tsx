@@ -14,6 +14,7 @@ import factoryService from "../../../services/factoryService";
 import loanProductService from "../../../services/loanProductService";
 import agentService from "../../../services/agentService";
 import creditScoreService, { CreditScoreResponse } from "../../../services/creditScoreService";
+import externalBusinessService, { ExternalBusiness } from "../../../services/externalBusinessService";
 import { calculateLoanApproval, getRiskLevelColor, getDecisionColor } from "../../../utils/loanApprovalDecisionTree";
 
 const LoanDetailPage: React.FC = () => {
@@ -48,8 +49,14 @@ const LoanDetailPage: React.FC = () => {
   const [creditScoreError, setCreditScoreError] = useState<string | null>(null);
   const [approvalDecision, setApprovalDecision] = useState<any>(null);
   
+  // TIN Registry state
+  const [tinRegistryData, setTinRegistryData] = useState<ExternalBusiness | null>(null);
+  const [isLoadingTinRegistry, setIsLoadingTinRegistry] = useState(false);
+  const [tinRegistryError, setTinRegistryError] = useState<string | null>(null);
+  const [fetchedTinNumber, setFetchedTinNumber] = useState<string | null>(null);
+  
   // Active tab state
-  const [activeTab, setActiveTab] = useState<string>("products");
+  const [activeTab, setActiveTab] = useState<string>("agent-details");
   
   // Rejection reasons options
   const rejectionReasons = [
@@ -184,6 +191,221 @@ const LoanDetailPage: React.FC = () => {
       // Don't show error toast as credit score is optional, but log it
     } finally {
       setIsLoadingCreditScore(false);
+    }
+  };
+
+  // Function to fetch TIN registry data
+  const fetchTinRegistryData = async (agentId: string) => {
+    if (!agentId) {
+      console.warn("Cannot fetch TIN registry: Agent ID is missing");
+      setTinRegistryData(null);
+      setTinRegistryError("Agent ID is missing");
+      return;
+    }
+    
+    setIsLoadingTinRegistry(true);
+    setTinRegistryError(null);
+    
+    try {
+      console.log("=== FETCHING TIN REGISTRY DATA ===");
+      console.log("Step 1: Fetching agent details for Agent ID:", agentId);
+      
+      // Step 1: Get agent details from /v1/agents/{id}
+      const agent = await agentService.getAgentById(agentId);
+      console.log("Agent Details API Response:", agent);
+      
+      // Handle different response structures
+      const agentData = (agent as any)?.data || agent;
+      console.log("Processed Agent Details:", agentData);
+      
+      // Step 2: Extract taxIdentificationNumber from agent details
+      console.log("Step 2: Searching for TIN in agent data...");
+      console.log("Step 2: Full agent data object:", JSON.stringify(agentData, null, 2));
+      console.log("Agent data keys:", Object.keys(agentData || {}));
+      
+      // Log all possible TIN-related fields
+      console.log("Agent data taxIdentificationNumber:", agentData?.taxIdentificationNumber);
+      console.log("Agent data tax_identification_number:", agentData?.tax_identification_number);
+      console.log("Agent data taxIdentification:", agentData?.taxIdentification);
+      console.log("Agent data tin:", agentData?.tin);
+      console.log("Agent data tinNumber:", agentData?.tinNumber);
+      console.log("Agent data taxId:", agentData?.taxId);
+      console.log("Agent data taxID:", agentData?.taxID);
+      console.log("Agent data TIN:", agentData?.TIN);
+      console.log("Agent data TINNumber:", agentData?.TINNumber);
+      
+      // Also check nested objects (like form, businessInfo, etc.)
+      if (agentData?.form) {
+        console.log("Agent data.form:", agentData.form);
+        console.log("Agent data.form.tin:", agentData.form.tin);
+        console.log("Agent data.form.taxId:", agentData.form.taxId);
+        console.log("Agent data.form.taxIdentificationNumber:", agentData.form.taxIdentificationNumber);
+      }
+      
+      // Extract TIN with comprehensive field checking
+      // Priority: taxIdentificationNumber > tax_identification_number > tin > tinNumber > taxId
+      // Also check nested form object
+      const tin = agentData?.taxIdentificationNumber || 
+                  agentData?.tax_identification_number || 
+                  agentData?.taxIdentification ||
+                  agentData?.tin || 
+                  agentData?.tinNumber || 
+                  agentData?.taxId ||
+                  agentData?.taxID ||
+                  agentData?.TIN ||
+                  agentData?.TINNumber ||
+                  agentData?.form?.tin ||
+                  agentData?.form?.taxId ||
+                  agentData?.form?.taxIdentificationNumber ||
+                  agentData?.businessInfo?.tin ||
+                  agentData?.businessInfo?.taxId;
+      
+      console.log("Step 2: Extracted TIN:", tin);
+      console.log("Step 2: TIN type:", typeof tin);
+      console.log("Step 2: TIN truthy check:", !!tin);
+      
+      // Check if extracted TIN is actually the agent ID (common mistake)
+      const agentIdString = String(agentId);
+      if (tin && String(tin) === agentIdString) {
+        console.error("❌ ERROR: Extracted TIN matches the agent ID. This is likely incorrect.");
+        console.error("❌ Agent ID:", agentIdString);
+        console.error("❌ Extracted value:", tin);
+        console.error("❌ Please check the agent data structure for the correct TIN field.");
+        const errorMsg = `Tax Identification Number not found in agent details. The extracted value matches the agent ID (${agentIdString}), which is incorrect. Please ensure the agent has a TIN registered in a separate field.`;
+        setTinRegistryData(null);
+        setTinRegistryError(errorMsg);
+        return;
+      }
+      
+      // Warn if TIN looks like it might be an ID (numeric and short)
+      if (tin && /^\d+$/.test(String(tin)) && String(tin).length < 8) {
+        console.warn("⚠️ WARNING: Extracted TIN looks like it might be an ID (short numeric value):", tin);
+        console.warn("⚠️ TIN length:", String(tin).length);
+        console.warn("⚠️ Agent ID:", agentIdString);
+        console.warn("⚠️ Please verify this is the correct TIN and not the agent ID");
+        // Don't block it, but log a strong warning
+      }
+      
+      if (!tin) {
+        const errorMsg = "Tax Identification Number not found in agent details. Please ensure the agent has a TIN registered.";
+        console.warn(errorMsg);
+        console.warn("Available agent fields:", Object.keys(agentData || {}));
+        setTinRegistryData(null);
+        setTinRegistryError(errorMsg);
+        return;
+      }
+      
+      // Ensure TIN is a string and clean it
+      let tinString = String(tin).trim();
+      
+      // Remove any whitespace, dashes, or special characters that might cause issues
+      tinString = tinString.replace(/[\s\-_]/g, '');
+      
+      if (!tinString) {
+        const errorMsg = "Tax Identification Number is empty";
+        console.warn(errorMsg);
+        setTinRegistryData(null);
+        setTinRegistryError(errorMsg);
+        return;
+      }
+      
+      // Validate TIN format (basic check - should be alphanumeric)
+      if (!/^[A-Za-z0-9]+$/.test(tinString)) {
+        console.warn("TIN contains invalid characters:", tinString);
+        // Still try to use it, but log a warning
+      }
+      
+      console.log("Step 2: Using TIN string (cleaned):", tinString);
+      console.log("Step 2: TIN length:", tinString.length);
+      
+      // Store the TIN that was used to fetch the data
+      setFetchedTinNumber(tinString);
+      
+      // Step 3: Get business details from /v1/external/business/{tin}
+      console.log("Step 3: Fetching business details for TIN:", tinString);
+      console.log("Step 3: API endpoint will be: /v1/external/business/" + tinString);
+      const businessData = await externalBusinessService.getBusinessByTin(tinString);
+      console.log("Business Details API Response (raw):", businessData);
+      console.log("Business Details API Response keys:", Object.keys(businessData || {}));
+      console.log("Business Details API Response (stringified):", JSON.stringify(businessData, null, 2));
+      
+      // Check if we got valid data
+      if (!businessData || Object.keys(businessData).length === 0) {
+        const errorMsg = "No business information found for this TIN";
+        console.warn(errorMsg);
+        setTinRegistryData(null);
+        setTinRegistryError(errorMsg);
+        return;
+      }
+      
+      // Check if we have at least some basic data
+      if (!businessData.businessName && !businessData.registrationNumber) {
+        const errorMsg = "Incomplete business information received from TIN registry";
+        console.warn(errorMsg);
+        setTinRegistryData(null);
+        setTinRegistryError(errorMsg);
+        return;
+      }
+      
+      // Ensure the TIN is included in the business data if it's missing
+      if (!businessData.tin && tinString) {
+        businessData.tin = tinString;
+      }
+      
+      setTinRegistryData(businessData);
+      setTinRegistryError(null);
+      console.log("✅ TIN registry data successfully fetched");
+      
+    } catch (e: any) {
+      console.error("❌ Failed to load TIN registry data:", e);
+      console.error("❌ Error stack:", e?.stack);
+      console.error("❌ Error response:", e?.response);
+      console.error("❌ Error response data:", e?.response?.data);
+      console.error("❌ Error response status:", e?.response?.status);
+      console.error("❌ Error response statusText:", e?.response?.statusText);
+      
+      const errorMessage = e?.response?.data?.message || 
+                          e?.response?.data?.error || 
+                          e?.message || 
+                          "Unknown error occurred";
+      const errorStatus = e?.response?.status;
+      const errorCode = e?.code;
+      
+      console.error("Error details summary:", {
+        message: errorMessage,
+        status: errorStatus,
+        code: errorCode,
+        response: e?.response?.data,
+        url: e?.config?.url,
+        method: e?.config?.method
+      });
+      
+      let userFriendlyError = "Error fetching the TIN";
+      
+      // Log all errors for debugging but show simple message to user
+      if (errorCode === "ECONNREFUSED" || errorCode === "ERR_NETWORK" || errorCode === "ERR_INTERNET_DISCONNECTED") {
+        console.error("Network error: Cannot connect to TIN registry service");
+      } else if (errorStatus === 404) {
+        console.error("Business information not found for this TIN");
+      } else if (errorStatus === 401 || errorStatus === 403) {
+        console.error("Authentication error:", errorMessage);
+      } else if (errorStatus === 500) {
+        const errorData = e?.response?.data || {};
+        console.error("Full 500 error response:", JSON.stringify(errorData, null, 2));
+        console.error("Error response type:", typeof errorData);
+        console.error("Error response keys:", Object.keys(errorData));
+      } else if (errorStatus === 400) {
+        console.error("Invalid request:", errorMessage);
+      } else if (errorStatus) {
+        console.error(`Error (${errorStatus}):`, errorMessage);
+      } else if (errorMessage && errorMessage !== "Unknown error occurred") {
+        console.error("Error:", errorMessage);
+      }
+      
+      setTinRegistryData(null);
+      setTinRegistryError(userFriendlyError);
+    } finally {
+      setIsLoadingTinRegistry(false);
     }
   };
 
@@ -408,6 +630,8 @@ const LoanDetailPage: React.FC = () => {
         console.log("🚀 Fetching agent data and credit score for Agent ID:", agentIdString);
         console.log("   → This will trigger: POST http://10.8.100.39:5004/api/v1/credit-score with { agentId:", agentIdString, "}");
         fetchAgentData(agentIdString);
+        // Also fetch TIN registry data
+        fetchTinRegistryData(agentIdString);
       } else {
         console.error("❌ No Agent ID found in loan application response. Cannot fetch credit score.");
         console.error("   Available fields in loan response:", Object.keys(rawLoan || {}));
@@ -661,7 +885,7 @@ const LoanDetailPage: React.FC = () => {
         );
         setApprovalDecision(decision);
         console.log("✅ Approval decision updated:", decision);
-        // Auto-populate approved amount based on decision if not already set
+        // Auto-populate approved amount based on decision tree recommendation if not already set
         if (!loanData.approvedAmount && decision.approvedAmount > 0) {
           setApprovedAmount(decision.approvedAmount);
         }
@@ -774,9 +998,9 @@ const LoanDetailPage: React.FC = () => {
       return 'This loan request has already been processed';
     }
     // For any other pending status that's not PENDING_SUPER_ADMIN_APPROVAL, show default message
-    if (status.includes('PENDING') && status !== 'PENDING_SUPER_ADMIN_APPROVAL') {
-      return 'Partner should approve first';
-    }
+    // if (status.includes('PENDING') && status !== 'PENDING_SUPER_ADMIN_APPROVAL') {
+    //   return 'Partner should approve first';
+    // }
     return '';
   };
 
@@ -836,7 +1060,17 @@ const LoanDetailPage: React.FC = () => {
             <>
               <Button
                 className="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-cyan-600"
-                onClick={() => setShowLoanApproveDialog(true)}
+                onClick={() => {
+                  // Set approved amount from decision tree if available
+                  if (approvalDecision && approvalDecision.approvedAmount > 0) {
+                    setApprovedAmount(approvalDecision.approvedAmount);
+                  } else if (loanData?.approvedAmount) {
+                    setApprovedAmount(loanData.approvedAmount);
+                  } else if (loanData?.requestedAmount) {
+                    setApprovedAmount(loanData.requestedAmount);
+                  }
+                  setShowLoanApproveDialog(true);
+                }}
                 disabled={!canApproveOrReject || isApprovingLoan || isRejectingLoan}
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
@@ -856,17 +1090,10 @@ const LoanDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Status Message Banner */}
-      {!isFromTracking && !canApproveOrReject && loanData && getDisabledReason() && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded mb-6">
-          <p className="text-sm text-yellow-800">{getDisabledReason()}</p>
-        </div>
-      )}
-
       {/* Loan Application Details */}
       <Card className="mb-4 border-l-4 border-l-cyan-500 dark:bg-slate-800 dark:border-slate-700">
-        <CardHeader className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:bg-slate-700 p-3">
-          <CardTitle className="flex items-center text-cyan-900 dark:text-white text-base">
+        <CardHeader className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 rounded-lg p-3 mb-4">
+          <CardTitle className="flex items-center text-cyan-900 dark:text-gray-900 text-base font-semibold">
             Loan Application Details
           </CardTitle>
         </CardHeader>
@@ -895,6 +1122,10 @@ const LoanDetailPage: React.FC = () => {
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
                   {loanData?.requestDate ? new Date(loanData.requestDate).toLocaleDateString() : 'N/A'}
                 </p>
+              </div>
+              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Tenure</p>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{loanData?.tenure || 12} months</p>
               </div>
               </div>
             
@@ -972,10 +1203,6 @@ const LoanDetailPage: React.FC = () => {
               <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
                 <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Purpose</p>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">{loanData?.purpose || 'N/A'}</p>
-              </div>
-              <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
-                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Tenure</p>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{loanData?.tenure || 12} months</p>
               </div>
               <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
                 <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Submission Date</p>
@@ -1078,6 +1305,18 @@ const LoanDetailPage: React.FC = () => {
                         <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">License Number</p>
                         <p className="text-sm font-medium text-gray-900 dark:text-white">
                           {agentDetails?.licenseNumber || 'N/A'}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Phone Number</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {agentDetails?.phone || agentDetails?.phoneNumber || agentDetails?.contactPhone || agentDetails?.contact || 'N/A'}
+                        </p>
+                      </div>
+                      <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                        <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Email</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {agentDetails?.email || agentDetails?.emailAddress || agentDetails?.contactEmail || 'N/A'}
                         </p>
                       </div>
                       <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg md:col-span-2">
@@ -1185,7 +1424,7 @@ const LoanDetailPage: React.FC = () => {
                         {/* Recommendation Banner */}
                         {creditScore.recommendation && (
                           <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 rounded-lg p-3 mb-4">
-                            <p className="text-sm font-semibold text-cyan-900 dark:text-cyan-200">
+                            <p className="text-sm font-semibold text-cyan-900 dark:text-gray-900">
                               {creditScore.recommendation}
                             </p>
                           </div>
@@ -1196,7 +1435,7 @@ const LoanDetailPage: React.FC = () => {
                           <div>
                             <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Overall Credit Score</p>
                             <div className="flex items-center gap-3">
-                              <div className="w-20 h-20 rounded-full border-4 border-cyan-500 dark:border-cyan-400 flex items-center justify-center bg-cyan-50 dark:bg-cyan-900/20">
+                              <div className="w-20 h-20 rounded-full border-2 border-cyan-500 dark:border-cyan-400 flex items-center justify-center bg-cyan-50 dark:bg-cyan-900/20">
                                 <p className="text-2xl font-bold text-cyan-600 dark:text-cyan-400">
                                   {typeof creditScore.creditScore === 'number' 
                                     ? creditScore.creditScore.toFixed(1)
@@ -1571,10 +1810,190 @@ const LoanDetailPage: React.FC = () => {
 
             {/* TIN Registry Tab */}
             <TabsContent value="tin-registry" className="space-y-4">
-              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                <p className="text-lg font-medium mb-2">TIN Registry Information</p>
-                <p className="text-sm">TIN registry details will be displayed here</p>
-              </div>
+              {isLoadingTinRegistry ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600 mx-auto"></div>
+                    <p className="mt-2 text-gray-600 dark:text-gray-400">Loading TIN registry details...</p>
+                  </div>
+                </div>
+              ) : tinRegistryError ? (
+                <div className="text-center py-12">
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 max-w-2xl mx-auto">
+                    <p className="text-lg font-medium mb-2 text-red-600 dark:text-red-400">Error Loading TIN Registry</p>
+                    <p className="text-sm text-red-700 dark:text-red-300">{tinRegistryError}</p>
+                  </div>
+                </div>
+              ) : tinRegistryData ? (
+                <div className="space-y-4">
+                  <Card className="dark:bg-slate-800 dark:border-slate-700">
+                    <CardHeader className="p-3">
+                      <CardTitle className="flex items-center dark:text-white text-base">
+                        <span>TIN Registry Information</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                            <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">TIN Number</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {tinRegistryData.tin || fetchedTinNumber || 'N/A'}
+                            </p>
+                          </div>
+                          <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                            <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Business Name (English)</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {tinRegistryData.businessName || 'N/A'}
+                            </p>
+                          </div>
+                          <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                            <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Business Name (Amharic)</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {tinRegistryData.businessNameAmh || 'N/A'}
+                            </p>
+                          </div>
+                          <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                            <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Registration Number</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {tinRegistryData.registrationNumber || 'N/A'}
+                            </p>
+                          </div>
+                          <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                            <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Registration Date</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {tinRegistryData.registrationDate || 'N/A'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                            <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Legal Condition</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {tinRegistryData.legalCondition || 'N/A'}
+                            </p>
+                          </div>
+                          <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                            <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Paid Up Capital</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {tinRegistryData.paidUpCapital 
+                                ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'ETB' }).format(tinRegistryData.paidUpCapital)
+                                : 'N/A'}
+                            </p>
+                          </div>
+                          {tinRegistryData.associates && tinRegistryData.associates.length > 0 && (
+                            <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                              <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Manager Name</p>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                {tinRegistryData.associates[0]?.ManagerNameEng || tinRegistryData.associates[0]?.ManagerName || 'N/A'}
+                              </p>
+                              {tinRegistryData.associates[0]?.ManagerName && (
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                  ({tinRegistryData.associates[0].ManagerName})
+                                </p>
+                              )}
+                            </div>
+                          )}
+                          {tinRegistryData.associates && tinRegistryData.associates.length > 0 && (
+                            <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                              <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Manager Phone</p>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                {tinRegistryData.associates[0]?.MobilePhone || tinRegistryData.associates[0]?.RegularPhone || 'N/A'}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Business Licenses Section */}
+                  {tinRegistryData.businesses && tinRegistryData.businesses.length > 0 && (
+                    <Card className="dark:bg-slate-800 dark:border-slate-700">
+                      <CardHeader className="p-3">
+                        <CardTitle className="flex items-center dark:text-white text-base">
+                          <span>Businesses</span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-3">
+                        <div className="overflow-x-auto">
+                          <table className="w-full border-collapse">
+                            <thead>
+                              <tr className="bg-gray-50 dark:bg-slate-700 border-b border-gray-200 dark:border-slate-600">
+                                <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Trade Name</th>
+                                <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">License No.</th>
+                                <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Date Registered</th>
+                                <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Renewed From</th>
+                                <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Renewed To</th>
+                                <th className="text-left p-3 text-sm font-semibold text-gray-700 dark:text-gray-300">Sub Groups</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {tinRegistryData.businesses.map((business: any, index: number) => {
+                                // Format dates
+                                const dateRegistered = business.DateRegistered 
+                                  ? new Date(business.DateRegistered).toLocaleDateString('en-US', { 
+                                      year: 'numeric', 
+                                      month: 'long', 
+                                      day: 'numeric' 
+                                    })
+                                  : 'N/A';
+                                
+                                const renewedFrom = business.RenewedFrom 
+                                  ? new Date(business.RenewedFrom).toLocaleDateString('en-US', { 
+                                      year: 'numeric', 
+                                      month: 'long', 
+                                      day: 'numeric' 
+                                    })
+                                  : 'N/A';
+                                
+                                const renewedTo = business.RenewedTo 
+                                  ? new Date(business.RenewedTo).toLocaleDateString('en-US', { 
+                                      year: 'numeric', 
+                                      month: 'long', 
+                                      day: 'numeric' 
+                                    })
+                                  : 'N/A';
+                                
+                                return (
+                                  <tr 
+                                    key={business.MainGuid || index} 
+                                    className="border-b border-gray-200 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
+                                  >
+                                    <td className="p-3 text-sm text-gray-900 dark:text-white">
+                                      {business.TradesName || business.TradeNameAmh || 'N/A'}
+                                    </td>
+                                    <td className="p-3 text-sm text-gray-700 dark:text-gray-300">
+                                      {business.LicenceNumber || 'N/A'}
+                                    </td>
+                                    <td className="p-3 text-sm text-gray-700 dark:text-gray-300">
+                                      {dateRegistered}
+                                    </td>
+                                    <td className="p-3 text-sm text-gray-700 dark:text-gray-300">
+                                      {renewedFrom}
+                                    </td>
+                                    <td className="p-3 text-sm text-gray-700 dark:text-gray-300">
+                                      {renewedTo}
+                                    </td>
+                                    <td className="p-3 text-sm text-gray-700 dark:text-gray-300">
+                                      {business.SubGroups || 'N/A'}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                  <p className="text-lg font-medium mb-2">No TIN Registry Information Available</p>
+                  <p className="text-sm">TIN registry details will be displayed here when available</p>
+                </div>
+              )}
             </TabsContent>
 
             {/* Manufacturer Details Tab */}
