@@ -119,9 +119,19 @@ const LoanStatusTrackingPage: React.FC = () => {
       );
 
       // Transform API data to match our expected format
-      const transformedApplications = enrichedApplications.map((app: any) => ({
+      const transformedApplications = enrichedApplications.map((app: any) => {
+        // Extract loan type from various possible fields and nested structures
+        const loanTypeName = app.loanTypeName 
+          || app.productName 
+          || app.loanType?.name 
+          || app.product?.name 
+          || app.loanType 
+          || app.type 
+          || 'Goods Purchase Financing';
+        
+        return {
         applicationNumber: app.applicationNumber || app.id || 'N/A',
-        loanType: app.loanType || app.type || 'Goods Purchase Financing',
+        loanType: loanTypeName,
         status: app.status || 'PENDING',
         superAdminStatus: app.superAdminStatus || 'pending',
         requestedAmount: app.requestedAmount || app.amount || app.loanAmount || app.request_amount || app.requestAmount || app.principalAmount || app.principal_amount || app.totalAmount || app.total_amount || app.loanDetails?.amount || app.financialDetails?.amount || app.applicationDetails?.amount || 0,
@@ -140,7 +150,11 @@ const LoanStatusTrackingPage: React.FC = () => {
         purpose: app.purpose || app.description || 'N/A',
         documents: app.documents || app.attachments || [],
         riskScore: app.riskScore || app.risk_score || undefined,
-      }));
+        // Additional fields for better display
+        loanTypeCode: app.loanTypeCode || app.productCode || app.typeCode || app.loanType?.code || app.product?.code,
+        loanTypeName: app.loanTypeName || app.productName || app.loanType?.name || app.product?.name || app.loanType,
+      };
+      });
       
       // Process applications with status logic
       const processed = processLoanApplications(transformedApplications);
