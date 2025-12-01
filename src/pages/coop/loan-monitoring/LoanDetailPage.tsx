@@ -1154,6 +1154,12 @@ const LoanDetailPage: React.FC = () => {
                 <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Requested Amount</p>
                 <p className="text-base font-bold text-cyan-600 dark:text-cyan-400">ETB {loanData?.requestedAmount?.toLocaleString() || '0.00'}</p>
               </div>
+            
+              {isFromTracking && (<div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-0.5">Approved Amount</p>
+                <p className="text-base font-bold text-cyan-600 dark:text-cyan-400">ETB {loanData?.approvedAmount?.toLocaleString() || '0.00'}</p>
+              </div>)}
+              
               {/* Credit Score Display */}
               {isLoadingCreditScore ? (
                 <div className="bg-gray-50 dark:bg-slate-700 p-2 rounded-lg">
