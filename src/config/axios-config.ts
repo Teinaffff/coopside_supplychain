@@ -17,14 +17,14 @@ API.interceptors.request.use((config) => {
   try {
     // Get access token from localStorage
     const accessToken = localStorage.getItem("accessToken");
-    
-    // Add Authorization header with Bearer token
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
     }
-  } catch (error) {
-    console.error("[AUTH ERROR] Error in request interceptor:", error);
-  }
+    
+    // eslint-disable-next-line no-console
+    const maskedAuth = config.headers?.Authorization ? `${String(config.headers.Authorization).slice(0,8)}...` : null;
+    console.log("[API REQUEST]", config.method?.toUpperCase(), config.url, { data: config.data, Authorization: maskedAuth });
+  } catch {}
   return config;
 });
 
@@ -38,16 +38,8 @@ API.interceptors.response.use(
       const resp = error?.response?.data || error?.message;
       console.error("[API ERROR]", status, reqUrl, resp);
       
-      // Check if the request had an Authorization header
-      const hadAuthHeader = error?.config?.headers?.Authorization;
-      if (!hadAuthHeader) {
-        console.error("[AUTH ERROR] Request failed with no Authorization header:", reqUrl);
-      }
-      
       // Handle 401 Unauthorized - token might be expired
       if (status === 401) {
-        console.warn("[AUTH WARNING] Authentication required but not provided or token invalid");
-        
         const refreshToken = localStorage.getItem("refreshToken");
         if (refreshToken) {
           try {
@@ -70,8 +62,6 @@ API.interceptors.response.use(
               // eslint-disable-next-line no-console
               console.log("[TOKEN REFRESH] Retrying original request with new token");
               return API(error.config);
-            } else {
-              console.error("[TOKEN REFRESH] Server returned success but no new access token");
             }
           } catch (refreshError) {
             // Refresh failed, redirect to login
@@ -83,15 +73,12 @@ API.interceptors.response.use(
             // dispatch(logout());
           }
         } else {
-          console.error("[AUTH ERROR] No refresh token available to recover from 401 error");
           // No refresh token, redirect to login
           localStorage.removeItem("accessToken");
           localStorage.removeItem("refreshToken");
         }
       }
-    } catch (error) {
-      console.error("[ERROR HANDLER] Error in response interceptor:", error);
-    }
+    } catch {}
     return Promise.reject(error);
   }
 );

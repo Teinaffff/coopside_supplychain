@@ -13,6 +13,7 @@ import API from "../../../config/axios-config";
 import factoryService from "../../../services/factoryService";
 import loanProductService from "../../../services/loanProductService";
 import agentService from "../../../services/agentService";
+import transactionService from "../../../services/transactionService";
 import creditScoreService, { CreditScoreResponse } from "../../../services/creditScoreService";
 import externalBusinessService, { ExternalBusiness } from "../../../services/externalBusinessService";
 import { calculateLoanApproval, getRiskLevelColor, getDecisionColor } from "../../../utils/loanApprovalDecisionTree";
@@ -31,6 +32,12 @@ const LoanDetailPage: React.FC = () => {
   const [isLoadingFactoryDetails, setIsLoadingFactoryDetails] = useState(false);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(false);
+  const [selectedTransactionType, setSelectedTransactionType] = useState<string>("");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
+  const TRANSACTION_TYPES = ["DISBURSEMENT","PAYMENT","PENALTY","REFUND","ADJUSTMENT","INTEREST","PROCESSING_FEE"];
+  const PAYMENT_METHODS = ["BANK_TRANSFER","CARD","WALLET","UPI","CHEQUE","CASH"];
+  const [transactionPageSize, setTransactionPageSize] = useState<number>(10);
+  const [currentTransactionPage, setCurrentTransactionPage] = useState<number>(1);
   const [isApprovingLoan, setIsApprovingLoan] = useState(false);
   const [isRejectingLoan, setIsRejectingLoan] = useState(false);
   const [selectedRejectionReason, setSelectedRejectionReason] = useState<string>("");
@@ -543,9 +550,11 @@ const LoanDetailPage: React.FC = () => {
     if (!applicationNumber) return;
     setIsLoadingTransactions(true);
     try {
-      const response = await API.get(`/v1/transactions/loan/${applicationNumber}`);
-      const transactionsData = response.data?.data || response.data || [];
-      setTransactions(Array.isArray(transactionsData) ? transactionsData : []);
+      const txns = await transactionService.getTransactionsByLoanApplication(applicationNumber, {
+        type: selectedTransactionType || undefined,
+        paymentMethod: selectedPaymentMethod || undefined,
+      });
+      setTransactions(Array.isArray(txns) ? txns : []);
     } catch (e) {
       console.warn("Failed to load transactions:", e);
       setTransactions([]);
@@ -902,7 +911,17 @@ const LoanDetailPage: React.FC = () => {
     if (isFromTracking && loanData?.applicationNumber) {
       fetchTransactions(loanData.applicationNumber);
     }
-  }, [isFromTracking, loanData?.applicationNumber]);
+  }, [isFromTracking, loanData?.applicationNumber, selectedTransactionType, selectedPaymentMethod]);
+
+  // Reset pagination when filters change or data updates
+  useEffect(() => {
+    setCurrentTransactionPage(1);
+  }, [selectedTransactionType, selectedPaymentMethod]);
+
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(transactions.length / transactionPageSize));
+    setCurrentTransactionPage((p) => Math.min(p, totalPages));
+  }, [transactions.length, transactionPageSize]);
 
   if (isLoading) {
     return (
@@ -2192,6 +2211,45 @@ const LoanDetailPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
                   <CardContent>
+            <div className="flex flex-col gap-3 mb-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Transaction Type</label>
+                  <select
+                    value={selectedTransactionType}
+                    onChange={(e) => setSelectedTransactionType(e.target.value)}
+                    className="w-full bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md px-2 py-1 text-sm text-gray-900 dark:text-white"
+                  >
+                    <option value="">All</option>
+                    {TRANSACTION_TYPES.map((t) => (
+                      <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>
+                    ))}
+                  </select>
+                </div>
+                {/* <div>
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Payment Method</label>
+                  <select
+                    value={selectedPaymentMethod}
+                    onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                    className="w-full bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-md px-2 py-1 text-sm text-gray-900 dark:text-white"
+                  >
+                    <option value="">All</option>
+                    {PAYMENT_METHODS.map((m) => (
+                      <option key={m} value={m}>{m.replace(/_/g, ' ')}</option>
+                    ))}
+                  </select>
+                </div> */}
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => { setSelectedTransactionType(""); setSelectedPaymentMethod(""); }}
+                    className="text-sm"
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              </div>
+            </div>
             {isLoadingTransactions ? (
               <div className="flex items-center justify-center py-8">
                 <div className="text-center">
@@ -2218,7 +2276,9 @@ const LoanDetailPage: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {transactions.map((transaction) => (
+                    {transactions
+                      .slice((currentTransactionPage - 1) * transactionPageSize, (currentTransactionPage - 1) * transactionPageSize + transactionPageSize)
+                      .map((transaction) => (
                               <tr key={transaction.id} className="border-b border-gray-100 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700">
                                 <td className="p-3 text-sm text-gray-900 dark:text-white">{transaction.transactionReference || 'N/A'}</td>
                                 <td className="p-3 text-sm text-gray-900 dark:text-white">{transaction.transactionType?.replace(/_/g, ' ') || 'N/A'}</td>
@@ -2251,8 +2311,41 @@ const LoanDetailPage: React.FC = () => {
                     ))}
                   </tbody>
                 </table>
+                {/* Pagination Controls */}
+                <div className="flex items-center justify-between mt-3">
+                  <div className="text-sm text-gray-700 dark:text-gray-300">
+                    {(() => {
+                      const total = transactions.length;
+                      const start = (currentTransactionPage - 1) * transactionPageSize + 1;
+                      const end = Math.min(currentTransactionPage * transactionPageSize, total);
+                      return `Showing ${start}-${end} of ${total}`;
+                    })()}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      disabled={currentTransactionPage <= 1}
+                      onClick={() => setCurrentTransactionPage((p) => Math.max(1, p - 1))}
+                      className="text-sm"
+                    >
+                      Previous
+                    </Button>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Page {currentTransactionPage} of {Math.max(1, Math.ceil(transactions.length / transactionPageSize))}
+                    </span>
+                    <Button
+                      variant="outline"
+                      disabled={currentTransactionPage >= Math.ceil(transactions.length / transactionPageSize)}
+                      onClick={() => setCurrentTransactionPage((p) => p + 1)}
+                      className="text-sm"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
               </div>
-            )}
+            )
+            }
           </CardContent>
         </Card>
               </TabsContent>
