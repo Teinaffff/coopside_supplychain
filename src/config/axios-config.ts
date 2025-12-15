@@ -23,7 +23,7 @@ API.interceptors.request.use((config) => {
     
     // eslint-disable-next-line no-console
     const maskedAuth = config.headers?.Authorization ? `${String(config.headers.Authorization).slice(0,8)}...` : null;
-    console.log("[API REQUEST]", config.method?.toUpperCase(), config.url, { data: config.data, Authorization: maskedAuth });
+    console.log( config.method?.toUpperCase(), config.url, { data: config.data, Authorization: maskedAuth });
   } catch {}
   return config;
 });
@@ -44,14 +44,14 @@ API.interceptors.response.use(
         if (refreshToken) {
           try {
             // eslint-disable-next-line no-console
-            console.log("[TOKEN REFRESH] Attempting to refresh access token...");
+            console.log("Attempting to refresh access token...");
             // Attempt to refresh the token
             const refreshResponse = await API.post("/v1/auth/refresh-token", {
               refreshToken,
             });
             
             // eslint-disable-next-line no-console
-            console.log("[TOKEN REFRESH] Response:", refreshResponse?.data);
+            console.log(" Response:", refreshResponse?.data);
             if (refreshResponse.data?.data?.accessToken) {
               const newAccessToken = refreshResponse.data.data.accessToken;
               localStorage.setItem("accessToken", newAccessToken);
