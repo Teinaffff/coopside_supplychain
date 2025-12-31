@@ -1,6 +1,7 @@
 import { Lock, ShieldCheck } from "lucide-react";
 import { useAuth } from "../../hooks/use-auth";
 import { LoginForm } from "./LoginForm";
+import { IMAGES } from "../../assets";
 
 const LoginPage = () => {
   const { loading, handleLogin } = useAuth();
@@ -19,9 +20,11 @@ const LoginPage = () => {
         <div className="relative z-10 mx-auto flex min-h-screen max-w-md items-center px-6 py-12">
           <div className="w-full rounded-xl border border-gray-100 bg-white/80 shadow-xl backdrop-blur dark:border-gray-700 dark:bg-gray-900/60">
             <div className="flex items-center justify-center pt-8">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-cyan-500 text-white shadow-md">
-                <Lock size={22} />
-              </div>
+              <img 
+                src={IMAGES.supLogo} 
+                alt="Supply Chain Logo" 
+                className="h-16 w-auto object-contain"
+              />
             </div>
             <div className="space-y-4 md:space-y-6 px-6 pb-8 pt-6">
               <div>

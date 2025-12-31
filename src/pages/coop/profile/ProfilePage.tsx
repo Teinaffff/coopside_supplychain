@@ -1,212 +1,345 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Card } from '../../../common/ui/card';
-import { Button } from '../../../common/ui/button';
-import { Badge } from '../../../common/ui/badge';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Shield, 
-  Calendar, 
-  Clock, 
-  Edit3, 
-  Key,
-  ArrowLeft
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, Edit2 } from 'lucide-react';
 import { RootState } from '../../../store';
+import { Button } from '../../../common/ui/button';
+import { Input } from '../../../common/ui/input';
 
 const ProfilePage: React.FC = () => {
-  const navigate = useNavigate();
-  const { user, currentUser } = useSelector((state: RootState) => state.auth);
+  // const { user, currentUser } = useSelector((state: RootState) => state.auth);
+  const [activeTab, setActiveTab] = useState<'details' | 'password'>('details');
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Password visibility states
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Form states
+  const [formData, setFormData] = useState({
+    fullName: 'Admin User',
+    username: 'admin_user',
+    email: 'admin@example.com',
+    phone: '+1234567890',
+  });
+  
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
 
-  // Get user data with fallbacks
-  const userData = {
-    name: user?.name || currentUser?.username || 'User',
-    email: user?.email || 'user@example.com',
-    phone: '+251 92 119 1399', // This would come from user data
-    role: user?.role || currentUser?.userType || 'SUPER_ADMIN',
-    bio: user?.bio || 'System Administrator',
-    profilePic: user?.photo || user?.profile_pic,
-    createdAt: user?.createdAt || new Date().toISOString(),
-    lastLogin: new Date().toISOString(), // This would come from auth data
-    active: user?.active ?? true
-  };
+  // Password validation states
+  const [passwordValidation, setPasswordValidation] = useState({
+    minLength: false,
+    hasLowercase: false,
+    hasUppercase: false,
+    hasSpecial: false,
+  });
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+  // Validate password on change
+  const validatePassword = (password: string) => {
+    setPasswordValidation({
+      minLength: password.length >= 8,
+      hasLowercase: /[a-z]/.test(password),
+      hasUppercase: /[A-Z]/.test(password),
+      hasSpecial: /[0-9!@#$%^&*(),.?":{}|<>\s]/.test(password),
     });
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(word => word.charAt(0))
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+  const handlePasswordChange = (field: string, value: string) => {
+    setPasswordData({ ...passwordData, [field]: value });
+    if (field === 'newPassword') {
+      validatePassword(value);
+    }
+  };
+
+  const handleUpdatePassword = () => {
+    // TODO: Integrate with actual API
+    console.log('Update password:', passwordData);
+  };
+
+  const handleCancelPassword = () => {
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    });
+    setPasswordValidation({
+      minLength: false,
+      hasLowercase: false,
+      hasUppercase: false,
+      hasSpecial: false,
+    });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
-      <div className="max-w-4xl mx-auto p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <Button
-            variant="outline"
-            onClick={() => navigate(-1)}
-            className="mb-4 flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Button>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin User</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">admin@example.com</p>
         </div>
 
-        {/* Profile Header */}
-        <div className="text-center mb-6">
-          <div className="relative inline-block">
-            {userData.profilePic ? (
-              <img
-                src={userData.profilePic}
-                alt={userData.name}
-                className="w-24 h-24 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
-              />
-            ) : (
-              <div className="w-24 h-24 rounded-full bg-gray-600 flex items-center justify-center text-white text-2xl font-bold border-2 border-gray-200 dark:border-gray-700">
-                {getInitials(userData.name)}
-              </div>
-            )}
-            <div className="absolute -bottom-1 -right-1">
-              <Badge 
-                variant={userData.active ? "default" : "secondary"}
-                className="text-xs px-2 py-1"
+        {/* Tabs */}
+        <div className="flex gap-4 mb-6 border-b border-gray-200 dark:border-gray-700">
+          <button
+            onClick={() => setActiveTab('details')}
+            className={`px-6 py-3 font-medium transition-colors ${
+              activeTab === 'details'
+                ? 'text-gray-900 dark:text-white border-b-2 border-gray-900 dark:border-white'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            User Details
+          </button>
+          <button
+            onClick={() => setActiveTab('password')}
+            className={`px-6 py-3 font-medium transition-colors ${
+              activeTab === 'password'
+                ? 'text-gray-900 dark:text-white border-b-2 border-gray-900 dark:border-white'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+            }`}
+          >
+            Change Password
+          </button>
+        </div>
+
+        {/* User Details Tab */}
+        {activeTab === 'details' && (
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-8 shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">User Details</h2>
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               >
-                {userData.active ? 'Active' : 'Inactive'}
-              </Badge>
+                <Edit2 size={18} />
+                Edit
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Full Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Full Name
+                </label>
+                <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700 rounded-md text-gray-600 dark:text-gray-300">
+                  {formData.fullName}
+                </div>
+              </div>
+
+              {/* Username */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Username
+                </label>
+                <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700 rounded-md text-gray-600 dark:text-gray-300">
+                  {formData.username}
+                </div>
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Email
+                </label>
+                <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700 rounded-md text-gray-600 dark:text-gray-300">
+                  {formData.email}
+                </div>
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Phone
+                </label>
+                <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700 rounded-md text-gray-600 dark:text-gray-300">
+                  {formData.phone}
+                </div>
+              </div>
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mt-3 mb-2">
-            {userData.name}
-          </h1>
-          <Badge 
-            variant="outline" 
-            className="text-sm px-3 py-1"
-          >
-            {userData.role}
-          </Badge>
-        </div>
+        )}
 
-        {/* Profile Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Profile Information Card */}
-          <Card className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Profile Information
-              </h2>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(!isEditing)}
-                className="flex items-center gap-2"
-              >
-                <Edit3 className="w-4 h-4" />
-                {isEditing ? 'Cancel' : 'Edit'}
-              </Button>
-            </div>
-            
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-2 rounded-md bg-gray-50 dark:bg-slate-700">
-                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center">
-                  <User className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+        {/* Change Password Tab */}
+        {activeTab === 'password' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Password Form */}
+            <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-lg p-8 shadow-sm">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Change Password</h2>
+              <p className="text-gray-500 dark:text-gray-400 mb-6">
+                Please enter your current password to change your password.
+              </p>
+
+              <div className="space-y-6">
+                {/* Current Password */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Current Password
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      value={passwordData.currentPassword}
+                      onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
+                      className="pr-10"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Full Name</p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{userData.name}</p>
+
+                {/* New Password */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    New Password
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type={showNewPassword ? 'text' : 'password'}
+                      value={passwordData.newPassword}
+                      onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+                      className="pr-10"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm New Password */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Confirm New Password
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
+                      className="pr-10"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-2 rounded-md bg-gray-50 dark:bg-slate-700">
-                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center">
-                  <Mail className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{userData.email}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-2 rounded-md bg-gray-50 dark:bg-slate-700">
-                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center">
-                  <Phone className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Phone Number</p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{userData.phone}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-2 rounded-md bg-gray-50 dark:bg-slate-700">
-                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center">
-                  <Shield className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Role</p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{userData.role}</p>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          {/* Account Activity Card */}
-          <Card className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 p-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Account Activity
-            </h2>
-            
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-2 rounded-md bg-gray-50 dark:bg-slate-700">
-                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center">
-                  <Calendar className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Account Created</p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {formatDate(userData.createdAt)}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-2 rounded-md bg-gray-50 dark:bg-slate-700">
-                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-600 flex items-center justify-center">
-                  <Clock className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Last Login</p>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {formatDate(userData.lastLogin)}
-                  </p>
-                </div>
+              {/* Buttons */}
+              <div className="flex justify-end gap-4 mt-8">
+                <Button
+                  variant="outline"
+                  onClick={handleCancelPassword}
+                  className="px-6"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleUpdatePassword}
+                  className="px-6 bg-cyan-500 hover:bg-cyan-600 text-white"
+                >
+                  Update Password
+                </Button>
               </div>
             </div>
-          </Card>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="mt-6 flex justify-center">
-          <Button
-            onClick={() => navigate('/pc/changepassword')}
-            className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2 rounded-lg font-medium"
-          >
-            <Key className="w-4 h-4" />
-            Change Password
-          </Button>
-        </div>
+            {/* Password Requirements */}
+            <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-sm h-fit">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                PASSWORD REQUIREMENTS
+              </h3>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 ${
+                    passwordValidation.minLength
+                      ? 'border-green-500 bg-green-500'
+                      : 'border-gray-300 dark:border-gray-600'
+                  }`}>
+                    {passwordValidation.minLength && (
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Minimum 8 characters long - the more, the better
+                  </span>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 ${
+                    passwordValidation.hasLowercase
+                      ? 'border-green-500 bg-green-500'
+                      : 'border-gray-300 dark:border-gray-600'
+                  }`}>
+                    {passwordValidation.hasLowercase && (
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    At least one lowercase character
+                  </span>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 ${
+                    passwordValidation.hasUppercase
+                      ? 'border-green-500 bg-green-500'
+                      : 'border-gray-300 dark:border-gray-600'
+                  }`}>
+                    {passwordValidation.hasUppercase && (
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    At least one uppercase character
+                  </span>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 ${
+                    passwordValidation.hasSpecial
+                      ? 'border-green-500 bg-green-500'
+                      : 'border-gray-300 dark:border-gray-600'
+                  }`}>
+                    {passwordValidation.hasSpecial && (
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    At least one number, symbol, or whitespace character
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
