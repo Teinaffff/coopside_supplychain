@@ -4,8 +4,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { User, Users, LogOut } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "../../store";
 import { logoutUser } from "../../store/auth/auth-extra";
+import { updateCurrentUser } from "../../store/auth/auth-slice";
 import { Avatar } from "../../common/ui/avatar";
 import { AlertModal } from "../../common/modals/alert-modal";
+import { useCurrentUser } from "../../hooks/use-current-user";
 
 const DropdownUser = () => {
   const dispatch = useAppDispatch();
@@ -14,10 +16,54 @@ const DropdownUser = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
   
-  // Get current user from Redux store
-  const { currentUser } = useAppSelector((state) => state.auth);
-  const username = currentUser?.username || "User";
-  const userType = currentUser?.userType || "Admin";
+  // Fetch current user from API
+  const { data: currentUser, isLoading } = useCurrentUser();
+  
+  // Fallback to Redux store if API fails
+  const { currentUser: reduxUser } = useAppSelector((state) => state.auth);
+  
+  // Update Redux store when API data is loaded
+  useEffect(() => {
+    if (currentUser && !isLoading) {
+      // Map API user to CurrentUser format
+      const mappedUser = {
+        username: currentUser.firstName && currentUser.lastName 
+          ? `${currentUser.firstName} ${currentUser.lastName}`
+          : currentUser.firstName || currentUser.name || currentUser.username || currentUser.email || "User",
+        userType: currentUser.roleType || "Admin"
+      };
+      dispatch(updateCurrentUser(mappedUser));
+    }
+  }, [currentUser, isLoading, dispatch]);
+  
+  // Construct username from API data
+  const getUsername = () => {
+    if (currentUser) {
+      // Try different name fields from API
+      if (currentUser.firstName && currentUser.lastName) {
+        return `${currentUser.firstName} ${currentUser.lastName}`;
+      }
+      if (currentUser.firstName) return currentUser.firstName;
+      if (currentUser.name) return currentUser.name;
+      if (currentUser.username) return currentUser.username;
+      if (currentUser.email) return currentUser.email;
+    }
+    // Fallback to Redux
+    return reduxUser?.username || "User";
+  };
+  
+  // Get role type from API data
+  const getRoleType = () => {
+    if (currentUser?.roleType) {
+      // Capitalize first letter
+      return currentUser.roleType.charAt(0).toUpperCase() + currentUser.roleType.slice(1);
+    }
+    // Fallback to Redux
+    return reduxUser?.userType || "Admin";
+  };
+  
+  const username = getUsername();
+  const userType = getRoleType();
 
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
@@ -58,7 +104,7 @@ const DropdownUser = () => {
       >
         <span className="hidden text-right lg:block">
           <span className="block text-sm font-semibold text-gray-900 dark:text-white">
-            {username}
+            {isLoading ? "Loading..." : username}
           </span>
           <span className="block text-xs text-gray-500 dark:text-gray-400">{userType}</span>
         </span>

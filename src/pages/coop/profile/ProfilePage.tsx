@@ -1,27 +1,58 @@
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
+import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Edit2 } from 'lucide-react';
-import { RootState } from '../../../store';
 import { Button } from '../../../common/ui/button';
 import { Input } from '../../../common/ui/input';
+import { useCurrentUser } from '../../../hooks/use-current-user';
+import { toast } from 'react-hot-toast';
+import userService from '../../../services/userService';
 
 const ProfilePage: React.FC = () => {
-  // const { user, currentUser } = useSelector((state: RootState) => state.auth);
+  // Fetch current user from API
+  const { data: currentUser, isLoading, error, refetch } = useCurrentUser();
+  
   const [activeTab, setActiveTab] = useState<'details' | 'password'>('details');
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   // Password visibility states
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
-  // Form states
+  // Form states - initialized with API data
   const [formData, setFormData] = useState({
-    fullName: 'Admin User',
-    username: 'admin_user',
-    email: 'admin@example.com',
-    phone: '+1234567890',
+    fullName: '',
+    username: '',
+    email: '',
+    phone: '',
+    employeeId: '',
+    department: '',
   });
+  
+  // Update form data when user data is loaded
+  useEffect(() => {
+    if (currentUser) {
+      const fullName = currentUser.firstName && currentUser.lastName
+        ? `${currentUser.firstName} ${currentUser.lastName}`
+        : currentUser.name || currentUser.username || 'User';
+      
+      setFormData({
+        fullName,
+        username: currentUser.username || '',
+        email: currentUser.email || '',
+        phone: currentUser.phoneNumber || currentUser.phone || '',
+        employeeId: currentUser.employeeId || '',
+        department: currentUser.department || '',
+      });
+    }
+  }, [currentUser]);
+  
+  // Show error toast if API fails
+  useEffect(() => {
+    if (error) {
+      toast.error('Failed to load user profile');
+    }
+  }, [error]);
   
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -73,14 +104,111 @@ const ProfilePage: React.FC = () => {
     });
   };
 
+  const handleSaveProfile = async () => {
+    if (!currentUser?.id) {
+      toast.error('User ID not found');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Split full name into first and last name
+      const nameParts = formData.fullName.trim().split(' ');
+      const firstName = nameParts.slice(0, -1).join(' ') || nameParts[0] || '';
+      const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+
+      // Map roleType to roleId if roleId is not available
+      let roleId = currentUser.roleId;
+      if (!roleId && currentUser.roleType) {
+        const roleMap: Record<string, number> = {
+          'admin': 1,
+          'agent': 2,
+          'institution': 3,
+          'factory': 4,
+          'consumer': 5,
+        };
+        roleId = roleMap[currentUser.roleType.toLowerCase()] || 1;
+      }
+      if (!roleId) {
+        roleId = 1; // Default to admin if no role found
+      }
+
+      const updateData = {
+        email: formData.email,
+        firstName,
+        lastName,
+        phoneNumber: formData.phone,
+        roleId: roleId,
+        status: currentUser.status || 'ACTIVE',
+        department: formData.department || '',
+        employeeId: formData.employeeId || '',
+        remarks: '',
+      };
+
+      console.log('Updating profile with data:', updateData);
+      const updatedUser = await userService.updateUser(currentUser.id, updateData);
+      toast.success('Profile updated successfully');
+      
+      // Update form data immediately with the response from the API
+      const fullName = updatedUser.firstName && updatedUser.lastName
+        ? `${updatedUser.firstName} ${updatedUser.lastName}`
+        : updatedUser.name || updatedUser.username || 'User';
+      
+      setFormData({
+        fullName,
+        username: updatedUser.username || '',
+        email: updatedUser.email || '',
+        phone: updatedUser.phoneNumber || updatedUser.phone || '',
+        employeeId: updatedUser.employeeId || '',
+        department: updatedUser.department || '',
+      });
+      
+      setIsEditing(false);
+      
+      // Refetch user data to get fresh data from backend
+      await refetch();
+    } catch (err: any) {
+      console.error('Error updating profile:', err);
+      console.error('Error response:', err?.response?.data);
+      const message = err?.response?.data?.message || err.message || 'Failed to update profile';
+      toast.error(message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    // Reset form data to original user data
+    if (currentUser) {
+      const fullName = currentUser.firstName && currentUser.lastName
+        ? `${currentUser.firstName} ${currentUser.lastName}`
+        : currentUser.name || currentUser.username || 'User';
+      
+      setFormData({
+        fullName,
+        username: currentUser.username || '',
+        email: currentUser.email || '',
+        phone: currentUser.phoneNumber || currentUser.phone || '',
+        employeeId: currentUser.employeeId || '',
+        department: currentUser.department || '',
+      });
+    }
+    setIsEditing(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin User</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">admin@example.com</p>
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600"></div>
         </div>
+      ) : (
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{formData.fullName || currentUser?.firstName || 'User Profile'}</h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">{formData.email}</p>
+          </div>
 
         {/* Tabs */}
         <div className="flex gap-4 mb-6 border-b border-gray-200 dark:border-gray-700">
@@ -126,9 +254,17 @@ const ProfilePage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Full Name
                 </label>
-                <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700 rounded-md text-gray-600 dark:text-gray-300">
-                  {formData.fullName}
-                </div>
+                {isEditing ? (
+                  <Input
+                    value={formData.fullName}
+                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                    placeholder="Enter full name"
+                  />
+                ) : (
+                  <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700 rounded-md text-gray-600 dark:text-gray-300">
+                    {formData.fullName}
+                  </div>
+                )}
               </div>
 
               {/* Username */}
@@ -146,9 +282,18 @@ const ProfilePage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Email
                 </label>
-                <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700 rounded-md text-gray-600 dark:text-gray-300">
-                  {formData.email}
-                </div>
+                {isEditing ? (
+                  <Input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="Enter email"
+                  />
+                ) : (
+                  <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700 rounded-md text-gray-600 dark:text-gray-300">
+                    {formData.email}
+                  </div>
+                )}
               </div>
 
               {/* Phone */}
@@ -156,11 +301,76 @@ const ProfilePage: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Phone
                 </label>
-                <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700 rounded-md text-gray-600 dark:text-gray-300">
-                  {formData.phone}
-                </div>
+                {isEditing ? (
+                  <Input
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="Enter phone number"
+                  />
+                ) : (
+                  <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700 rounded-md text-gray-600 dark:text-gray-300">
+                    {formData.phone || 'N/A'}
+                  </div>
+                )}
+              </div>
+
+              {/* Employee ID */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Employee ID
+                </label>
+                {isEditing ? (
+                  <Input
+                    value={formData.employeeId}
+                    onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
+                    placeholder="Enter employee ID"
+                  />
+                ) : (
+                  <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700 rounded-md text-gray-600 dark:text-gray-300">
+                    {formData.employeeId || 'N/A'}
+                  </div>
+                )}
+              </div>
+
+              {/* Department */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Department
+                </label>
+                {isEditing ? (
+                  <Input
+                    value={formData.department}
+                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    placeholder="Enter department"
+                  />
+                ) : (
+                  <div className="px-4 py-3 bg-gray-50 dark:bg-slate-700 rounded-md text-gray-600 dark:text-gray-300">
+                    {formData.department || 'N/A'}
+                  </div>
+                )}
               </div>
             </div>
+
+            {/* Save/Cancel buttons when editing */}
+            {isEditing && (
+              <div className="flex justify-end gap-4 mt-6">
+                <Button
+                  variant="outline"
+                  onClick={handleCancelEdit}
+                  disabled={isSaving}
+                  className="px-6"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveProfile}
+                  disabled={isSaving}
+                  className="px-6 bg-cyan-500 hover:bg-cyan-600 text-white"
+                >
+                  {isSaving ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
@@ -341,6 +551,7 @@ const ProfilePage: React.FC = () => {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 };
